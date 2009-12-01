@@ -67,6 +67,7 @@ set(viewer_SOURCE_FILES
 	importtracker.cpp
 	exporttracker.cpp
 	chatbar_as_cmdline.cpp
+	floatersimexport.cpp
     floaterlogin.cpp
     hippoGridManager.cpp
     hippoLimits.cpp
@@ -488,6 +489,7 @@ set(viewer_HEADER_FILES
     hippoRestRequest.h
     jcfloater_animation_list.h
 	chatbar_as_cmdline.h
+	floatersimexport.h
     importtracker.h
 	exporttracker.h
     llagent.h
@@ -1168,6 +1170,7 @@ set(viewer_XUI_FILES
     skins/default/xui/en-us/floater_select_key.xml
     skins/default/xui/en-us/floater_sell_land.xml
     skins/default/xui/en-us/floater_settings_debug.xml
+    skins/default/xui/en-us/floater_sim_export.xml
     skins/default/xui/en-us/floater_sim_release_message.xml
     skins/default/xui/en-us/floater_snapshot.xml
     skins/default/xui/en-us/floater_sound_preview.xml

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater can_close="true" can_drag_on_left="false" can_minimize="true"
+     can_resize="true" min_width="340" width="340" height="300" name="SimExport" title="Export Simulator">
+
+ <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+     bottom="-40" drop_shadow_visible="true" follows="left|top"
+     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
+     mouse_opaque="true" name="simprims" v_pad="0" width="166">Simulator prims: 0</text>
+ 
+<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+     bottom_delta="-30" drop_shadow_visible="true" follows="left|top"
+     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
+     mouse_opaque="true" name="volumes" v_pad="0" width="166">Cached volumes : 0</text>
+<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+     bottom_delta="-30" drop_shadow_visible="true" follows="left|top"
+     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
+     mouse_opaque="true" name="plants" v_pad="0" width="166">Cached plants : 0</text>
+
+<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+     bottom_delta="-20" drop_shadow_visible="true" follows="left|top"
+     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
+     mouse_opaque="true" name="missing" v_pad="0" width="166">Missing : 0</text>
+
+  <check_box bottom_delta="-40" follows="left|top"
+     font="SansSerifSmall" height="16" initial_value="true" 
+     label="Export Textures" left="10" name="export_textures"
+     width="200" />
+
+  <check_box bottom_delta="-25" follows="left|top"
+     font="SansSerifSmall" height="16" initial_value="true" 
+     label="Export Plants" left="10" name="export_plants"
+     width="200" />
+
+
+  <button bottom="5" follows="right|bottom" font="SansSerif" halign="center" height="20"
+     label="Backup simulator" label_selected="" right="-200"
+     mouse_opaque="true" name="export"
+     tool_tip="Export the selected linksets" width="130" />
+
+  <button bottom="5" follows="right|bottom" font="SansSerif" halign="center" height="20"
+     label="Save terrain" label_selected="" right="-70"
+     mouse_opaque="true" name="saveterrain" enabled="false"
+     tool_tip="Save terrain" width="130" />
+
+  <button bottom="5" follows="right|bottom" font="SansSerif" halign="center" height="20"
+     label="Close" label_selected="" right="-10"
+     mouse_opaque="true" name="close" width="60" />
+</floater>

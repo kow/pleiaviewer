@@ -40,6 +40,9 @@
                     enabled="false">
       <on_click function="Object.Export" />
     </menu_item_call>
+	<menu_item_call enabled="true" hidden="false" label="Export Sim" mouse_opaque="true" name="ExportSim">
+       <on_click function="File.ExportSim" />rtSim" />
+    </menu_item_call>
     <menu_item_separator />
     <menu_item_call name="Close Window"
                     label="Close Window"

@@ -137,6 +137,11 @@
 #include "llviewerdisplay.h"
 #include "llkeythrottle.h"
 
+// SIM EXPORT
+#include "llvolume.h"
+#include "floatersimexport.h"
+// \SIM EXPORT
+
 #include <boost/tokenizer.hpp>
 
 #if LL_WINDOWS // For Windows specific error handler
@@ -3565,8 +3570,31 @@ void process_kill_object(LLMessageSystem *mesgsys, void **user_data)
 					gPipeline.addObject(bubble);
 				}
 
-				// Do the kill
-				gObjectList.killObject(objectp);
+				// SIM EXPORT
+
+				// Do the kill?
+				bool kill=true;
+
+				if(FloaterSimExport::sInstance!=0)
+				{
+					if(objectp->getPCode()==LL_PCODE_VOLUME ||objectp->getPCode()==LL_PCODE_LEGACY_TREE || objectp->getPCode()==LL_PCODE_LEGACY_GRASS)
+					{
+						LLViewerRegion * reg=objectp->getRegion();
+						if(reg->getHandle()==FloaterSimExport::getInstance()->getRegion())
+						{
+							if(!objectp->isAttachment())
+							{
+								kill=false; //don't kill
+							}
+						}
+					}
+				}
+				
+				if(kill)
+					gObjectList.killObject(objectp);
+
+				// \SIM EXPORT
+
 			}
 			else
 			{

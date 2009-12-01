@@ -72,6 +72,7 @@
 #include <boost/tokenizer.hpp>
 
 #include "importtracker.h"
+#include "floatersimexport.h"
 
 typedef LLMemberListener<LLView> view_listener_t;
 
@@ -365,6 +366,15 @@ class ImportLinkset : public view_listener_t
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
 		ImportTrackerFloater::getInstance()->show();
+		return true;
+	}
+};
+
+class ExportSim : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		FloaterSimExport::getInstance()->startexport();
 		return true;
 	}
 };
@@ -1098,6 +1108,7 @@ void init_menu_file()
 	(new LLFileUploadAnim())->registerListener(gMenuHolder, "File.UploadAnim");
 	(new LLFileUploadBulk())->registerListener(gMenuHolder, "File.UploadBulk");
 	(new ImportLinkset())->registerListener(gMenuHolder, "File.ImportLinkset");
+	(new ExportSim())->registerListener(gMenuHolder, "File.ExportSim");
 	(new LLFileCloseWindow())->registerListener(gMenuHolder, "File.CloseWindow");
 	(new LLFileCloseAllWindows())->registerListener(gMenuHolder, "File.CloseAllWindows");
 	(new LLFileEnableCloseWindow())->registerListener(gMenuHolder, "File.EnableCloseWindow");
