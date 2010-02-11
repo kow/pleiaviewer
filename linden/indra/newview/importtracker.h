@@ -29,6 +29,9 @@ public:
 
 	static void 	onCommitPosition(LLUICtrl* ctrl, void* userdata);
 
+	//Temporary function to rez a cube.
+	static void onClickPlywood(void* data);
+
 	//Reset button
 	static void onClickReset(void* data);
 
@@ -119,6 +122,7 @@ class ImportTracker
 		void link();
 		void wear(LLSD &prim);
 		void position(LLSD &prim);
+public:
 		void plywood_above_head();
 	
 	private:

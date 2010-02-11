@@ -183,6 +183,7 @@ ImportTrackerFloater::ImportTrackerFloater()
 {
 	LLUICtrlFactory::getInstance()->buildFloater( this, "floater_prim_import.xml" );
 
+	childSetAction("plywood", onClickPlywood, this); //temp function, rezzes cube.
 	childSetAction("reset", onClickReset, this);
 	childSetAction("import", onClickImport, this);
 	childSetAction("close", onClickClose, this);
@@ -309,6 +310,11 @@ void ImportTrackerFloater::onCommitPosition( LLUICtrl* ctrl, void* userdata )
 }
 
 // static
+void ImportTrackerFloater::onClickPlywood(void* data)
+{
+	gImportTracker.plywood_above_head();
+}
+
 void ImportTrackerFloater::onClickReset(void* data)
 {
 	gImportTracker.importoffset.clear();

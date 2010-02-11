@@ -152,7 +152,7 @@ ExportTrackerFloater::ExportTrackerFloater()
 		LLSelectNode* selectNode = *iter;
 		LLViewerObject* object = selectNode->getObject();
 		if(object)
-			if(!object->isAvatar() && object->permModify() && object->permCopy() && object->permTransfer() && !gAgent.getGodLevel())
+			if(1)//PERMS !object->isAvatar() && object->permModify() && object->permCopy() && object->permTransfer() && !gAgent.getGodLevel())
 			{
 				catfayse.put(object);
 			}
@@ -319,7 +319,7 @@ LLSD JCExportTracker::subserialize(LLViewerObject* linkset)
 	
 	if (!object)
 		return llsd;
-	if(!(!object->isAvatar() && object->permModify() && object->permCopy() && object->permTransfer() && !gAgent.getGodLevel()))
+	if(0)//PERMS !(!object->isAvatar() && object->permModify() && object->permCopy() && object->permTransfer() && !gAgent.getGodLevel()))
 		return llsd;
 	// Build a list of everything that we'll actually be exporting
 	LLDynamicArray<LLViewerObject*> export_objects;
@@ -743,7 +743,7 @@ void JCExportTracker::exportworker(void *userdata)
 			//cmdline_printchat(llformat("backing up object %u",ExportTrackerFloater::linksets_exported));
 			LLViewerObject* object = ExportTrackerFloater::objectselection.get(ExportTrackerFloater::linksets_exported);
 
-			if(!(!object->isAvatar() && object->permModify() && object->permCopy() && object->permTransfer() && !gAgent.getGodLevel()))
+			if(0)//PERMS !(!object->isAvatar() && object->permModify() && object->permCopy() && object->permTransfer() && !gAgent.getGodLevel()))
 			{
 				LLVector3 temp = object->getPosition();
 				ExportTrackerFloater::total_linksets--;
@@ -771,11 +771,15 @@ void JCExportTracker::exportworker(void *userdata)
 			data = total;
 
 			//cmdline_printchat("exporting " + llformat("%d",objects.size()) + " objects");
-			if((ExportTrackerFloater::linksets_exported >= ExportTrackerFloater::objectselection.count()) && !total.isUndefined() && propertyqueries == 0 && invqueries == 0)
-			{
-				completechk();
-			}
 		}
+	}
+
+	//CHECK IF WE'RE DONE
+	if((ExportTrackerFloater::linksets_exported >= ExportTrackerFloater::objectselection.count()) && 
+		((int)totalprims >= ExportTrackerFloater::total_objects) &&
+		!total.isUndefined() && propertyqueries == 0 && invqueries == 0)
+	{
+		completechk();
 	}
 
 }
@@ -1364,6 +1368,7 @@ void JCExportTracker::completechk()
 	{
 		//cmdline_printchat("Full property export completed.");
 		//cmdline_printchat("(Content downloads may require more time, but the tracker is free for another export.)");
+		gIdleCallbacks.deleteFunction(exportworker);
 		finalize(data);
 	}
 }
@@ -1678,7 +1683,7 @@ void JCAssetExportCallback(LLVFS *vfs, const LLUUID& uuid, LLAssetType::EType ty
 		infile.close();
 
 		delete buffer;
-	}else //cmdline_printchat("Failed to save file "+info->path+" ("+info->name+") : "+std::string(LLAssetStorage::getErrorString(result)));
+	}// else cmdline_printchat("Failed to save file "+info->path+" ("+info->name+") : "+std::string(LLAssetStorage::getErrorString(result)));
 
 	delete info;
 }
