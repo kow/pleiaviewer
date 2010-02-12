@@ -35,6 +35,7 @@ include(GooglePerfTools)
 include(TemplateCheck)
 include(UI)
 include(UnixInstall)
+include(ViewerArtwork)
 include(ViewerMiscLibs)
 
 if (WINDOWS)
@@ -982,7 +983,7 @@ if (WINDOWS)
         res/arrowcopmulti.cur
         res/arrowdrag.cur
         res/circleandline.cur
-        res/icon1.ico
+        res/imp_icon.ico
         res/imprudence_icon.png
         res/llarrow.cur
         res/llarrowdrag.cur
@@ -1003,7 +1004,6 @@ if (WINDOWS)
         res/lltooltranslate.cur
         res/lltoolzoomin.cur
         res/lltoolzoomout.cur
-        res/ll_icon.ico
         res/resource.h
         res/toolbuy.cur
         res/toolopen.cur
@@ -1188,6 +1188,11 @@ set(viewer_XUI_FILES
     skins/default/xui/en-us/floater_windlight_options.xml
     skins/default/xui/en-us/floater_world_map.xml
     skins/default/xui/en-us/fonts.xml
+    skins/default/xui/en-us/legacy_menu_pie_attachment.xml
+	skins/default/xui/en-us/legacy_menu_pie_avatar.xml
+	skins/default/xui/en-us/legacy_menu_pie_land.xml
+	skins/default/xui/en-us/legacy_menu_pie_object.xml
+	skins/default/xui/en-us/legacy_menu_pie_self.xml
     skins/default/xui/en-us/menu_inventory.xml
     skins/default/xui/en-us/menu_login.xml
     skins/default/xui/en-us/menu_mini_map.xml
@@ -1246,6 +1251,7 @@ set(viewer_XUI_FILES
     skins/default/xui/en-us/panel_preferences_voice.xml
     skins/default/xui/en-us/panel_preferences_web.xml
     skins/default/xui/en-us/panel_progress.xml
+    skins/default/xui/en-us/panel_radar.xml
     skins/default/xui/en-us/panel_region_covenant.xml
     skins/default/xui/en-us/panel_region_debug.xml
     skins/default/xui/en-us/panel_region_estate.xml
@@ -1445,7 +1451,7 @@ if (WINDOWS)
           --source=${CMAKE_CURRENT_SOURCE_DIR}
               --artwork=${ARTWORK_DIR}
               --build=${CMAKE_CURRENT_BINARY_DIR}
-              --dest=${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}
+              --dest=${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/package
               --touch=${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/touched.bat
         DEPENDS ${VIEWER_BINARY_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/viewer_manifest.py
         )

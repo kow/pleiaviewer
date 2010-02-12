@@ -81,10 +81,11 @@ def get_default_version(srctree):
     for p in paths:
         if os.path.exists(p):
             contents = open(p, 'r').read()
-            major = re.search("LL_VERSION_MAJOR\s=\s([0-9]+)", contents).group(1)
-            minor = re.search("LL_VERSION_MINOR\s=\s([0-9]+)", contents).group(1)
-            patch = re.search("LL_VERSION_PATCH\s=\s([0-9]+)", contents).group(1)
-            build = re.search("LL_VERSION_BUILD\s=\s([0-9]+)", contents).group(1)
+            major = re.search("IMP_VERSION_MAJOR\s=\s([0-9]+)", contents).group(1)
+            minor = re.search("IMP_VERSION_MINOR\s=\s([0-9]+)", contents).group(1)
+            patch = re.search("IMP_VERSION_PATCH\s=\s([0-9]+)", contents).group(1)
+            #build = re.search("LL_VERSION_BUILD\s=\s([0-9]+)", contents).group(1)
+	    build = re.search('const char \* const IMP_VERSION_TEST = "(.*)";', contents).group(1)
             return major, minor, patch, build
 
 def get_channel(srctree):
@@ -98,7 +99,7 @@ def get_channel(srctree):
     
 
 DEFAULT_SRCTREE = os.path.dirname(sys.argv[0])
-DEFAULT_CHANNEL = 'Second Life Release'
+DEFAULT_CHANNEL = 'Imprudence'
 
 ARGUMENTS=[
     dict(name='actions',
@@ -156,7 +157,7 @@ ARGUMENTS=[
         for use by a .bat file.""",
          default=None),
     dict(name='version',
-         description="""This specifies the version of Second Life that is
+         description="""This specifies the version of Imprudence that is
         being packaged up.""",
          default=get_default_version)
     ]
@@ -621,7 +622,6 @@ class LLManifest(object):
             count = 0
             if self.wildcard_pattern.search(src):
                 for s,d in self.expand_globs(src, dst):
-                    assert(s != d)
                     count += self.process_file(s, d)
             else:
                 # if we're specifying a single path (not a glob),

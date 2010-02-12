@@ -1,6 +1,56 @@
 <?xml version="1.0" ?>
 <llsd>
 <map>
+
+<!-- Begin: Client Name Tag -->	
+
+  <key>ShowClientNameTag</key>
+  <map>
+    <key>Comment</key>
+    <string>Show others clients in name tag</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+  <key>DownloadClientTags</key>
+  <map>
+    <key>Comment</key>
+    <string>download tags</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>WarnClientTags</key>
+  <map>
+    <key>Comment</key>
+    <string>Enables ClientTags warning dialog</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+  <key>ClothingLayerProtection</key>
+  <map>
+    <key>Comment</key>
+    <string>Overwrites clothing layers to sim in order to protect your worn items from being as easily stolen. Also lets others see the client name if set to true.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+
+<!-- End: Client Name Tag -->
+
   <key>RestrainedLife</key>
   <map>
     <key>Comment</key>
@@ -3936,6 +3986,22 @@
         <integer>0</integer>
       </array>
     </map>
+	<key>FloaterHtmlRect</key>
+    <map>
+      <key>Comment</key>
+      <string>Rectangle for HTML window</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Rect</string>
+      <key>Value</key>
+      <array>
+        <integer>100</integer>
+        <integer>460</integer>
+        <integer>370</integer>
+        <integer>100</integer>
+      </array>
+    </map>
     <key>FloaterIMRect</key>
     <map>
       <key>Comment</key>
@@ -5644,6 +5710,17 @@
     <map>
       <key>Comment</key>
       <string>Left click opens pie menu (FALSE = left click touches or grabs object)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>LegacyPieEnabled</key>
+    <map>
+      <key>Comment</key>
+      <string>Use legacy pie menu</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -8375,6 +8452,17 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>SaveInventoryScriptsAsMono</key>
+    <map>
+      <key>Comment</key>
+      <string>When editing and saving a script in inventory, configure it to compile as mono when dragged into a task</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <real>0</real>
+    </map>
     <key>SaveMinidump</key>
     <map>
       <key>Comment</key>
@@ -9441,6 +9529,17 @@
         <integer>29</integer>
       </array>
     </map>
+    <key>SliderScrollWheelMultiplier</key>
+    <map>
+      <key>Comment</key>
+      <string>Multiplier for the amount the mouse scroll wheel affects slider widgets in the UI. E.g. -1 makes sliders move the opposite way when scrolled.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>SmallAvatarNames</key>
     <map>
       <key>Comment</key>
@@ -9817,7 +9916,7 @@
       <key>Type</key>
       <string>F32</string>
       <key>Value</key>
-      <real>1000.0</real>
+      <real>5000.0</real>
     </map>
     <key>ToolHelpRect</key>
     <map>
@@ -12335,7 +12434,7 @@
       <key>Type</key>
       <string>F32</string>
       <key>Value</key>
-      <real>150000.0</real>
+      <real>500000.0</real>
     </map>
     <key>YawFromMousePosition</key>
     <map>
