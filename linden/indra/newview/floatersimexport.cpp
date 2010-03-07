@@ -111,8 +111,10 @@ void FloaterSimExport::onClickExport(void* data)
 {
 		gIdleCallbacks.deleteFunction(statsupdate);
 	
-		sInstance->mExportTextures=sInstance->getChild<LLCheckBoxCtrl>("export_textures")->get();
+		JCExportTracker::export_textures = sInstance->getChild<LLCheckBoxCtrl>("export_textures")->get();
 		sInstance->mExportTrees=sInstance->getChild<LLCheckBoxCtrl>("export_trees")->get();
+		JCExportTracker::export_inventory = sInstance->getChild<LLCheckBoxCtrl>("export_contents")->get();
+		JCExportTracker::export_properties = sInstance->getChild<LLCheckBoxCtrl>("export_properties")->get();
 
 		LLParcelSelectionHandle mParcel = LLViewerParcelMgr::getInstance()->selectParcelAt(gAgent.getPositionGlobal());
 	
@@ -153,11 +155,6 @@ void FloaterSimExport::onClickExport(void* data)
 				}
 			}
 		}
-
-	gSavedSettings.setBOOL("EmeraldExportProperties",true);
-	gSavedSettings.setBOOL("ExportJ2CTextures",sInstance->mExportTextures);
-	gSavedSettings.setBOOL("ExportTGATextures",false); //these are for primcomposer which can't handle entire sims too well anyway.
-	gSavedSettings.setBOOL("EmeraldExportInventory",true);
 
 	int total=0;
 	total=sInstance->mRootPrims+sInstance->mChildPrims;
@@ -356,6 +353,6 @@ void ExportTrackerFloater::RemoteStart(	LLDynamicArray<LLViewerObject*> catfayse
 	total_objects=primcount;
 	JCExportTracker::selection_size = LLVector3(256,256,256);
 	JCExportTracker::selection_center = LLVector3(128,128,128);
-	JCExportTracker::export_inventory = gSavedSettings.getBOOL("EmeraldExportInventory");
+	//JCExportTracker::export_inventory = gSavedSettings.getBOOL("EmeraldExportInventory");
 	JCExportTracker::serialize(objectselection);
 }

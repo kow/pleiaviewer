@@ -33,7 +33,8 @@
 #include "llagent.h"
 #include "llfloater.h"
 
-#define PROP_REQUEST_KICK 10000
+#define PROP_REQUEST_KICK 10
+#define INV_REQUEST_KICK 10
 
 struct PropertiesRequest_t
 {
@@ -41,6 +42,13 @@ struct PropertiesRequest_t
 	LLUUID	target_prim;
 	U32		localID;
 };
+
+struct InventoryRequest_t
+{
+	time_t	request_time;
+	LLViewerObject * object; // I can't be bothered to itterate the objects list on every kick, so hold the pointer here
+};
+
 
 class ExportTrackerFloater : public LLFloater
 {
@@ -76,6 +84,7 @@ public:
 
 
 	static LLDynamicArray<LLViewerObject*> objectselection;
+	static LLDynamicArray<LLViewerObject*> mOjectSelectionWaitList;
 
 	static int		linksets_exported;
 	static int		properties_exported;
@@ -100,7 +109,6 @@ public:
 	static void init();
 private:
 	static LLSD* getprim(LLUUID id);
-	static void completechk();
 public:
 	static void processObjectProperties(LLMessageSystem* msg, void** user_data);
 	void inventoryChanged(LLViewerObject* obj,
@@ -121,16 +129,18 @@ public:
 
 	static bool serialize(LLDynamicArray<LLViewerObject*> objects);
 
+	static bool getAsyncData(LLViewerObject * obj);
+
 	//Export idle callback
 	static void exportworker(void *userdata);
 
 	static bool serializeSelection();
-	static void finalize(LLSD data);
+	static void finalize();
 
 	static BOOL mirror(LLInventoryObject* item, LLViewerObject* container = NULL, std::string root = "", std::string iname = "");
 
 private:
-	static LLSD subserialize(LLViewerObject* linkset);
+	static LLSD* subserialize(LLViewerObject* linkset);
 	static void requestPrimProperties(U32 localID);
 
 public:
@@ -159,6 +169,9 @@ private:
 	static std::string asset_dir;
 	static std::set<LLUUID> requested_textures;
 	static std::list<PropertiesRequest_t*> requested_properties;
+	static std::list<InventoryRequest_t*> requested_inventory;
+
+	static std::list<LLSD *> processed_prims;
 };
 
 // zip a folder. this doesn't work yet.

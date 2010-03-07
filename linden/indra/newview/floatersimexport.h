@@ -44,7 +44,6 @@ private:
 	FloaterSimExport();	
 
 	bool mExportTrees;
-	bool mExportTextures;
 	bool mRunning;
 	int mRootPrims;
 	int mChildPrims;
