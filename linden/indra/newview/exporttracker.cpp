@@ -1438,7 +1438,6 @@ void JCExportTracker::processObjectProperties(LLMessageSystem* msg, void** user_
 	}
 	if(status == IDLE)
 	{
-		cmdline_printchat("properties recieved in status == IDLE");
 		return;
 	}
 	S32 i;
