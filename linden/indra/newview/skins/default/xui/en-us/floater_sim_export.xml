@@ -25,6 +25,10 @@
      font="SansSerifSmall" height="16" initial_value="true" 
      label="Export Textures" left="10" name="export_textures"
      width="200" />
+  <check_box bottom_delta="-40" follows="left|top"
+     font="SansSerifSmall" height="16" initial_value="true"
+     label="Export Textures as TGA" left="10" name="export_textures_tga"
+     width="200" />
 
   <check_box bottom_delta="-25" follows="left|top"
      font="SansSerifSmall" height="16" initial_value="true" 

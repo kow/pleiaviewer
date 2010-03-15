@@ -74,6 +74,7 @@ U32 JCExportTracker::invqueries;
 BOOL JCExportTracker::export_properties;
 BOOL JCExportTracker::export_inventory;
 BOOL JCExportTracker::export_textures;
+BOOL JCExportTracker::export_textures_tga;
 U32 JCExportTracker::status;
 std::string JCExportTracker::destination;
 std::string JCExportTracker::asset_dir;
@@ -243,6 +244,11 @@ void ExportTrackerFloater::show()
 // static
 void ExportTrackerFloater::onClickExport(void* data)
 {
+	JCExportTracker::export_textures_tga = sInstance->getChild<LLCheckBoxCtrl>("export_tga_checkbox")->get();
+	JCExportTracker::export_textures = sInstance->getChild<LLCheckBoxCtrl>("export_j2c_checkbox")->get();
+	JCExportTracker::export_properties = sInstance->getChild<LLCheckBoxCtrl>("export_properties_checkbox")->get();
+	JCExportTracker::export_inventory = sInstance->getChild<LLCheckBoxCtrl>("export_inventory_checkbox")->get();
+
 	JCExportTracker::serialize(objectselection);
 }
 
@@ -658,7 +664,7 @@ void JCExportTracker::onFileLoadedForSave(BOOL success,
 			
 			//old export TGA textures setting, we don't use but leave
 			//the code here just incase someone wants it in the future
-			if(false)
+			if(export_textures && export_textures_tga)
 			{
 				LLPointer<LLImageTGA> image_tga = new LLImageTGA;
 

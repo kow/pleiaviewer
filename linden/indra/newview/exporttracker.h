@@ -153,6 +153,7 @@ public:
 	static BOOL export_properties;
 	static BOOL export_inventory;
 	static BOOL export_textures;
+	static BOOL export_textures_tga;
 
 	//static U32 level;
 

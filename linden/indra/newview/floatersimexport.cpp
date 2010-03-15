@@ -112,6 +112,7 @@ void FloaterSimExport::onClickExport(void* data)
 		gIdleCallbacks.deleteFunction(statsupdate);
 	
 		JCExportTracker::export_textures = sInstance->getChild<LLCheckBoxCtrl>("export_textures")->get();
+		JCExportTracker::export_textures_tga = sInstance->getChild<LLCheckBoxCtrl>("export_textures_tga")->get();
 		sInstance->mExportTrees=sInstance->getChild<LLCheckBoxCtrl>("export_trees")->get();
 		JCExportTracker::export_inventory = sInstance->getChild<LLCheckBoxCtrl>("export_contents")->get();
 		JCExportTracker::export_properties = sInstance->getChild<LLCheckBoxCtrl>("export_properties")->get();
