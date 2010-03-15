@@ -90,6 +90,7 @@ LLDynamicArray<LLViewerObject*> ExportTrackerFloater::objectselection;
 LLDynamicArray<LLViewerObject*> ExportTrackerFloater::mOjectSelectionWaitList;
 
 std::list<LLSD *> JCExportTracker::processed_prims;
+std::map<LLUUID,LLSD *> JCExportTracker::recieved_inventory;
 
 int ExportTrackerFloater::properties_exported = 0;
 int ExportTrackerFloater::total_properties = 0;
@@ -1350,25 +1351,35 @@ void JCExportTracker::finalize()
 				} // end for each texture
 ///////////////////////////////////////////////////////////
 				//<inventory>
+
+				
 				LLXMLNodePtr inventory_xml = prim_xml->createChild("inventory", FALSE);
-				LLSD inventory = prim["inventory"];
-			
-				//for each inventory item
-				for (LLSD::array_iterator inv = inventory.beginArray(); inv != inventory.endArray(); ++inv)
+				//LLSD inventory = prim["inventory"];
+				LLSD * inventory = recieved_inventory[prim["id"]];
+
+				if(inventory !=NULL)
 				{
-					LLSD item = (*inv);
-					//<item>
-					LLXMLNodePtr field_xml = inventory_xml->createChild("item", FALSE);
-                       //<description>2008-01-29 05:01:19 note card</description>
-					field_xml->createChild("description", FALSE)->setValue(item["desc"].asString());
-                       //<item_id>673b00e8-990f-3078-9156-c7f7b4a5f86c</item_id>
-					field_xml->createChild("item_id", FALSE)->setValue(item["item_id"].asString());
-                       //<name>blah blah</name>
-					field_xml->createChild("name", FALSE)->setValue(item["name"].asString());
-                       //<type>notecard</type>
-					field_xml->createChild("type", FALSE)->setValue(item["type"].asString());
-				} // end for each inventory item
-				//add this prim to the linkset.
+					//for each inventory item
+					for (LLSD::array_iterator inv = (*inventory).beginArray(); inv != (*inventory).endArray(); ++inv)
+					{
+						LLSD item = (*inv);
+						//<item>
+						LLXMLNodePtr field_xml = inventory_xml->createChild("item", FALSE);
+						   //<description>2008-01-29 05:01:19 note card</description>
+						field_xml->createChild("description", FALSE)->setValue(item["desc"].asString());
+						   //<item_id>673b00e8-990f-3078-9156-c7f7b4a5f86c</item_id>
+						field_xml->createChild("item_id", FALSE)->setValue(item["item_id"].asString());
+						   //<name>blah blah</name>
+						field_xml->createChild("name", FALSE)->setValue(item["name"].asString());
+						   //<type>notecard</type>
+						field_xml->createChild("type", FALSE)->setValue(item["type"].asString());
+					} // end for each inventory item
+					//add this prim to the linkset.
+
+					delete(inventory);
+					recieved_inventory.erase((LLUUID)prim["id"]);
+
+				}
 				linkset_xml->addChild(prim_xml);
 			} //end for each object
 			//add this linkset to the group.
@@ -1425,6 +1436,7 @@ void JCExportTracker::finalize()
 //	export_file.close();
 
 	processed_prims.clear();
+	recieved_inventory.clear();
 	ExportTrackerFloater::getInstance()->childSetEnabled("export",true);
 	status = IDLE;
 }
@@ -1626,6 +1638,72 @@ void JCExportTracker::inventoryChanged(LLViewerObject* obj,
 		return;
 	}
 
+	if(requested_inventory.empty())
+		return;
+
+	std::list<InventoryRequest_t*>::iterator iter=requested_inventory.begin();
+	for(iter;iter!=requested_inventory.end();iter++)
+	{
+		if((*iter)->object->getID()==obj->getID())
+		{
+			//cmdline_printchat("downloaded inventory for "+obj->getID().asString());
+			LLSD * inventory = new LLSD();
+			//lol lol lol lol lol
+			InventoryObjectList::const_iterator it = inv->begin();
+			InventoryObjectList::const_iterator end = inv->end();
+			U32 num = 0;
+			for( ;	it != end;	++it)
+			{
+				LLInventoryObject* asset = (*it);
+				if(asset)
+				{
+					LLInventoryItem* item = (LLInventoryItem*)((LLInventoryObject*)(*it));
+					LLViewerInventoryItem* new_item = (LLViewerInventoryItem*)item;
+					new_item; //ugh
+					LLPermissions perm;
+					llassert(perm = new_item->getPermissions());
+					if(couldDL(asset->getType())
+						&& perm.allowCopyBy(gAgent.getID())
+						&& perm.allowModifyBy(gAgent.getID())
+						&& perm.allowTransferTo(LLUUID::null))// && is_asset_id_knowable(asset->getType()))
+					{
+						LLSD inv_item;
+						inv_item["name"] = asset->getName();
+						inv_item["type"] = LLAssetType::lookup(asset->getType());
+						//cmdline_printchat("requesting asset for "+asset->getName());
+						inv_item["desc"] = ((LLInventoryItem*)((LLInventoryObject*)(*it)))->getDescription();//god help us all
+						inv_item["item_id"] = asset->getUUID().asString();
+						if(!LLFile::isdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory"))
+						{
+							LLFile::mkdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory");
+						}
+						JCExportTracker::mirror(asset, obj, asset_dir+gDirUtilp->getDirDelimiter()+"inventory", asset->getUUID().asString());//loltest
+						//unacceptable
+						(*inventory)[num] = inv_item;
+						num += 1;
+						ExportTrackerFloater::total_assets++;
+					}
+				}
+			}
+
+			//MEH
+			//(*link_itr)["inventory"] = inventory;
+			recieved_inventory[obj->getID()]=inventory;
+
+			//cmdline_printchat(llformat("%d inv queries left",invqueries));
+
+			obj->removeInventoryListener(sInstance);
+			obj->mInventoryRecieved=true;
+
+			requested_inventory.erase(iter);
+			break;
+		}
+	}
+		// we should not get here and hopefully checking requested_inventory contained this
+		// object was unnecessary.
+
+/*
+
 	{
 		for(LLSD::array_iterator array_itr = data.beginArray();
 			array_itr != data.endArray();
@@ -1646,48 +1724,6 @@ void JCExportTracker::inventoryChanged(LLViewerObject* obj,
 						{
 							if(!((*link_itr).has("inventory")))
 							{
-
-								//cmdline_printchat("downloaded inventory for "+obj->getID().asString());
-								LLSD inventory;
-								//lol lol lol lol lol
-								InventoryObjectList::const_iterator it = inv->begin();
-								InventoryObjectList::const_iterator end = inv->end();
-								U32 num = 0;
-								for( ;	it != end;	++it)
-								{
-									LLInventoryObject* asset = (*it);
-									if(asset)
-									{
-										LLInventoryItem* item = (LLInventoryItem*)((LLInventoryObject*)(*it));
-										LLViewerInventoryItem* new_item = (LLViewerInventoryItem*)item;
-										new_item; //ugh
-										LLPermissions perm;
-										llassert(perm = new_item->getPermissions());
-										if(couldDL(asset->getType())
-										&& perm.allowCopyBy(gAgent.getID())
-										&& perm.allowModifyBy(gAgent.getID())
-										&& perm.allowTransferTo(LLUUID::null))// && is_asset_id_knowable(asset->getType()))
-										{
-											LLSD inv_item;
-											inv_item["name"] = asset->getName();
-											inv_item["type"] = LLAssetType::lookup(asset->getType());
-											//cmdline_printchat("requesting asset for "+asset->getName());
-											inv_item["desc"] = ((LLInventoryItem*)((LLInventoryObject*)(*it)))->getDescription();//god help us all
-											inv_item["item_id"] = asset->getUUID().asString();
-											if(!LLFile::isdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory"))
-											{
-												LLFile::mkdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory");
-											}
-											JCExportTracker::mirror(asset, obj, asset_dir+gDirUtilp->getDirDelimiter()+"inventory", asset->getUUID().asString());//loltest
-											//unacceptable
-											inventory[num] = inv_item;
-											num += 1;
-											ExportTrackerFloater::total_assets++;
-										}
-									}
-								}
-								(*link_itr)["inventory"] = inventory;
-								//cmdline_printchat(llformat("%d inv queries left",invqueries));
 							}
 						}
 					}
@@ -1698,10 +1734,8 @@ void JCExportTracker::inventoryChanged(LLViewerObject* obj,
 
 
 	}
-	obj->removeInventoryListener(sInstance);
-	obj->mInventoryRecieved=true;
+	*/
 
-	requested_inventory.remove((InventoryRequest_t*)user_data);
 }
 
 void JCAssetExportCallback(LLVFS *vfs, const LLUUID& uuid, LLAssetType::EType type, void *userdata, S32 result, LLExtStat extstat)

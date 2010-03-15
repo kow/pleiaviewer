@@ -173,6 +173,7 @@ private:
 	static std::list<InventoryRequest_t*> requested_inventory;
 
 	static std::list<LLSD *> processed_prims;
+	static std::map<LLUUID,LLSD *>recieved_inventory;
 };
 
 // zip a folder. this doesn't work yet.
