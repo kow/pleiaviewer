@@ -17,19 +17,19 @@
 
   <check_box bottom_delta="-23" control_name="ExportJ2CTextures" follows="left|top"
      font="SansSerifSmall" height="16" initial_value="true" 
-     label="Export J2C textures" left_delta="0" name="export_j2c_checkbox"
+     label="Export J2C textures" left_delta="0" name="export_j2c"
      width="200" />
   <check_box bottom_delta="-20" control_name="ExportTGATextures" follows="left|top"
      font="SansSerifSmall" height="16" initial_value="true"
-     label="Export TGA textures" left_delta="0" name="export_tga_checkbox"
+     label="Export TGA textures" left_delta="0" name="export_tga"
      width="200" />
   <check_box bottom_delta="-20" control_name="EmeraldExportProperties" follows="left|top"
      font="SansSerifSmall" height="16" initial_value="true"
-     label="Export Properties" left_delta="0" name="export_properties_checkbox"
+     label="Export Properties" left_delta="0" name="export_properties"
      width="200" />
   <check_box bottom_delta="-20" control_name="EmeraldExportInventory" follows="left|top"
      font="SansSerifSmall" height="16" initial_value="true"
-     label="Export Contents" left_delta="20" name="export_contents_checkbox"
+     label="Export Contents" left_delta="20" name="export_contents"
      width="200" />
   
   <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"

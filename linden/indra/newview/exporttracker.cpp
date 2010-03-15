@@ -73,8 +73,8 @@ U32 JCExportTracker::propertyqueries;
 U32 JCExportTracker::invqueries;
 BOOL JCExportTracker::export_properties;
 BOOL JCExportTracker::export_inventory;
-BOOL JCExportTracker::export_textures;
-BOOL JCExportTracker::export_textures_tga;
+BOOL JCExportTracker::export_tga;
+BOOL JCExportTracker::export_j2c;
 U32 JCExportTracker::status;
 std::string JCExportTracker::destination;
 std::string JCExportTracker::asset_dir;
@@ -244,10 +244,11 @@ void ExportTrackerFloater::show()
 // static
 void ExportTrackerFloater::onClickExport(void* data)
 {
-	JCExportTracker::export_textures_tga = sInstance->getChild<LLCheckBoxCtrl>("export_tga_checkbox")->get();
-	JCExportTracker::export_textures = sInstance->getChild<LLCheckBoxCtrl>("export_j2c_checkbox")->get();
-	JCExportTracker::export_properties = sInstance->getChild<LLCheckBoxCtrl>("export_properties_checkbox")->get();
-	JCExportTracker::export_inventory = sInstance->getChild<LLCheckBoxCtrl>("export_inventory_checkbox")->get();
+	JCExportTracker::export_tga = sInstance->getChild<LLCheckBoxCtrl>("export_tga")->get();
+	JCExportTracker::export_j2c = sInstance->getChild<LLCheckBoxCtrl>("export_j2c")->get();
+	JCExportTracker::export_properties = sInstance->getChild<LLCheckBoxCtrl>("export_properties")->get();
+	JCExportTracker::export_inventory = sInstance->getChild<LLCheckBoxCtrl>("export_contents")->get();
+	//sInstance->mExportTrees=sInstance->getChild<LLCheckBoxCtrl>("export_trees")->get();
 
 	JCExportTracker::serialize(objectselection);
 }
@@ -458,7 +459,7 @@ LLSD * JCExportTracker::subserialize(LLViewerObject* linkset)
 				LLSculptParams* sculpt = (LLSculptParams*)object->getParameterEntry(LLNetworkData::PARAMS_SCULPT);
 				prim_llsd["sculpt"] = sculpt->asLLSD();
 
-				if(export_textures)
+				if(export_tga || export_j2c)
 				{
 					LLFile::mkdir(asset_dir+"//sculptmaps//");
 					std::string path = asset_dir+"//sculptmaps//";
@@ -491,7 +492,7 @@ LLSD * JCExportTracker::subserialize(LLViewerObject* linkset)
 			te_llsd.append(object->getTE(i)->asLLSD());
 		}
 
-		if(export_textures)
+		if(export_tga || export_j2c)
 		{
 			LLFile::mkdir(asset_dir+"//textures//");
 			std::string path = asset_dir+"//textures//";
@@ -662,9 +663,7 @@ void JCExportTracker::onFileLoadedForSave(BOOL success,
 				}
 			}
 			
-			//old export TGA textures setting, we don't use but leave
-			//the code here just incase someone wants it in the future
-			if(export_textures && export_textures_tga)
+			if(export_tga)
 			{
 				LLPointer<LLImageTGA> image_tga = new LLImageTGA;
 
@@ -678,7 +677,7 @@ void JCExportTracker::onFileLoadedForSave(BOOL success,
 				}
 			}
 
-			if(export_textures)
+			if(export_j2c)
 			{
 				LLPointer<LLImageJ2C> image_j2c = new LLImageJ2C();
 				if(!image_j2c->encode(src,0.0))

@@ -111,8 +111,8 @@ void FloaterSimExport::onClickExport(void* data)
 {
 		gIdleCallbacks.deleteFunction(statsupdate);
 	
-		JCExportTracker::export_textures = sInstance->getChild<LLCheckBoxCtrl>("export_textures")->get();
-		JCExportTracker::export_textures_tga = sInstance->getChild<LLCheckBoxCtrl>("export_textures_tga")->get();
+		//JCExportTracker::export_tga = sInstance->getChild<LLCheckBoxCtrl>("export_textures")->get();
+		JCExportTracker::export_j2c = sInstance->getChild<LLCheckBoxCtrl>("export_textures")->get();
 		sInstance->mExportTrees=sInstance->getChild<LLCheckBoxCtrl>("export_trees")->get();
 		JCExportTracker::export_inventory = sInstance->getChild<LLCheckBoxCtrl>("export_contents")->get();
 		JCExportTracker::export_properties = sInstance->getChild<LLCheckBoxCtrl>("export_properties")->get();
@@ -354,6 +354,5 @@ void ExportTrackerFloater::RemoteStart(	LLDynamicArray<LLViewerObject*> catfayse
 	total_objects=primcount;
 	JCExportTracker::selection_size = LLVector3(256,256,256);
 	JCExportTracker::selection_center = LLVector3(128,128,128);
-	//JCExportTracker::export_inventory = gSavedSettings.getBOOL("EmeraldExportInventory");
 	JCExportTracker::serialize(objectselection);
 }
