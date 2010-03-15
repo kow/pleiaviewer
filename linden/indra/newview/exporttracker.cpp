@@ -580,7 +580,7 @@ bool JCExportTracker::getAsyncData(LLViewerObject * obj)
 
 			bool already_requested_inv=false;
 			std::list<InventoryRequest_t *>::iterator iter2=requested_inventory.begin();
-			for(iter2;iter2!=requested_inventory.end();iter++)
+			for(iter2;iter2!=requested_inventory.end();iter2++)
 			{
 				InventoryRequest_t * req=(*iter2);
 				if(req->object->getLocalID()==obj->getLocalID())
