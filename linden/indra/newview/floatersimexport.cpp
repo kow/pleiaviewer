@@ -164,6 +164,10 @@ void FloaterSimExport::onClickExport(void* data)
 		total+=sInstance->mPlants;
 
 	ExportTrackerFloater::RemoteStart(root_objects,total);
+
+	//We are done hide the sim export floater and let the export tracker handle the rest
+	FloaterSimExport::getInstance()->setVisible( false );
+	FloaterSimExport::getInstance()->close();
 }
 
 void FloaterSimExport::onClickSaveTerrain(void * data)
@@ -349,6 +353,14 @@ void FloaterSimExport::statsupdate(void *userdata)
 void ExportTrackerFloater::RemoteStart(	LLDynamicArray<LLViewerObject*> catfayse,int primcount)
 {
 	ExportTrackerFloater::getInstance()->show();
+	
+	// For a remote start disable the options, they can't be changed anyway as the export
+	// as alrady started
+	ExportTrackerFloater::getInstance()->childSetEnabled("export_tga",false);
+	ExportTrackerFloater::getInstance()->childSetEnabled("export_j2c",false);
+	ExportTrackerFloater::getInstance()->childSetEnabled("export_properties",false);
+	ExportTrackerFloater::getInstance()->childSetEnabled("export_contents",false);
+	
 	objectselection=catfayse;
 	total_linksets=objectselection.count();
 	total_objects=primcount;

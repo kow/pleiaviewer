@@ -138,6 +138,11 @@ ExportTrackerFloater::ExportTrackerFloater()
 	childSetAction("reset", onClickReset, this);
 	childSetEnabled("export",true);
 
+	childSetEnabled("export_tga",true);
+	childSetEnabled("export_j2c",true);
+	childSetEnabled("export_properties",true);
+	childSetEnabled("export_contents",true);
+
 	//from serializeselection
 	JCExportTracker::init();
 
