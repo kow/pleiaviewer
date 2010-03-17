@@ -163,6 +163,9 @@ public:
 	static LLVector3 selection_center;
 	static LLVector3 selection_size;
 	static LLSD data;
+	
+	static void cleanup();
+
 private:
 	static LLSD total;
 

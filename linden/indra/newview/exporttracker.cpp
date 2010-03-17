@@ -277,6 +277,7 @@ JCExportTracker::JCExportTracker()
 
 JCExportTracker::~JCExportTracker()
 {
+	JCExportTracker::cleanup();
 	sInstance = NULL;
 }
 
@@ -1855,6 +1856,44 @@ BOOL JCExportTracker::mirror(LLInventoryObject* item, LLViewerObject* container,
 		}
 	}
 	return FALSE;
+}
+
+
+void JCExportTracker::cleanup()
+{
+	gIdleCallbacks.deleteFunction(exportworker);
+	
+	status=IDLE;
+
+	requested_textures.clear();
+	requested_properties.clear();
+
+	std::list<InventoryRequest_t*>::iterator iter3=requested_inventory.begin();
+	for(iter3;iter3!=requested_inventory.end();iter3++)
+	{
+		(*iter3)->object->removeInventoryListener(sInstance);
+	}
+
+	requested_inventory.clear();
+
+	
+	std::list<LLSD *>::iterator iter=processed_prims.begin();
+	for(iter;iter!=processed_prims.end();iter++)
+	{
+		free((*iter));
+	}
+
+	processed_prims.clear();
+
+	std::map<LLUUID,LLSD *>::iterator iter2=recieved_inventory.begin();
+	for(iter2;iter2!=recieved_inventory.begin();iter2++)
+	{
+		free((*iter2).second);
+	}
+	recieved_inventory.clear();
+
+
+
 }
 
 BOOL zip_folder(const std::string& srcfile, const std::string& dstfile)
