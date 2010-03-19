@@ -162,7 +162,6 @@ public:
 	static U32 totalprims;
 	static LLVector3 selection_center;
 	static LLVector3 selection_size;
-	static LLSD data;
 	
 	static void cleanup();
 
@@ -177,6 +176,7 @@ private:
 
 	static std::list<LLSD *> processed_prims;
 	static std::map<LLUUID,LLSD *>recieved_inventory;
+	static std::map<LLUUID,LLSD *>recieved_properties;
 };
 
 // zip a folder. this doesn't work yet.
