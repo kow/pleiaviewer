@@ -135,7 +135,6 @@ ExportTrackerFloater::ExportTrackerFloater()
 
 	childSetAction("export", onClickExport, this);
 	childSetAction("close", onClickClose, this);
-	childSetAction("reset", onClickReset, this);
 	childSetEnabled("export",true);
 
 	childSetEnabled("export_tga",true);
@@ -264,13 +263,6 @@ void ExportTrackerFloater::onClickClose(void* data)
 {
 	sInstance->close();
 	JCExportTracker::sInstance->close();
-}
-
-// static
-void ExportTrackerFloater::onClickReset(void* data)
-{
-	JCExportTracker::propertyqueries = 0;
-	JCExportTracker::invqueries = 0;
 }
 
 JCExportTracker::JCExportTracker()
@@ -829,7 +821,7 @@ void JCExportTracker::exportworker(void *userdata)
 		if( (req->request_time+INV_REQUEST_KICK)< tnow)
 		{
 			req->request_time=time(NULL);
-			req->object->dirtyInventory();
+			//req->object->dirtyInventory();
 			req->object->requestInventory();
 			kick_count++;
 		}
@@ -854,7 +846,9 @@ void JCExportTracker::exportworker(void *userdata)
 			// We need to go off and get properties, inventorys and textures now
 			getAsyncData(obj);
 			count++;
-			LLViewerObject::child_list_t child_list=obj->getChildren();
+			LLViewerObject::child_list_t child_list;
+			llassert(child_list=obj->getChildren());
+
 			for (LLViewerObject::child_list_t::const_iterator i = child_list.begin(); i != child_list.end(); i++)
 			{
 				LLViewerObject* child = *i;
@@ -879,7 +873,8 @@ void JCExportTracker::exportworker(void *userdata)
 		{
 			//we have the root properties and inventory now check all children
 			bool got_all_stuff=true;
-			LLViewerObject::child_list_t child_list=(*iter)->getChildren();
+			LLViewerObject::child_list_t child_list;
+			llassert(child_list=(*iter)->getChildren());
 			for (LLViewerObject::child_list_t::const_iterator i = child_list.begin(); i != child_list.end(); i++)
 			{
 				LLViewerObject* child = *i;
@@ -1764,7 +1759,7 @@ void JCAssetExportCallback(LLVFS *vfs, const LLUUID& uuid, LLAssetType::EType ty
 		if(fp)infile.write(buffer, size);
 		infile.close();
 
-		delete buffer;
+		//delete buffer;
 	}// else cmdline_printchat("Failed to save file "+info->path+" ("+info->name+") : "+std::string(LLAssetStorage::getErrorString(result)));
 
 	delete info;

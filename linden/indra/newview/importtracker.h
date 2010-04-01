@@ -74,6 +74,9 @@ class ImportTracker
 		~ImportTracker() { localids.clear(); linkset.clear(); }
 	
 		//Chalice - support import of linkset groups
+		LLSD parse_hpa_group(LLXmlTreeNode* prim);
+		LLSD parse_hpa_linkset(LLXmlTreeNode* prim);
+		LLSD parse_hpa_object(LLXmlTreeNode* prim);
 		void loadhpa(std::string file);
 		void importer(std::string file, void (*callback)(LLViewerObject*));
 		void cleargroups();

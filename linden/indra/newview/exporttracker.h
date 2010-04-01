@@ -68,9 +68,6 @@ public:
 
 	//static void 	onCommitPosition(LLUICtrl* ctrl, void* userdata);
 
-	//Reset button
-	//static void onClickReset(void* data);
-
 	//Import button
 	static void onClickExport(void* data);
 	
@@ -78,9 +75,6 @@ public:
 
 	//Close button
 	static void onClickClose(void* data);
-
-	//Reset button
-	static void onClickReset(void* data);
 
 
 	static LLDynamicArray<LLViewerObject*> objectselection;
