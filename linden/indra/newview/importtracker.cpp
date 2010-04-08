@@ -228,8 +228,6 @@ ImportTrackerFloater::~ImportTrackerFloater()
 	// save position of floater
 	gSavedSettings.setRect("FloaterPrimImport", getRect());
 
-	//which one?? -Patrick Sapinski (Wednesday, November 11, 2009)
-	ImportTrackerFloater::sInstance = NULL;
 	sInstance = NULL;
 }
 
@@ -1615,7 +1613,7 @@ public:
 	{
 		S32 file_size;
 		LLAPRFile infile ;
-		infile.open(data->filename, LL_APR_RB, NULL, &file_size);
+		infile.open(data->filename, LL_APR_RB, LLAPRFile::local, &file_size);
 		if (infile.getFileHandle())
 		{
 			cmdline_printchat("got file handle @ postinv");
@@ -1778,7 +1776,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 						std::string url = gAgent.getRegion()->getCapability("NewFileAgentInventory");
 						S32 file_size;
 						LLAPRFile infile ;
-						infile.open(data->filename, LL_APR_RB, NULL, &file_size);
+						infile.open(data->filename, LL_APR_RB, LLAPRFile::local, &file_size);
 						if (infile.getFileHandle())
 						{
 							cmdline_printchat("got file handle");
@@ -1812,7 +1810,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 					{
 						S32 file_size;
 						LLAPRFile infile ;
-						infile.open(data->filename, LL_APR_RB, NULL, &file_size);
+						infile.open(data->filename, LL_APR_RB, LLAPRFile::local, &file_size);
 						if (infile.getFileHandle())
 						{
 							cmdline_printchat("got file handle @ cloth");
@@ -2420,23 +2418,23 @@ void ImportTracker::upload_next_asset()
 	S32 file_size;
 	LLAPRFile infile ;
 	std::string filename=asset_dir+"//textures//"+struid + ".j2c";
-	infile.open(filename, LL_APR_RB, NULL, &file_size);
+	infile.open(filename, LL_APR_RB, LLAPRFile::local, &file_size);
 
 	//look for j2c first, then tga in the /textures/ folder.
 	if (!infile.getFileHandle())
 	{
 		filename=asset_dir+"//textures//"+struid + ".tga";
-		infile.open(filename, LL_APR_RB, NULL, &file_size);
+		infile.open(filename, LL_APR_RB, LLAPRFile::local, &file_size);
 
 		//next look for j2c first, then tga in the /sculptmaps/ folder.
 		if (!infile.getFileHandle())
 		{
 			filename=asset_dir+"//sculptmaps//"+struid + ".j2c";
-			infile.open(filename, LL_APR_RB, NULL, &file_size);
+			infile.open(filename, LL_APR_RB, LLAPRFile::local, &file_size);
 			if (!infile.getFileHandle())
 			{
 				filename=asset_dir+"//sculptmaps//"+struid + ".tga";
-				infile.open(filename, LL_APR_RB, NULL, &file_size);
+				infile.open(filename, LL_APR_RB, LLAPRFile::local, &file_size);
 				if (!infile.getFileHandle())
 					cmdline_printchat("Could not locate texture with UUID " + struid);
 			}
