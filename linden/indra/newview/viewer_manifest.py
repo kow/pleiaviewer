@@ -75,8 +75,12 @@ class ViewerManifest(LLManifest):
 
         # Include our fonts
         if self.prefix(src="fonts"):
-            self.path("*.ttf")
-            self.path("*.txt")
+            self.path("LiberationSans-Bold.ttf")
+            self.path("LiberationSans-Regular.ttf")
+            self.path("VeraMono.ttf")
+            self.path("GPL.txt")
+            self.path("Liberation-License.txt")
+            self.path("Vera-License.txt")
             self.end_prefix("fonts")
 
         # skins
@@ -98,6 +102,7 @@ class ViewerManifest(LLManifest):
                         self.path("*.png")
                         self.path("*/*/*.html")
                         self.path("*/*/*.gif")
+                        self.path("*/*/*.png")
                         self.end_prefix("*/html")
                 self.end_prefix("skins")
         
@@ -196,7 +201,7 @@ class WindowsManifest(ViewerManifest):
         super(WindowsManifest, self).construct()
         # the final exe is complicated because we're not sure where it's coming from,
         # nor do we have a fixed name for the executable
-        self.path(self.find_existing_file('debug/imprudence-bin.exe', 'release/imprudence-bin.exe', 'relwithdebinfo/imprudence-bin.exe'), dst=self.final_exe())
+        self.path(self.find_existing_file('../build-VC90/newview/debug/imprudence-bin.exe', '../build-VC90/newview/release/imprudence-bin.exe', '../build-VC90/newview/relwithdebinfo/imprudence-bin.exe'), dst=self.final_exe())
 
         self.gather_documents()
 
@@ -227,7 +232,7 @@ class WindowsManifest(ViewerManifest):
         # Mozilla appears to force a dependency on these files so we need to ship it (CP) - updated to vc8 versions (nyx)
         # These need to be installed as a SxS assembly, currently a 'private' assembly.
         # See http://msdn.microsoft.com/en-us/library/ms235291(VS.80).aspx
-        if self.prefix(src=self.args['configuration'], dst=""):
+        if self.prefix(src="", dst=""):
             if self.args['configuration'] == 'Debug':
                 self.path("msvcr80d.dll")
                 self.path("msvcp80d.dll")
@@ -237,18 +242,6 @@ class WindowsManifest(ViewerManifest):
                 self.path("msvcp80.dll")
                 self.path("Microsoft.VC80.CRT.manifest")
             self.end_prefix()
-
-        # The config file name needs to match the exe's name.
-        self.path(src="%s/imprudence-bin.exe.config" % self.args['configuration'], dst=self.final_exe() + ".config")
-
-        # We need this one too, so that llkdu loads at runtime - DEV-41194
-        self.path(src="%s/imprudence-bin.exe.config" % self.args['configuration'], dst="llkdu.dll.2.config")
-
-        # We need this one too, so that win_crash_logger.exe loads at runtime - DEV-19004
-        self.path(src="%s/imprudence-bin.exe.config" % self.args['configuration'], dst="win_crash_logger.exe.config")
-
-        # same thing for auto-updater.
-        self.path(src="%s/imprudence-bin.exe.config" % self.args['configuration'], dst="updater.exe.config")
 
         # Mozilla runtime DLLs (CP)
         if self.prefix(src="../../libraries/i686-win32/lib/release", dst=""):
@@ -358,9 +351,9 @@ class WindowsManifest(ViewerManifest):
 #                "../win_crash_logger/relwithdebinfo/windows-crash-logger.exe"),
 #                  dst="win_crash_logger.exe")
         self.path(src=self.find_existing_file(
-                "../win_updater/debug/windows-updater.exe",
-                "../win_updater/release/windows-updater.exe",
-                "../win_updater/relwithdebinfo/windows-updater.exe"),
+                "../build-VC90/win_updater/debug/windows-updater.exe",
+                "../build-VC90/win_updater/release/windows-updater.exe",
+                "../build-VC90/win_updater/relwithdebinfo/windows-updater.exe"),
                   dst="updater.exe")
 
         # For google-perftools tcmalloc allocator.
@@ -488,7 +481,7 @@ class WindowsManifest(ViewerManifest):
 
         # We use the Unicode version of NSIS, available from
         # http://www.scratchpaper.com/
-        NSIS_path = 'C:\\Program Files\\NSIS\\Unicode\\makensis.exe'
+        NSIS_path = 'C:\\Program Files (x86)\\NSIS\\Unicode\\makensis.exe'
         self.run_command('"' + proper_windows_path(NSIS_path) + '" ' + self.dst_path_of(tempfile))
         # self.remove(self.dst_path_of(tempfile))
         # If we're on a build machine, sign the code using our Authenticode certificate. JC
@@ -1010,6 +1003,7 @@ class Linux_x86_64Manifest(LinuxManifest):
             self.path("libSDL-1.2.so.0")
             self.path("libELFIO.so")
             self.path("libjpeg.so.7")
+            self.path("libpng12.so.0")
             self.path("libopenjpeg.so.2")
             self.path("libxml2.so.2")
             self.path("libz.so.1")
