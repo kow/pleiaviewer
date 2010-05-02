@@ -81,8 +81,8 @@ public:
 	static LLDynamicArray<LLViewerObject*> mOjectSelectionWaitList;
 
 	static int		linksets_exported;
-	static int		properties_exported;
-	static int		total_properties;
+	static int		properties_received;
+	static int		inventories_received;
 	static int		property_queries;
 	static int		assets_exported;
 	static int		textures_exported;
@@ -159,18 +159,19 @@ public:
 	
 	static void cleanup();
 
-private:
-	static LLSD total;
-
-	static std::string destination;
-	static std::string asset_dir;
-	static std::set<LLUUID> requested_textures;
 	static std::list<PropertiesRequest_t*> requested_properties;
 	static std::list<InventoryRequest_t*> requested_inventory;
 
 	static std::list<LLSD *> processed_prims;
 	static std::map<LLUUID,LLSD *>recieved_inventory;
 	static std::map<LLUUID,LLSD *>recieved_properties;
+
+private:
+	static LLSD total;
+
+	static std::string destination;
+	static std::string asset_dir;
+	static std::set<LLUUID> requested_textures;
 };
 
 // zip a folder. this doesn't work yet.

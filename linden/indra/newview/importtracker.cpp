@@ -26,7 +26,7 @@
 #include "llspinctrl.h"
 #include "llfocusmgr.h"
 
-//#include "llfloaterperms.h"
+#include "llfloaterperms.h"
 
 
 #include "llviewertexteditor.h"
@@ -798,6 +798,59 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 				prim_llsd["light"] = light.asLLSD();
 			}
 
+			//<flexible>
+			else if (param->hasName("flexible"))
+			{
+				F32 softness=0,  gravity=0, drag=0, wind=0, tension=0;
+				LLVector3 force;
+
+				for (LLXmlTreeNode* flexiparam = param->getFirstChild(); flexiparam; flexiparam = param->getNextChild())
+				{
+					//<force x="0.05000" y="0.00000" z="0.03000" />
+					if (flexiparam->hasName("force"))
+					{
+						flexiparam->getAttributeF32("x", force.mV[VX]);
+						flexiparam->getAttributeF32("y", force.mV[VY]);
+						flexiparam->getAttributeF32("z", force.mV[VZ]);
+					}
+					
+					//<softness val="2.00000" />
+					else if (flexiparam->hasName("softness"))
+					{
+						flexiparam->getAttributeF32("val", softness);
+					}
+					//<gravity val="0.30000" />
+					else if (flexiparam->hasName("gravity"))
+					{
+						flexiparam->getAttributeF32("val", gravity);
+					}
+					//<drag val="2.00000" />
+					else if (flexiparam->hasName("drag"))
+					{
+						flexiparam->getAttributeF32("val", drag);
+					}
+					//<wind val="0.00000" />
+					else if (flexiparam->hasName("wind"))
+					{
+						flexiparam->getAttributeF32("val", wind);
+					}
+					//<tension val="1.00000" />
+					else if (flexiparam->hasName("tension"))
+					{
+						flexiparam->getAttributeF32("val", tension);
+					}
+				}
+				LLFlexibleObjectData new_attributes;
+				new_attributes.setSimulateLOD(softness);
+				new_attributes.setGravity(gravity);
+				new_attributes.setTension(tension);
+				new_attributes.setAirFriction(drag);
+				new_attributes.setWindSensitivity(wind);
+				new_attributes.setUserForce(force);
+
+				prim_llsd["flexible"] = new_attributes.asLLSD();
+			}
+
 			//<texture>
 			else if (param->hasName("texture"))
 			{
@@ -1077,16 +1130,6 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 		else
 			// Volume params
 			prim_llsd["volume"] = volume_params.asLLSD();
-
-		/* fix later, flexi support!
-		if ((path == LL_PCODE_PATH_LINE) || (selected_type == MI_SCULPT))
-		{
-			LLVOVolume *volobjp = (LLVOVolume *)(LLViewerObject*)(mObject);
-			if (volobjp->isFlexible())
-			{
-				path = LL_PCODE_PATH_FLEXIBLE;
-			}
-		}*/
 	}
 	return prim_llsd;
 }
@@ -1867,7 +1910,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 						create_inventory_item(gAgent.getID(), gAgent.getSessionID(),
 							gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH), LLTransactionID::tnull, data->name,
 							data->description, data->type, LLInventoryType::defaultForAssetType(data->type), data->wear_type,
-							PERM_ALL,
+							LLFloaterPerms::getNextOwnerPerms(),
 							cb);
 					}
 					break;
@@ -2009,6 +2052,12 @@ void ImportTracker::send_shape(LLSD& prim)
 	
 	LLVolumeParams params;
 	params.fromLLSD(prim["volume"]);
+	if (prim.has("flexible"))
+	{
+		U8 profile_and_hole = params.getProfileParams().getCurveType();
+		params.setType(profile_and_hole, LL_PCODE_PATH_FLEXIBLE);
+	}
+
 	LLVolumeMessage::packVolumeParams(&params, msg);
 	
 	msg->sendReliable(gAgent.getRegion()->getHost());
@@ -2035,14 +2084,16 @@ void ImportTracker::send_image(LLSD& prim)
 		LLTextureEntry tex;
 		tex.fromLLSD(tes[i]);
 
-		if(assetmap[tex.getID()].notNull())
+		if (gSavedSettings.getBOOL("ImportTextures"))
 		{
-			LLUUID replacment=assetmap[tex.getID()];
-			tex.setID(replacment);
+			if(assetmap[tex.getID()].notNull())
+			{
+				LLUUID replacment=assetmap[tex.getID()];
+				tex.setID(replacment);
+			}
+			else
+				cmdline_printchat("Failed to remap texture UUID " + tex.getID().asString());
 		}
-		else
-			cmdline_printchat("Failed to remap texture UUID " + tex.getID().asString());
-
 
 		obj.setTE(U8(i), tex);
 	}

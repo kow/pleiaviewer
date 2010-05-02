@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <floater can_close="true" can_drag_on_left="false" can_minimize="true" rect_control="FloaterPrimExport"
-     can_resize="false" width="200" height="315" name="Export" title="Backup Objects">
+     can_resize="false" width="200" height="305" name="Export" title="Backup Objects">
 
   <!--
   -Patrick Sapinski (Monday, September 28, 2009)
@@ -41,8 +41,8 @@
      name="a_box"
      left_delta="2"
      width="180"
-     height="130"
-     bottom_delta="-132"
+     height="100"
+     bottom_delta="-102"
      border="true"
      mouse_opaque="true"
      bevel_style="in"
@@ -55,7 +55,7 @@
 		>
   </panel>
 
-  <text height="97" left_delta="2" name="status label" bottom_delta="35">Textures Saved: 0/0</text>
+  <text height="97" left_delta="5" name="status label" bottom_delta="0">export status goes here</text>
   <!--
     <line_editor border_drop_shadow_visible="false" border_visible="false" top_delta="-70"
 	     control_name="export_status" drop_shadow_visible="true" enabled="false"
@@ -64,7 +64,7 @@
 	     width="210" />
 -->
 
-  <button bottom_delta="-58" follows="left|bottom" font="SansSerif" halign="center" height="20"
+  <button bottom_delta="-38" follows="left|bottom" font="SansSerif" halign="center" height="20"
      label="Backup Selection" label_selected="" left_delta="-2"
      mouse_opaque="true" name="export"
      tool_tip="Export the selected linksets" width="120" />

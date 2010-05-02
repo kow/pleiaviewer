@@ -45,12 +45,12 @@
      label="Reset" label_selected="" left_delta="110"
      mouse_opaque="true" name="reset"
      tool_tip="Reset to original object position" width="45" />
-  
+  <!--
   <button bottom_delta="-5" follows="left|top" font="SansSerifSmall" halign="center" height="16"
      label="plywood" label_selected="" left_delta="30"
      mouse_opaque="true" name="plywood"
      tool_tip="Reset to original object position" width="45" />
-  
+  -->
   <spinner bottom_delta="-22" decimal_digits="3" follows="left|top" height="16"
        increment="1.0" initial_val="0" label="X" label_width="10" left="10"
        max_val="4096" min_val="-256" mouse_opaque="true" name="Pos X"
