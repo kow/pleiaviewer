@@ -1204,7 +1204,21 @@ void JCExportTracker::finalize()
 					LLXMLNodePtr profile_cut_xml = prim_xml->createChild("profile_cut", FALSE);
 					profile_cut_xml->createChild("begin", TRUE)->setValue(llformat("%.5f", adv_cut_begin));
 					profile_cut_xml->createChild("end", TRUE)->setValue(llformat("%.5f", adv_cut_end));
-
+					//Skew
+					//<skew val="0.0" />
+					F32 skew = volume_params.getSkew();
+					LLXMLNodePtr skew_xml = prim_xml->createChild("skew", FALSE);
+					skew_xml->createChild("val", TRUE)->setValue(llformat("%.5f", skew));
+					//Radius offset
+					//<radius_offset val="0.0" />
+					F32 radius_offset = volume_params.getRadiusOffset();
+					LLXMLNodePtr radius_offset_xml = prim_xml->createChild("radius_offset", FALSE);
+					radius_offset_xml->createChild("val", TRUE)->setValue(llformat("%.5f", radius_offset));
+					// Revolutions
+					//<revolutions val="1.0" />
+					F32 revolutions = volume_params.getRevolutions();
+					LLXMLNodePtr revolutions_xml = prim_xml->createChild("revolutions", FALSE);
+					revolutions_xml->createChild("val", TRUE)->setValue(llformat("%.5f", revolutions));
 				}
 				//<path_cut begin="0" end="1" />
 				LLXMLNodePtr path_cut_xml = prim_xml->createChild("path_cut", FALSE);

@@ -35,6 +35,9 @@ public:
 	//Reset button
 	static void onClickReset(void* data);
 
+	//My Position button
+	static void onClickSetToMyPosition(void* data);
+
 	//Import button
 	static void onClickImport(void* data);
 	

@@ -187,6 +187,7 @@ ImportTrackerFloater::ImportTrackerFloater()
 
 	childSetAction("plywood", onClickPlywood, this); //temp function, rezzes cube.
 	childSetAction("reset", onClickReset, this);
+	childSetAction("my_position", onClickSetToMyPosition, this);
 	childSetAction("import", onClickImport, this);
 	childSetAction("close", onClickClose, this);
 
@@ -321,6 +322,18 @@ void ImportTrackerFloater::onClickReset(void* data)
 	sInstance->mCtrlPosX->set(gImportTracker.importposition.mV[VX]);
 	sInstance->mCtrlPosY->set(gImportTracker.importposition.mV[VY]);
 	sInstance->mCtrlPosZ->set(gImportTracker.importposition.mV[VZ]);
+}
+
+// static
+void ImportTrackerFloater::onClickSetToMyPosition(void* data)
+{
+	gImportTracker.importoffset.clear();
+
+	LLVector3 me = gAgent.getPositionAgent();
+	sInstance->mCtrlPosX->set(me.mV[VX]);
+	sInstance->mCtrlPosY->set(me.mV[VY]);
+	sInstance->mCtrlPosZ->set(me.mV[VZ]);
+	sInstance->sendPosition();
 }
 
 // static
@@ -527,6 +540,9 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 	S32 selected_hole = 1;
 	F32 cut_begin = 0.f;
 	F32 cut_end = 1.f;
+	F32 skew = 0.f;
+	F32 radius_offset = 0.f;
+	F32 revolutions = 1.f;
 	F32 adv_cut_begin = 0.f;
 	F32 adv_cut_end = 1.f;
 	F32 hollow = 0.f;
@@ -714,6 +730,21 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 				param->getAttributeF32("begin", cut_begin);
 				param->getAttributeF32("end", cut_end);
 			}
+			//<skew val="0.0" />
+			else if (param->hasName("skew"))
+			{
+				param->getAttributeF32("val", skew);
+			}
+			//<radius_offset val="0.0" />
+			else if (param->hasName("radius_offset"))
+			{
+				param->getAttributeF32("val", radius_offset);
+			}
+			//<revolutions val="1.0" />
+			else if (param->hasName("revolutions"))
+			{
+				param->getAttributeF32("val", revolutions);
+			}
 			//<twist begin="0.00000" end="0.00000" />
 			else if (param->hasName("twist"))
 			{
@@ -721,7 +752,7 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 				param->getAttributeF32("end", twist);
 			}
 			//<hollow amount="40.99900" shape="4" />
-		else if (param->hasName("hollow"))
+			else if (param->hasName("hollow"))
 			{
 				param->getAttributeF32("amount", hollow);
 				param->getAttributeS32("shape", selected_hole);
@@ -1081,10 +1112,10 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 		volume_params.setTwist(twist);
 
 		volume_params.setRatio( scale_x, scale_y );
-//						volume_params.setSkew(skew);
+		volume_params.setSkew(skew);
 		volume_params.setTaper( taperx, tapery );
-//						volume_params.setRadiusOffset(radius_offset);
-//						volume_params.setRevolutions(revolutions);
+		volume_params.setRadiusOffset(radius_offset);
+		volume_params.setRevolutions(revolutions);
 
 		// Shear X,Y
 		volume_params.setShear( shearx, sheary );
