@@ -275,7 +275,12 @@ std::string LLPanelDirFind::buildSearchURL(const std::string& search_text, const
 	//changed this to select the search URI based on what tab is currently visible. If this breaks anything
 	//let me know. JM
 	LLPanel* current_dir_panel = LLFloaterDirectory::sInstance->childGetVisibleTab("Directory Tabs");
-	std::string url = current_dir_panel->getString("default_search_page");
+	std::string url = current_dir_panel->getString("default_search_query");
+	
+	if(url == LLStringUtil::null) //let's just be extra certain, fall back on old method if necessary
+	{
+		url = gSavedSettings.getString("SearchURLQuery");
+	}
 	
 	if (!search_text.empty())
 	{
