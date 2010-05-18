@@ -277,8 +277,9 @@ std::string LLPanelDirFind::buildSearchURL(const std::string& search_text, const
 	LLPanel* current_dir_panel = LLFloaterDirectory::sInstance->childGetVisibleTab("Directory Tabs");
 	std::string url = current_dir_panel->getString("default_search_query");
 	
-	if(url == LLStringUtil::null) //let's just be extra certain, fall back on old method if necessary
+	if(url.empty()) //let's just be extra certain, fall back on old method if necessary
 	{
+		llinfos << "Couldn't find the default query URI for this tab, got" << url << llendl;
 		url = gSavedSettings.getString("SearchURLQuery");
 	}
 	
