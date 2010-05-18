@@ -272,8 +272,11 @@ void LLPanelDirFind::navigateToDefaultPage()
 std::string LLPanelDirFind::buildSearchURL(const std::string& search_text, const std::string& collection, 
 										   bool inc_pg, bool inc_mature, bool inc_adult)
 {
-	std::string url = getString("default_search_page"); //not entirely sure why this didn't use default_search_page in the first place
-	                                                    //let me know if this breaks anything. JM
+	//changed this to select the search URI based on what tab is currently visible. If this breaks anything
+	//let me know. JM
+	LLPanel* current_dir_panel = LLFloaterDirectory::sInstance->childGetVisibleTab("Directory Tabs");
+	std::string url = current_dir_panel->getString("default_search_page");
+	
 	if (!search_text.empty())
 	{
 		// Replace spaces with "+" for use by Google search appliance

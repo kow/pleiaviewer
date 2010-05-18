@@ -132,10 +132,11 @@ public:
 
 	static S32 sOldSearchCount; // debug
 	static S32 sNewSearchCount; // debug
+	
+	static LLFloaterDirectory	*sInstance; //unfortunately, this needs to be made public. JM
 
 private:
 	bool mMinimizing;	// HACK: see reshape() for details
-	static LLFloaterDirectory	*sInstance;
 };
 
 extern BOOL gDisplayEventHack;
