@@ -577,7 +577,7 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 		pcode = LL_PCODE_LEGACY_GRASS;
 	else {
 		//cmdline_printchat("ERROR INVALID OBJECT, skipping.");
-		return NULL;
+		return LLSD();
 	}
 
 	if (is_object)

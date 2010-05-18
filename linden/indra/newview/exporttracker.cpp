@@ -572,7 +572,7 @@ bool JCExportTracker::getAsyncData(LLViewerObject * obj)
 	{
 		bool already_requested_prop=false;
 		std::list<PropertiesRequest_t *>::iterator iter=requested_properties.begin();
-		for(iter;iter!=requested_properties.end();iter++)
+		for(;iter!=requested_properties.end();iter++)
 		{
 			PropertiesRequest_t * req=(*iter);
 			if(req->localID==obj->getLocalID())
@@ -601,7 +601,7 @@ bool JCExportTracker::getAsyncData(LLViewerObject * obj)
 
 			bool already_requested_inv=false;
 			std::list<InventoryRequest_t *>::iterator iter2=requested_inventory.begin();
-			for(iter2;iter2!=requested_inventory.end();iter2++)
+			for(;iter2!=requested_inventory.end();iter2++)
 			{
 				InventoryRequest_t * req=(*iter2);
 				if(req->object->getLocalID()==obj->getLocalID())
@@ -888,7 +888,7 @@ void JCExportTracker::exportworker(void *userdata)
 	
 	LLViewerObject* object = NULL;
 
-	for(iter;iter!=ExportTrackerFloater::mOjectSelectionWaitList.end();iter++)
+	for(;iter!=ExportTrackerFloater::mOjectSelectionWaitList.end();iter++)
 	{
 		//Find an object that has completed export
 		
@@ -984,7 +984,7 @@ void JCExportTracker::finalize()
 	//cmdline_printchat("Attempting to output " + llformat("%u", data.size()) + " Objects.");
 
 	std::list<LLSD *>::iterator iter=processed_prims.begin();
-	for(iter;iter!=processed_prims.end();iter++)
+	for(;iter!=processed_prims.end();iter++)
 	{	// for each object
 			
 		LLXMLNode *linkset_xml = new LLXMLNode("linkset", FALSE);
@@ -1458,7 +1458,7 @@ void JCExportTracker::finalize()
 					//add this prim to the linkset.
 
 					delete(inventory);
-					recieved_inventory.erase((LLUUID)prim["id"]);
+					recieved_inventory.erase(LLUUID(prim["id"].asString()));
 
 				}
 				linkset_xml->addChild(prim_xml);
@@ -1704,7 +1704,7 @@ void JCExportTracker::inventoryChanged(LLViewerObject* obj,
 		return;
 
 	std::list<InventoryRequest_t*>::iterator iter=requested_inventory.begin();
-	for(iter;iter!=requested_inventory.end();iter++)
+	for(;iter!=requested_inventory.end();iter++)
 	{
 		if((*iter)->object->getID()==obj->getID())
 		{
@@ -1721,7 +1721,6 @@ void JCExportTracker::inventoryChanged(LLViewerObject* obj,
 				{
 					LLInventoryItem* item = (LLInventoryItem*)((LLInventoryObject*)(*it));
 					LLViewerInventoryItem* new_item = (LLViewerInventoryItem*)item;
-					new_item; //ugh
 					LLPermissions perm;
 					llassert(perm = new_item->getPermissions());
 					if(couldDL(asset->getType())
@@ -1933,7 +1932,7 @@ void JCExportTracker::cleanup()
 	requested_properties.clear();
 
 	std::list<InventoryRequest_t*>::iterator iter3=requested_inventory.begin();
-	for(iter3;iter3!=requested_inventory.end();iter3++)
+	for(;iter3!=requested_inventory.end();iter3++)
 	{
 		(*iter3)->object->removeInventoryListener(sInstance);
 	}
@@ -1942,7 +1941,7 @@ void JCExportTracker::cleanup()
 
 	
 	std::list<LLSD *>::iterator iter=processed_prims.begin();
-	for(iter;iter!=processed_prims.end();iter++)
+	for(;iter!=processed_prims.end();iter++)
 	{
 		free((*iter));
 	}
@@ -1950,14 +1949,14 @@ void JCExportTracker::cleanup()
 	processed_prims.clear();
 
 	std::map<LLUUID,LLSD *>::iterator iter4=recieved_properties.begin();
-	for(iter4;iter4!=recieved_properties.begin();iter4++)
+	for(;iter4!=recieved_properties.begin();iter4++)
 	{
 		free((*iter4).second);
 	}
 	recieved_properties.clear();
 
 	std::map<LLUUID,LLSD *>::iterator iter2=recieved_inventory.begin();
-	for(iter2;iter2!=recieved_inventory.begin();iter2++)
+	for(;iter2!=recieved_inventory.begin();iter2++)
 	{
 		free((*iter2).second);
 	}
