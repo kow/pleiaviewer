@@ -83,6 +83,7 @@
 				http://secondlife.com/app/search/notfound.html
 			</string>
       <string name="default_search_page">"http://localhost/search/index.php?"</string>
+      <string name="default_search_query">"http://localhost/search/index.php?q=[QUERY]&amp;s=[COLLECTION]&amp;"</string>
     </panel>
 		<panel border="true" bottom="-569" follows="left|top|right|bottom" height="553"
 		     label="All" left="1" left_delta="68" mouse_opaque="false" name="find_all_panel" width="778">
