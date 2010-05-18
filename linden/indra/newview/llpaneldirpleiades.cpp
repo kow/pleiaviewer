@@ -137,7 +137,7 @@ void LLPanelDirPleiades::search(const std::string& search_text)
 // static
 LLPanelDirPleiades* LLPanelDirPleiadesInterface::create(LLFloaterDirectory* floater)
 {
-	return new LLPanelDirPleiades("find_all_panel", floater);
+	return new LLPanelDirPleiades("pleiades_search_panel", floater);
 }
 
 // static

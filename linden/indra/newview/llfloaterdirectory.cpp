@@ -95,7 +95,7 @@ LLFloaterDirectory::LLFloaterDirectory(const std::string& name)
 	// Build the floater with our tab panel classes
 
 	LLCallbackMap::map_t factory_map;
-	factory_map["pleiades_search_panel"] = LLCallbackMap(createFindAll, this);
+	factory_map["pleiades_search_panel"] = LLCallbackMap(createPleiadesSearch, this);
 	factory_map["find_all_panel"] = LLCallbackMap(createFindAll, this);
 	factory_map["classified_panel"] = LLCallbackMap(createClassified, this);
 	factory_map["events_panel"] = LLCallbackMap(createEvents, this);
@@ -122,6 +122,7 @@ LLFloaterDirectory::LLFloaterDirectory(const std::string& name)
 		mPanelAvatarp->selectTab(0);
 	}
 	
+	childSetTabChangeCallback("Directory Tabs", "pleiades_search_panel", onTabChanged, this);
 	childSetTabChangeCallback("Directory Tabs", "find_all_panel", onTabChanged, this);
 	childSetTabChangeCallback("Directory Tabs", "classified_panel", onTabChanged, this);
 	childSetTabChangeCallback("Directory Tabs", "events_panel", onTabChanged, this);
@@ -157,6 +158,13 @@ void *LLFloaterDirectory::createFindAll(void* userdata)
 	LLFloaterDirectory *self = (LLFloaterDirectory*)userdata;
 	self->mFindAllPanel = LLPanelDirFindAllInterface::create(self);
 	return self->mFindAllPanel;
+}
+
+void *LLFloaterDirectory::createPleiadesSearch(void* userdata)
+{
+	LLFloaterDirectory *self = (LLFloaterDirectory*)userdata;
+	self->mFindAllPanel = LLPanelDirPleiadesInterface::create(self);
+	return self->mPleiadesSearchPanel;
 }
 
 // static
@@ -294,6 +302,12 @@ void LLFloaterDirectory::requestClassifieds()
 	{
 		sInstance->mClassifiedPanel->performQuery();
 	}
+}
+
+void LLFloaterDirectory::showPleiadesSearch(const std::string& search_text)
+{
+	showPanel("pleiades_search_panel");
+	LLPanelDirPleiadesInterface::search(sInstance->mPleiadesSearchPanel, search_text);
 }
 
 void LLFloaterDirectory::showFindAll(const std::string& search_text)
