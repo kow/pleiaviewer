@@ -85,7 +85,7 @@
       <string name="default_search_page">"http://secondlife.com/app/search/index.php?"</string>
     </panel>
 		<panel border="true" bottom="-569" follows="left|top|right|bottom" height="553"
-		     label="All" left="1" mouse_opaque="false" name="find_all_panel" width="778">
+		     label="All" left="1" left_delta="68" mouse_opaque="false" name="find_all_panel" width="778">
 			<string name="searching_text">
 				Searching...
 			</string>
@@ -164,7 +164,7 @@
       <string name="default_search_page">"http://secondlife.com/app/search/index.php?"</string>
     </panel>
 		<panel border="true" bottom="-569" follows="left|top|right|bottom" height="553"
-		     label="Classifieds" left="1" left_delta="68" mouse_opaque="false"
+		     label="Classifieds" left="1" mouse_opaque="false"
 		     name="classified_panel" width="778">
 			<string name="searching_text">
 				Searching...
