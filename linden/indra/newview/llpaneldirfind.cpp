@@ -299,8 +299,7 @@ std::string LLPanelDirFind::buildSearchURL(const std::string& search_text, const
 			"0123456789"
 			"-._~$+!*'()";
 		std::string query = LLURI::escape(search_text_with_plus, allowed);
-
-		url = gSavedSettings.getString("SearchURLQuery");
+		
 		std::string substring = "[QUERY]";
 		std::string::size_type where = url.find(substring);
 		if (where != std::string::npos)
@@ -319,7 +318,7 @@ std::string LLPanelDirFind::buildSearchURL(const std::string& search_text, const
 
 	}
 	url += getSearchURLSuffix(inc_pg, inc_mature, inc_adult);
-	llinfos << "search url " << url << llendl;
+	llinfos << "search url for " << current_dir_panel->getLabel() << ": " << url << llendl;
 	return url;
 }
 // static
