@@ -35,6 +35,7 @@
 #include "llfloaterdirectory.h"
 
 #include "llpaneldirfind.h"
+#include "llpaneldirpleiades.h"
 #include "llpaneldirevents.h"
 #include "llpaneldirland.h"
 #include "llpaneldirpeople.h"
@@ -77,6 +78,7 @@ LLFloaterDirectory::LLFloaterDirectory(const std::string& name)
 {
 	sInstance = this;
 
+	mPleiadesSearchPanel = NULL;
 	mFindAllPanel = NULL;
 	mClassifiedPanel = NULL;
 	mEventsPanel = NULL;
@@ -93,6 +95,7 @@ LLFloaterDirectory::LLFloaterDirectory(const std::string& name)
 	// Build the floater with our tab panel classes
 
 	LLCallbackMap::map_t factory_map;
+	factory_map["pleiades_search_panel"] = LLCallbackMap(createFindAll, this);
 	factory_map["find_all_panel"] = LLCallbackMap(createFindAll, this);
 	factory_map["classified_panel"] = LLCallbackMap(createClassified, this);
 	factory_map["events_panel"] = LLCallbackMap(createEvents, this);

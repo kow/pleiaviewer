@@ -38,6 +38,6 @@
 #include "llpaneldirfind.h"
 
 class LLUICtrl;
-class LLPanelDirFindAll;
+class LLPanelDirPleiades;
 
 #endif

@@ -6,7 +6,7 @@
 	<tab_container bottom="-590" follows="left|top|right|bottom" height="570" left="0"
 	     mouse_opaque="false" name="Directory Tabs" tab_position="top" width="780">
 		<panel border="true" bottom="-569" follows="left|top|right|bottom" height="553"
-		     label="Pleiades Search" left="1" mouse_opaque="false" name="find_pleiades_panel" width="778">
+		     label="Pleiades Search" left="1" mouse_opaque="false" name="pleiades_search_panel" width="778">
 			<string name="searching_text">
 				Searching...
 			</string>

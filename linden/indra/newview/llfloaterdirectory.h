@@ -43,6 +43,7 @@ class LLPanelDirAdvanced;
 class LLPanelDirClassified;
 class LLPanelDirEvents;
 class LLPanelDirFindAll;
+class LLPanelDirPleiades;
 class LLPanelDirFindAllOld;
 class LLPanelDirGroups;
 class LLPanelDirLand;
@@ -71,6 +72,7 @@ public:
 
 	// Outside UI widgets can spawn this floater with various tabs
 	// selected.
+	static void showPleiades(const std::string& search_text);
 	static void showFindAll(const std::string& search_text);
 	static void showClassified(const LLUUID& classified_id);
 	static void showEvents(S32 event_id);
@@ -94,10 +96,12 @@ private:
 	// Some special "showByID" functions use these cached pointers.
 	// They could be replaced by getPanelByName(), perhaps. JC
 	LLPanelDirFindAll* mFindAllPanel;
+	LLPanelDirPleiades* mPleiadesPanel;
 	LLPanelDirClassified* mClassifiedPanel;
 	LLPanelDirEvents* mEventsPanel;
 	LLPanelDirLand* mLandPanel;
 
+	static void* createPleiades(void* userdata);
 	static void* createFindAll(void* userdata);
 	static void* createClassified(void* userdata);
 	static void* createEvents(void* userdata);
