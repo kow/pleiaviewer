@@ -34,7 +34,6 @@
 #define LL_LLPANELDIRPLEIADES_H
 
 #include "llpaneldirbrowser.h"
-#include "llwebbrowserctrl.h"
 #include "llpaneldirfind.h"
 
 class LLUICtrl;

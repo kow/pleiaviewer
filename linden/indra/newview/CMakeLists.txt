@@ -707,7 +707,7 @@ set(viewer_HEADER_FILES
     llpaneldirland.h
     llpaneldirpeople.h
     llpaneldirplaces.h
-    llpaneldirpleiades.cpp
+    llpaneldirpleiades.h
     llpaneldirpopular.h
     llpaneldisplay.h
     llpanelevent.h
