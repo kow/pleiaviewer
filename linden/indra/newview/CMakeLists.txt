@@ -280,6 +280,7 @@ set(viewer_SOURCE_FILES
     llpaneldirland.cpp
     llpaneldirpeople.cpp
     llpaneldirplaces.cpp
+    llpaneldirpleiades.cpp
     llpaneldirpopular.cpp
     llpaneldisplay.cpp
     llpanelevent.cpp
@@ -706,6 +707,7 @@ set(viewer_HEADER_FILES
     llpaneldirland.h
     llpaneldirpeople.h
     llpaneldirplaces.h
+    llpaneldirpleiades.cpp
     llpaneldirpopular.h
     llpaneldisplay.h
     llpanelevent.h

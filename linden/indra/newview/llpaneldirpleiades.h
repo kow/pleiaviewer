@@ -37,14 +37,7 @@
 #include "llwebbrowserctrl.h"
 #include "llpaneldirfind.h"
 
+class LLUICtrl;
 class LLPanelDirFindAll;
-
-class LLPanelDirFindAllInterface
-{
-public:
-	static LLPanelDirPleiades* create(LLFloaterDirectory* floater);
-	static void search(LLPanelDirPleiades* panel, const std::string& search_text);
-	static void focus(LLPanelDirPleiades* panel);
-};
 
 #endif
