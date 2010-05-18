@@ -163,7 +163,7 @@ void *LLFloaterDirectory::createFindAll(void* userdata)
 void *LLFloaterDirectory::createPleiadesSearch(void* userdata)
 {
 	LLFloaterDirectory *self = (LLFloaterDirectory*)userdata;
-	self->mFindAllPanel = LLPanelDirPleiadesInterface::create(self);
+	self->mPleiadesSearchPanel = LLPanelDirPleiadesInterface::create(self);
 	return self->mPleiadesSearchPanel;
 }
 

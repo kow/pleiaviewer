@@ -40,4 +40,12 @@
 class LLUICtrl;
 class LLPanelDirPleiades;
 
+class LLPanelDirPleiadesInterface
+{
+public:
+	static LLPanelDirPleiades* create(LLFloaterDirectory* floater);
+	static void search(LLPanelDirPleiades* panel, const std::string& search_text);
+	static void focus(LLPanelDirPleiades* panel);
+};
+
 #endif
