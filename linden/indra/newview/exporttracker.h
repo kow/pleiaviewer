@@ -41,6 +41,7 @@ struct PropertiesRequest_t
 	time_t	request_time;
 	LLUUID	target_prim;
 	U32		localID;
+	U32		num_retries;
 };
 
 struct InventoryRequest_t
