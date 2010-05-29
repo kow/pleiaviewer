@@ -228,9 +228,9 @@
           <key>linux</key>
           <map>
             <key>md5sum</key>
-            <string>d58ac1a8396ac983b67cc3e3541457e3</string>
+            <string>15149b8140d06f9bd1b8672b958c6915</string>
             <key>url</key>
-            <uri>http://s3.amazonaws.com/viewer-source-downloads/install_pkgs/boost-1.39.0-linux-20100222a.tar.bz2</uri>
+            <uri>http://imprudenceviewer.org/download/libs/boost-1.36.0-linux-20091128.tar.bz2</uri>
           </map>
           <key>linux64</key>
           <map>
@@ -625,9 +625,9 @@
           <key>linux</key>
           <map>
             <key>md5sum</key>
-            <string>605ecd92affb57ed3c70f7564b8bc6b5</string>
+            <string>2cd3f6499f8444f1d119d097e4047252</string>
             <key>url</key>
-            <uri>http://imprudenceviewer.org/download/libs/gstreamer-0.10.24-linux-20091115.tar.bz2</uri>
+            <uri>http://imprudenceviewer.org/download/libs/gstreamer-0.10.24-linux-20091125.tar.bz2</uri>
           </map>
           <key>linux64</key>
           <map>
@@ -661,9 +661,9 @@
           <key>linux</key>
           <map>
             <key>md5sum</key>
-            <string>627aef3c307aed6d2c013bdfa11bb0af</string>
+            <string>62b96bb2721798958743d92a403d122a</string>
             <key>url</key>
-            <uri>http://imprudenceviewer.org/download/libs/gstreamer-plugins-linux-20091115.tar.bz2</uri>
+            <uri>http://imprudenceviewer.org/download/libs/gstreamer-plugins-linux-20091125.tar.bz2</uri>
           </map>
           <key>linux64</key>
           <map>
@@ -870,9 +870,9 @@ Portions copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura
           <key>linux</key>
           <map>
             <key>md5sum</key>
-            <string>5ab0f986317b1a5c4f1682ad1972c318</string>
+            <string>85219034b4e4c17e792f8bb54a1973f7</string>
             <key>url</key>
-            <uri>http://imprudenceviewer.org/download/libs/liboil-0.3.16-linux-20091118.tar.bz2</uri>
+            <uri>http://imprudenceviewer.org/download/libs/liboil-0.3.16-linux-20091125.tar.bz2</uri>
           </map>
           <key>linux64</key>
           <map>
@@ -1203,16 +1203,16 @@ Copyright (C) 2004-2005 Vladimir Berezniker @ http://public.xdi.org/=vmpn
           <key>linux</key>
           <map>
             <key>md5sum</key>
-            <string>5017e0c2b24c6c31956ce7e33b0443af</string>
+            <string>9dfdc055297355d04e04b905f92fbfad</string>
             <key>url</key>
-            <uri>http://imprudenceviewer.org/download/libs/openal-linux-20091115.tar.bz2</uri>
+            <uri>http://imprudenceviewer.org/download/libs/openal-linux32-20100426.tar.bz2</uri>
           </map>
           <key>linux64</key>
           <map>
              <key>md5sum</key>
-            <string>8d1ba70a777b7961e06e70818a0060e9</string>
+            <string>ea42b868511e2d5fab2df11dceaf2b7e</string>
              <key>url</key>
-            <uri>http://imprudenceviewer.org/download/libs/openal-linux64-20091230.tar.bz2</uri>
+            <uri>http://imprudenceviewer.org/download/libs/openal-linux64-20100428.tar.bz2</uri>
            </map>
           <key>windows</key>
           <map>
