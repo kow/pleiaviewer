@@ -186,6 +186,8 @@
 #include "llwaterparammanager.h"
 #include "llagentlanguage.h"
 
+
+#include "jcfloater_areasearch.h"
 #include "exporttracker.h"
 
 #if LL_LIBXUL_ENABLED
@@ -3168,6 +3170,7 @@ void pass_processObjectPropertiesFamily(LLMessageSystem *msg, void**)
 {
 	// send it to 'observers'
 	LLSelectMgr::processObjectPropertiesFamily(msg,0);
+	JCFloaterAreaSearch::processObjectPropertiesFamily(msg,0);
 }
 
 void pass_processObjectProperties(LLMessageSystem *msg, void**)

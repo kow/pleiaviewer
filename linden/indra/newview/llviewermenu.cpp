@@ -222,6 +222,7 @@
 
 #include "jcfloater_animation_list.h"
 #include "llfloaterassetbrowser.h"
+#include "jcfloater_areasearch.h"
 #include "exporttracker.h"
 
 using namespace LLVOAvatarDefines;
@@ -5855,6 +5856,10 @@ class LLShowFloater : public view_listener_t
 		{
 			JCFloaterAnimList::toggleInstance(LLSD());
 		}
+		else if (floater_name == "areasearch")
+		{
+			JCFloaterAreaSearch::toggle();
+		}
 		else if (floater_name == "inworld browser")
 		{
 			LLFloaterMediaBrowser::toggle();
@@ -5926,6 +5931,12 @@ class LLFloaterVisible : public view_listener_t
 		{
 			LLInventoryView* iv = LLInventoryView::getActiveInventory(); 
 			new_value = (NULL != iv && TRUE == iv->getVisible());
+		}
+		else if (floater_name == "areasearch")
+		{
+			JCFloaterAreaSearch* instn = JCFloaterAreaSearch::getInstance();
+			if(!instn)new_value = false;
+			else new_value = instn->getVisible();
 		}
 		gMenuHolder->findControl(control_name)->setValue(new_value);
 		return true;

@@ -206,4 +206,5 @@
 <GroupOverTierColor value="110, 15, 15, 255" />         <!-- Warning text in Group Info window -->
 <ConsoleBackground value="0, 0, 0, 255" />              <!-- Background for inworld chat -->
  
+<DefaultListText value="0, 0, 0, 255"/> <!-- We are replacing all the hardcoded black text with this color so we can make skins with white text on dark background -->
 </settings>
