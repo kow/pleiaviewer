@@ -7,6 +7,8 @@
 #ifndef IMPORTTRACKER_H
 #define IMPORTTRACKER_H
 
+#define MAX_IDLE_TIME 20
+
 #include "llviewerobject.h"
 
 class LLSpinCtrl;
@@ -29,9 +31,6 @@ public:
 
 	static void 	onCommitPosition(LLUICtrl* ctrl, void* userdata);
 
-	//Temporary function to rez a cube.
-	static void onClickPlywood(void* data);
-
 	//Reset button
 	static void onClickReset(void* data);
 
@@ -51,6 +50,7 @@ public:
 	static int		total_objects;
 	static int		objects_imported;
 	static int		total_linksets;
+	static int		total_textures;
 	static int		linksets_imported;
 	static int		textures_imported;
 	static int		total_assets;
@@ -82,6 +82,7 @@ class ImportTracker
 		LLSD parse_hpa_object(LLXmlTreeNode* prim);
 		void loadhpa(std::string file);
 		void importer(std::string file, void (*callback)(LLViewerObject*));
+		static void plywoodtracker(void *userdata);
 		void cleargroups();
 		void import(LLSD &ls_data);
 		void expectRez();
@@ -101,6 +102,8 @@ class ImportTracker
 		LLVector3 size;
 		LLVector3 importoffset;
 		LLVector3 currentimportoffset;
+
+		time_t	idle_time;
 
 		//Working LLSD holders
 		LLUUID current_asset;
