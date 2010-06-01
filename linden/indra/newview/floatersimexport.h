@@ -1,4 +1,3 @@
-
 #include "llviewerinventory.h"
 
 class FloaterSimExport
