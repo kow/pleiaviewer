@@ -120,7 +120,7 @@ class ImportTracker
 		//Move to next texture upload
 		void upload_next_asset();
 		
-	protected:		
+protected:		
 		void send_inventory(LLSD &prim);
 		void send_properties(LLSD &prim, int counter);
 		void send_vectors(LLSD &prim, int counter);
