@@ -764,6 +764,11 @@
       <on_click function="Tools.SetBulkPerms" userdata="" />
       <on_enable function="EditableSelected" />
     </menu_item_call>
+	<menu_item_check bottom="-166" enabled="false" height="20" label="Area Search" left="0"
+	     mouse_opaque="true" name="Area Search" width="155">
+		<on_click function="ShowFloater" userdata="areasearch" />
+		<on_check function="FloaterVisible" userdata="areasearch" />
+	</menu_item_check>
   </menu>
 
 

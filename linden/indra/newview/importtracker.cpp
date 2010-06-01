@@ -25,6 +25,7 @@
 #include "llsurface.h"
 #include "llspinctrl.h"
 #include "llfocusmgr.h"
+#include "llcallbacklist.h"
 
 #include "llfloaterperms.h"
 
@@ -69,6 +70,7 @@ ImportTrackerFloater* ImportTrackerFloater::sInstance = 0;
 int ImportTrackerFloater::total_objects = 0;
 int ImportTrackerFloater::objects_imported = 0;
 int ImportTrackerFloater::total_linksets = 0;
+int ImportTrackerFloater::total_textures = 0;
 int ImportTrackerFloater::linksets_imported = 0;
 int ImportTrackerFloater::textures_imported = 0;
 int ImportTrackerFloater::total_assets = 0;
@@ -175,7 +177,7 @@ void ImportTrackerFloater::draw()
 		"Status: " + status_text
 		+  llformat("\nObjects: %u/%u",objects_imported,total_objects)
 		+  llformat(" Linksets: %u/%u",linksets_imported,total_linksets)
-		+  llformat("\nTextures: %u/%u",textures_imported,gImportTracker.uploadtextures.size())
+		+  llformat("\nTextures: %u/%u",textures_imported,total_textures)
 		+  llformat(" Contents: %u/%u",assets_imported,gImportTracker.asset_insertions)
 		);
 }
@@ -185,7 +187,6 @@ ImportTrackerFloater::ImportTrackerFloater()
 {
 	LLUICtrlFactory::getInstance()->buildFloater( this, "floater_prim_import.xml" );
 
-	childSetAction("plywood", onClickPlywood, this); //temp function, rezzes cube.
 	childSetAction("reset", onClickReset, this);
 	childSetAction("my_position", onClickSetToMyPosition, this);
 	childSetAction("import", onClickImport, this);
@@ -228,6 +229,7 @@ ImportTrackerFloater::~ImportTrackerFloater()
 {
 	// save position of floater
 	gSavedSettings.setRect("FloaterPrimImport", getRect());
+	//gIdleCallbacks.deleteFunction(plywoodtracker);
 
 	sInstance = NULL;
 }
@@ -308,12 +310,6 @@ BOOL ImportTrackerFloater::handleHover(S32 x, S32 y, MASK mask)
 void ImportTrackerFloater::onCommitPosition( LLUICtrl* ctrl, void* userdata )
 {
 	sInstance->sendPosition();
-}
-
-// static
-void ImportTrackerFloater::onClickPlywood(void* data)
-{
-	gImportTracker.plywood_above_head();
 }
 
 void ImportTrackerFloater::onClickReset(void* data)
@@ -449,7 +445,6 @@ class importResponder: public LLNewAgentInventoryResponder
 	gImportTracker.upload_next_asset();
 
 	}
-
 };
 
 //This function accepts the HPA <group> object and returns all nested objects and linksets as LLSD.
@@ -501,8 +496,10 @@ LLSD ImportTracker::parse_hpa_group(LLXmlTreeNode* group)
 			else
 				cmdline_printchat("ERROR, INVALID OBJECT");
 		}
-	}
 
+		//llinfos << "total linksets = "<<group_llsd.size()<<llendl;
+		
+	}
 	return group_llsd;
 }
 
@@ -554,6 +551,7 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 	U8 type = 0;
 	LLPCode pcode = 0;
 	BOOL is_object = true;
+	BOOL is_phantom = false;
 
 	if (prim->hasName("box"))
 		selected_type = MI_BOX;
@@ -657,7 +655,7 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 				prim_pos.append((F64)vec.mV[VY]);
 				prim_pos.append((F64)vec.mV[VZ]);
 
-				cmdline_printchat("pos: " + llformat("%.1f, %.1f, %.1f ", vec.mV[VX], vec.mV[VY], vec.mV[VZ]));
+				//cmdline_printchat("pos: " + llformat("%.1f, %.1f, %.1f ", vec.mV[VX], vec.mV[VY], vec.mV[VZ]));
 			}
 			//<size x="0.50000" y="0.50000" z="0.50000" />
 			else if (param->hasName("size"))
@@ -670,7 +668,7 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 				prim_scale.append((F64)vec.mV[VY]);
 				prim_scale.append((F64)vec.mV[VZ]);
 
-				cmdline_printchat("size: " + llformat("%.1f, %.1f, %.1f ", vec.mV[VX], vec.mV[VY], vec.mV[VZ]));
+				//cmdline_printchat("size: " + llformat("%.1f, %.1f, %.1f ", vec.mV[VX], vec.mV[VY], vec.mV[VZ]));
 			}
 			//<rotation w="1.00000" x="0.00000" y="0.00000" z="0.00000" />
 			else if (param->hasName("rotation"))
@@ -685,6 +683,17 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 				prim_rot.append((F64)quat.mQ[VZ]);
 				prim_rot.append((F64)quat.mQ[VW]);
 			}
+
+
+			//<phantom val="true" />
+			else if (param->hasName("phantom"))
+			{
+				std::string value;
+				param->getAttributeString("val", value);
+				if (value == "true")
+					is_phantom = true;
+			}
+
 			//<top_shear x="0.00000" y="0.00000" />
 			else if (param->hasName("top_shear"))
 			{
@@ -938,7 +947,7 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 							}
 							if(alreadyseen==false)
 							{
-								llinfos << "Found a surface texture, adding to list "<<temp<<llendl;
+								//llinfos << "Found a surface texture, adding to list "<<temp<<llendl;
 								uploadtextures.push_back(temp);
 							}
 						}
@@ -1150,7 +1159,7 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 		prim_llsd["scale"] = prim_scale;
 		// Flags
 		//prim_llsd["shadows"] = object->flagCastShadows();
-		//prim_llsd["phantom"] = object->flagPhantom();
+		prim_llsd["phantom"] = is_phantom;
 		//prim_llsd["physical"] = (BOOL)(object->mFlags & FLAGS_USE_PHYSICS);
 
 		if (pcode == LL_PCODE_LEGACY_GRASS || pcode == LL_PCODE_LEGACY_TREE)
@@ -1171,8 +1180,8 @@ void ImportTracker::loadhpa(std::string file)
 	linksets = 0;
 	textures = 0;
 	objects = 0;
-	S32 total_linksets = 0;
 	ImportTrackerFloater::textures_imported = 0;
+	ImportTrackerFloater::linksets_imported = 0;
 
 	std::string xml_filename = file;
 	asset_dir = gDirUtilp->getDirName(filepath);	
@@ -1211,20 +1220,20 @@ void ImportTracker::loadhpa(std::string file)
 		
 		if (child->hasName("group"))
 		{
-			cmdline_printchat("Importing main group");
+			linksets = parse_hpa_group(child);
 
-			LLSD temp = parse_hpa_group(child);
-			//linksets[total_linksets] = temp;
-			//total_linksets++;
-			total_linksets = temp.size();
+			//total_linksets = temp.size();
+			//llinfos << "imported "<<temp.size()<<" linksets"<<llendl;
 
-			if (temp)
-			{
-				std::stringstream temp2;
-				LLSDSerialize::toPrettyXML(temp, temp2);
-				cmdline_printchat(temp2.str());
-				linksets = temp;
-			}
+
+			//if (temp)
+			//{
+				//debug code?
+				//std::stringstream temp2;
+				//LLSDSerialize::toPrettyXML(temp, temp2);
+				//cmdline_printchat(temp2.str());
+				//linksets = temp;
+			//}
 
 			//Fill in size values
 			for (LLXmlTreeNode* object = child->getFirstChild(); object; object = child->getNextChild())
@@ -1245,6 +1254,7 @@ void ImportTracker::loadhpa(std::string file)
 			}
 			//we should have the proper LLSD structure by now
 		}
+		//llinfos << "finished parsing xml"<<llendl;
 
 		//We've looped through the HPA now fill in some values.
 		ImportTrackerFloater::sInstance->mCtrlPosX->set(importposition.mV[VX]);
@@ -1253,8 +1263,8 @@ void ImportTracker::loadhpa(std::string file)
 		size = (size - importposition) * 2;
 		importoffset.clear();
 		ImportTrackerFloater::sInstance->getChild<LLTextBox>("size label")->setValue("Size: " + llformat("%.3f,%.3f,%.3f", size.mV[VX], size.mV[VY], size.mV[VZ]));
-		ImportTrackerFloater::total_linksets = total_linksets;
-		ImportTrackerFloater::linksets_imported = 0;
+		ImportTrackerFloater::total_linksets = linksets.size();
+		ImportTrackerFloater::total_textures = gImportTracker.uploadtextures.size();
 	}
 }
 
@@ -1267,6 +1277,8 @@ void ImportTracker::importer(std::string file,  void (*callback)(LLViewerObject*
 	LLSD data;
 	LLSDSerialize::fromXMLDocument(data, importer);
 
+	gIdleCallbacks.addFunction(plywoodtracker, NULL);
+
 	LLSD file_data = data["Objects"];
 	data = LLSD();
 
@@ -1278,10 +1290,10 @@ void ImportTracker::importer(std::string file,  void (*callback)(LLViewerObject*
 
 	//DEBUG CODE! At this point our HPA should be in Emerald LLSD format.
 	// Create a file stream and write to it
-	llofstream export_file(filepath + ".in.llsd");
-	LLSDSerialize::toPrettyXML(linksetgroups, export_file);
+//	llofstream export_file(filepath + ".in.llsd");
+//	LLSDSerialize::toPrettyXML(linksetgroups, export_file);
 	// Open the file save dialog
-	export_file.close();
+//	export_file.close();
 
 
 	//llinfos << "LOADED LINKSETS, PREPARING.." << llendl;
@@ -1292,6 +1304,17 @@ void ImportTracker::importer(std::string file,  void (*callback)(LLViewerObject*
 	initialPos=importposition + importoffset;
 	//initialPos=gAgent.getCameraPositionAgent();
 	import(ls_llsd);
+}
+
+void ImportTracker::plywoodtracker(void *userdata)
+{
+	time_t tnow=time(NULL);
+	if( (gImportTracker.idle_time+MAX_IDLE_TIME)< tnow)
+	{
+		cmdline_printchat("timed out, rezzing new block");
+		gImportTracker.plywood_above_head();
+		gImportTracker.idle_time = tnow;
+	}
 }
 
 void ImportTracker::import(LLSD& ls_data)
@@ -1310,6 +1333,9 @@ void ImportTracker::import(LLSD& ls_data)
 	rootrot.mQ[VW] = (F32)(rot[3].asReal());
 	state = BUILDING;
 	//llinfos << "IMPORTED, BUILDING.." << llendl;
+	time_t tnow=time(NULL);
+	idle_time = tnow;
+
 	plywood_above_head();
 }
 
@@ -1345,7 +1371,7 @@ LLViewerObject* find(U32 local)
 }
 void ImportTracker::finish()
 {
-	if(asset_insertions == 0)
+	if(asset_insertions == ImportTrackerFloater::assets_imported)
 	{
 		if(lastrootid != 0)
 		{
@@ -1354,8 +1380,7 @@ void ImportTracker::finish()
 				LLViewerObject* objectp = find(lastrootid);
 				mDownCallback(objectp);
 			}
-			//cmdline_printchat("import completed");
-			ImportTrackerFloater::linksets_imported++;
+			cmdline_printchat("import completed");
 		}
 	}
 }
@@ -1538,6 +1563,10 @@ void ImportTracker::get_update(S32 newid, BOOL justCreated, BOOL createSelected)
 				if ((int)localids.size() < linkset.size())
 				{
 					LLSelectMgr::getInstance()->deselectAll();
+
+					time_t tnow=time(NULL);
+					idle_time = tnow;
+
 					plywood_above_head();
 					return;
 				}
@@ -1586,12 +1615,11 @@ void insert(LLViewerInventoryItem* item, LLViewerObject* objectp, InventoryImpor
 							TRUE,
 							LLToolDragAndDrop::SOURCE_AGENT,
 							gAgent.getID());
-		cmdline_printchat("inserted.");
+		//cmdline_printchat("inserted.");
 	}
 	delete data;
-	gImportTracker.asset_insertions -= 1;
-	//ImportTrackerFloater::assets_imported++;
-	if(gImportTracker.asset_insertions == 0)
+	ImportTrackerFloater::assets_imported++;
+	if(gImportTracker.asset_insertions == ImportTrackerFloater::assets_imported)
 	{
 		gImportTracker.finish();
 	}
@@ -1666,10 +1694,25 @@ public:
 	virtual void uploadComplete(const LLSD& content)
 	{
 		//ImportTrackerFloater::assets_uploaded++;
-		cmdline_printchat("completed upload, inserting");
+		//cmdline_printchat("completed upload, inserting");
 		LLViewerInventoryItem* item = (LLViewerInventoryItem*)gInventory.getItem(item_id);
 		LLViewerObject* objectp = find(data->localid);
 		insert(item, objectp, data);
+	}
+	virtual void error(U32 statusNum, const std::string& reason)
+	{
+		cmdline_printchat("image upload error:" + reason + " " + mVFileID.asString());
+		cmdline_printchat("also: itemid = " + item_id.asString() + " assetid = " + data->assetid.asString());
+
+		llinfos << "JCPostInvUploadResponder::error " << statusNum 
+			<< " reason: " << reason << llendl;
+
+		//std::string agent_url = gAgent.getRegion()->getCapability("UpdateNotecardAgentInventory");
+		//LLSD body;
+		//body["item_id"] = inv_item;
+
+		//LLHTTPClient::post(agent_url, body,
+		//	new JCPostInvUploadResponder(body, data->assetid, data->type,inv_item,data));
 	}
 private:
 	LLUUID item_id;
@@ -1690,7 +1733,7 @@ public:
 		infile.open(data->filename, LL_APR_RB, LLAPRFile::local, &file_size);
 		if (infile.getFileHandle())
 		{
-			cmdline_printchat("got file handle @ postinv");
+			//cmdline_printchat("got file handle @ postinv");
 			LLVFile file(gVFS, data->assetid, data->type, LLVFile::WRITE);
 			file.setMaxSize(file_size);
 			const S32 buf_size = 65536;
@@ -1702,29 +1745,8 @@ public:
 			switch(data->type)
 			{
 			case LLAssetType::AT_NOTECARD:
-				cmdline_printchat("case notecard @ postinv");
+				//cmdline_printchat("case notecard @ postinv");
 				{
-					/*LLViewerTextEditor* edit = new LLViewerTextEditor("",LLRect(0,0,0,0),S32_MAX,"");
-					S32 size = gVFS->getSize(data->assetid, data->type);
-					U8* buffer = new U8[size];
-					gVFS->getData(data->assetid, data->type, buffer, 0, size);
-					edit->setText(LLStringExplicit((char*)buffer));
-					std::string card;
-					edit->exportBuffer(card);
-					cmdline_printchat("Encoded notecard");;
-					edit->die();
-					delete buffer;
-					//buffer = new U8[card.size()];
-					//size = card.size();
-					//strcpy((char*)buffer,card.c_str());
-					file.remove();
-					LLVFile newfile(gVFS, data->assetid, data->type, LLVFile::APPEND);
-					newfile.setMaxSize(size);
-					newfile.write((const U8*)card.c_str(),size);*/
-					//FAIL.
-
-
-
 					std::string agent_url = gAgent.getRegion()->getCapability("UpdateNotecardAgentInventory");
 					LLSD body;
 					body["item_id"] = inv_item;
@@ -1734,7 +1756,7 @@ public:
 				}
 				break;
 			case LLAssetType::AT_LSL_TEXT:
-				cmdline_printchat("case lsltext @ postinv");
+				//cmdline_printchat("case lsltext @ postinv");
 				{
 					std::string url = gAgent.getRegion()->getCapability("UpdateScriptAgent");
 					LLSD body;
@@ -1808,7 +1830,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 			data->description = item["desc"].asString();
 			if(item.has("item_id"))
 			{
-				cmdline_printchat("item id found");
+				//cmdline_printchat("item id found");
 				std::string filename = assetpre + item["item_id"].asString() + "." + item["type"].asString();
 				//S32 file_size;
 				//LLAPRFile infile ;
@@ -1817,12 +1839,12 @@ void ImportTracker::send_inventory(LLSD& prim)
 				//if(fp)
 				if(LLFile::isfile(filename))
 				{
-					cmdline_printchat("file "+filename+" exists");
+					//cmdline_printchat("file "+filename+" exists");
 					data->filename = filename;
 					//infile.close();
 				}else
 				{
-					cmdline_printchat("file "+filename+" does not exist");
+					cmdline_printchat("file "+item["item_id"].asString() + "." + item["type"].asString()+" does not exist");
 					delete data;
 					continue;
 				}
@@ -1845,7 +1867,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 				{
 				case LLAssetType::AT_TEXTURE:
 				case LLAssetType::AT_TEXTURE_TGA:
-					cmdline_printchat("case textures");
+					//cmdline_printchat("case textures");
 					{
 						std::string url = gAgent.getRegion()->getCapability("NewFileAgentInventory");
 						S32 file_size;
@@ -1853,7 +1875,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 						infile.open(data->filename, LL_APR_RB, LLAPRFile::local, &file_size);
 						if (infile.getFileHandle())
 						{
-							cmdline_printchat("got file handle");
+							//cmdline_printchat("got file handle");
 							LLVFile file(gVFS, data->assetid, data->type, LLVFile::WRITE);
 							file.setMaxSize(file_size);
 							const S32 buf_size = 65536;
@@ -1880,14 +1902,14 @@ void ImportTracker::send_inventory(LLSD& prim)
 					break;
 				case LLAssetType::AT_CLOTHING:
 				case LLAssetType::AT_BODYPART:
-					cmdline_printchat("case cloth/bodypart");
+					//cmdline_printchat("case cloth/bodypart");
 					{
 						S32 file_size;
 						LLAPRFile infile ;
 						infile.open(data->filename, LL_APR_RB, LLAPRFile::local, &file_size);
 						if (infile.getFileHandle())
 						{
-							cmdline_printchat("got file handle @ cloth");
+							//cmdline_printchat("got file handle @ cloth");
 							LLVFile file(gVFS, data->assetid, data->type, LLVFile::WRITE);
 							file.setMaxSize(file_size);
 							const S32 buf_size = 65536;
@@ -1919,7 +1941,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 					}
 					break;
 				case LLAssetType::AT_NOTECARD:
-					cmdline_printchat("case notecard");
+					//cmdline_printchat("case notecard");
 					{
 						//std::string agent_url = gAgent.getRegion()->getCapability("UpdateNotecardAgentInventory");
 						LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data);
@@ -1933,7 +1955,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 					}
 					break;
 				case LLAssetType::AT_LSL_TEXT:
-					cmdline_printchat("case LSL text");
+					//cmdline_printchat("case LSL text");
 					{
 						LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data);
 						LLPermissions perm;
@@ -1950,7 +1972,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 				default:
 					break;
 				}
-				asset_insertions += 1;
+				asset_insertions++;
 			}
 		}
 	ImportTrackerFloater::total_assets = asset_insertions;
@@ -2081,6 +2103,7 @@ void ImportTracker::send_shape(LLSD& prim)
 	msg->nextBlockFast(_PREHASH_ObjectData);
 	msg->addU32Fast(_PREHASH_ObjectLocalID, prim["LocalID"].asInteger());
 	
+
 	LLVolumeParams params;
 	params.fromLLSD(prim["volume"]);
 	if (prim.has("flexible"))
@@ -2188,12 +2211,6 @@ void ImportTracker::send_extras(LLSD& prim)
 			msg->addBinaryDataFast(_PREHASH_ParamData, tmp, datasize);
 		}
 	}
-
-	if (prim.has("chat"))
-	{
-		//what is this? -Patrick Sapinski (Thursday, October 22, 2009)
-		//send_chat_from_viewer(prim["chat"].asString(), CHAT_TYPE_SHOUT, 0);
-	}
 	
 	if (prim.has("sculpt"))
 	{
@@ -2226,8 +2243,20 @@ void ImportTracker::send_extras(LLSD& prim)
 			msg->addBinaryDataFast(_PREHASH_ParamData, tmp, datasize);
 		}
 	}
-	
 	msg->sendReliable(gAgent.getRegion()->getHost());
+	if (prim.has("phantom"))
+	{
+		gMessageSystem->newMessage("ObjectFlagUpdate");
+		gMessageSystem->nextBlockFast(_PREHASH_AgentData);
+		gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
+		gMessageSystem->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
+		gMessageSystem->addU32Fast(_PREHASH_ObjectLocalID, prim["LocalID"].asInteger());
+		gMessageSystem->addBOOLFast(_PREHASH_UsePhysics, false );
+		gMessageSystem->addBOOLFast(_PREHASH_IsTemporary, false );
+		gMessageSystem->addBOOLFast(_PREHASH_IsPhantom, true );
+		gMessageSystem->addBOOLFast(_PREHASH_CastsShadows, false );
+		gMessageSystem->sendReliable(gAgent.getRegion()->getHost());
+	}
 }
 
 void ImportTracker::send_namedesc(LLSD& prim)
@@ -2315,6 +2344,14 @@ void ImportTracker::link()
 	}
 
 	llinfos << "FINISHED IMPORT" << llendl;
+	ImportTrackerFloater::linksets_imported++;
+
+	if (ImportTrackerFloater::linksets_imported >= ImportTrackerFloater::total_linksets)
+	{
+		gIdleCallbacks.deleteFunction(plywoodtracker);
+		cmdline_printchat("FINISHED IMPORT");
+	}
+	
 	
 	if (linkset[0].has("Attachment"))
 	{

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<floater can_close="true" can_drag_on_left="false" can_minimize="true"
+<floater can_close="true" can_drag_on_left="false" can_minimize="true" rect_control="FloaterSimExport"
      can_resize="true" min_width="340" width="340" height="300" name="SimExport" title="Export Simulator">
 
  <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"

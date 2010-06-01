@@ -41,12 +41,14 @@ struct PropertiesRequest_t
 	time_t	request_time;
 	LLUUID	target_prim;
 	U32		localID;
+	U32		num_retries;
 };
 
 struct InventoryRequest_t
 {
 	time_t	request_time;
 	LLViewerObject * object; // I can't be bothered to itterate the objects list on every kick, so hold the pointer here
+	U32		num_retries;
 };
 
 
@@ -172,6 +174,8 @@ private:
 	static std::string destination;
 	static std::string asset_dir;
 	static std::set<LLUUID> requested_textures;
+	//static std::list<S32> copied_objects;
+	//static LLDynamicArray<U32> copied_objects;
 };
 
 // zip a folder. this doesn't work yet.

@@ -37,6 +37,7 @@ class FloaterSimExport
 	//meh, this should be static
 	//but i want to know its state in viewermessage
 	static FloaterSimExport* sInstance;
+	time_t	move_time;
 
 private:
 

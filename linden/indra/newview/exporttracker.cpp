@@ -44,6 +44,7 @@
 #include "llviewerregion.h"
 #include "llwindow.h"
 #include "lltransfersourceasset.h"
+#include "lltooldraganddrop.h"
 #include "llviewernetwork.h"
 #include "llcurl.h"
 #include "llviewerimagelist.h"
@@ -358,7 +359,7 @@ LLSD * JCExportTracker::subserialize(LLViewerObject* linkset)
 		return NULL;
 	}
 
-	if (!(!object->isAvatar() && object->permModify() && object->permCopy() && object->permTransfer()))
+	if (!(!object->isAvatar()))// && object->permModify() && object->permCopy() && object->permTransfer()))
 	{
 		delete pllsd;	
 		return NULL;
@@ -366,7 +367,114 @@ LLSD * JCExportTracker::subserialize(LLViewerObject* linkset)
 
 	// Build a list of everything that we'll actually be exporting
 	LLDynamicArray<LLViewerObject*> export_objects;
-	
+
+	if (!object)
+	{
+		cmdline_printchat("subserialize: invalid obj");
+	}
+	if (object->isDead())
+	{
+		cmdline_printchat("subserialize: object is dead");
+		return NULL;
+	}
+	/*
+	LLPCode pcode = object->getPCode();
+	if (pcode != LL_PCODE_VOLUME &&
+		pcode != LL_PCODE_LEGACY_GRASS &&
+		pcode != LL_PCODE_LEGACY_TREE)
+	{
+		cmdline_printchat("subserialize: object has invalid pcode");
+		return NULL;
+	}
+	*/
+
+//#define _KOW
+
+#ifdef _KOW
+	//begin: copy object workaround.
+	if (!object->permYouOwner()) //&& check if user opted to copy non owned objects
+	{ //we don't own this object
+		cmdline_printchat("someone else owns object " + llformat("%d",object->getLocalID()));
+
+		//try and take a copy
+		U8 d = (U8)DRD_ACQUIRE_TO_AGENT_INVENTORY;
+		const LLUUID& category_id = gInventory.findCategoryUUIDForType(LLAssetType::AT_OBJECT);
+		LLUUID tid;
+		tid.generate();
+		LLMessageSystem* msg = gMessageSystem;
+
+		msg->newMessageFast(_PREHASH_DeRezObject);
+		msg->nextBlockFast(_PREHASH_AgentData);
+		msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
+		msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
+		msg->nextBlockFast(_PREHASH_AgentBlock);
+		msg->addUUIDFast(_PREHASH_GroupID, gAgent.getGroupID());
+		msg->addU8Fast(_PREHASH_Destination, d);	
+		msg->addUUIDFast(_PREHASH_DestinationID, category_id);
+		msg->addUUIDFast(_PREHASH_TransactionID, tid);
+		msg->addU8Fast(_PREHASH_PacketCount, 1);
+		msg->addU8Fast(_PREHASH_PacketNumber, 1);
+		msg->nextBlockFast(_PREHASH_ObjectData);
+		msg->addU32Fast(_PREHASH_ObjectLocalID, object->getLocalID());
+		msg->sendReliable(object->getRegion()->getHost());
+
+		//add our new copy to a list
+		//copied_objects.put(object);
+
+		
+		//LLDynamicArray<U32> copied_objects;
+		//U32 tmp = object->getLocalID();
+		//copied_objects.push_back(tmp);
+		
+
+		//TODO: add callback which will attach this object and rerun it through this function
+
+		
+		#define vCatType (LLAssetType::EType)128
+		#define vBridgeOpCat "#Emerald"
+
+		
+				//cmdline_printchat("foldering");
+				//LLUUID vcatid;
+				//vcatid = gInventory.findCategoryByName(vBridgeOpCat);
+				//if(vcatid.isNull())
+				//{
+				//	cmdline_printchat("creating folder");
+				//	vcatid = gInventory.createNewCategory(gAgent.getInventoryRootID(), LLAssetType::AT_NONE, vBridgeOpCat);
+				//}
+				std::string objectName = "blah_";
+				LLUUID objectid = LLUUID("e97cf410-8e61-7005-ec06-629eba4cd1fb");//findInventoryByName(objectName);
+				cmdline_printchat("id="+objectid.asString());
+				LLViewerInventoryItem* object = gInventory.getItem(objectid);
+				if(object)
+				{
+					if(0)//isworn(object->getUUID()))
+					{
+						cmdline_printchat("wearing object");
+					}
+					else
+					{
+						cmdline_printchat("attaching object");
+						LLMessageSystem* msg = gMessageSystem;
+						msg->newMessageFast(_PREHASH_RezSingleAttachmentFromInv);
+						msg->nextBlockFast(_PREHASH_AgentData);
+						msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
+						msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
+						msg->nextBlockFast(_PREHASH_ObjectData);
+						msg->addUUIDFast(_PREHASH_ItemID, object->getUUID());
+						msg->addUUIDFast(_PREHASH_OwnerID, object->getPermissions().getOwner());
+						msg->addU8Fast(_PREHASH_AttachmentPt, 128);
+						pack_permissions_slam(msg, object->getFlags(), object->getPermissions());
+						msg->addStringFast(_PREHASH_Name, object->getName());
+						msg->addStringFast(_PREHASH_Description, object->getDescription());
+						msg->sendReliable(gAgent.getRegionHost());
+					}
+				}
+	}
+	else
+#endif
+	{ // we own this object.
+
 	// Add the root object to the export list
 	export_objects.put(object);
 
@@ -589,6 +697,7 @@ bool JCExportTracker::getAsyncData(LLViewerObject * obj)
 			PropertiesRequest_t * req = new PropertiesRequest_t();
 			req->target_prim=obj->getID();
 			req->request_time=0;
+			req->num_retries = 0;	
 			req->localID=obj->getLocalID();
 			requested_properties.push_back(req);
 
@@ -617,6 +726,7 @@ bool JCExportTracker::getAsyncData(LLViewerObject * obj)
 				InventoryRequest_t * ireq = new InventoryRequest_t();
 				ireq->object=obj;
 				ireq->request_time = 0;	
+				ireq->num_retries = 0;	
 				requested_inventory.push_back(ireq);
 				obj->registerInventoryListener(sInstance,(void*)ireq);
 				//cmdline_printchat("registered inventory listener for: " + llformat("%d",ireq->object->getLocalID()));
@@ -812,13 +922,27 @@ void JCExportTracker::exportworker(void *userdata)
 		if( (req->request_time+PROP_REQUEST_KICK)< tnow)
 		{
 			req->request_time=time(NULL);
+			req->num_retries++;
 			requestPrimProperties(req->localID);
 			kick_count++;
 			//cmdline_printchat("requested property for: " + llformat("%d",req->localID));
 		}
-		requested_properties.push_back(req);
+		if (req->num_retries < 40)
+			requested_properties.push_back(req);
+		else
+		{
+			//req->localID->mPropertiesRecieved = true;		
+			cmdline_printchat("failed to retrieve properties for ");// + req->localID);
+			ExportTrackerFloater::properties_received++;
+			LLViewerObject *obj = gObjectList.findObject(req->target_prim);
+			if(obj)
+			{
+				obj->mPropertiesRecieved=true;
+				cmdline_printchat("successfully set property to received");
+			}
+		}
 		
-		if(kick_count>=25)
+		if(kick_count>=20)
 			break; // that will do for now				
 
 		total--;
@@ -840,13 +964,59 @@ void JCExportTracker::exportworker(void *userdata)
 		if( (req->request_time+INV_REQUEST_KICK)< tnow)
 		{
 			req->request_time=time(NULL);
-			req->object->dirtyInventory();
-			req->object->requestInventory();
+			req->num_retries++;
+
+			//LLViewerObject* obj = gObjectList.findObject(req->object->mID);
+			LLViewerObject* obj = req->object;
+
+			//cmdline_printchat("requesting inventory: " + obj->mID.asString());
+
+			if(obj->mID.isNull())
+				cmdline_printchat("no mID");
+
+			if (!obj)
+			{
+				cmdline_printchat("export worker: " + req->object->mID.asString() + " not found in object list");
+			}
+			LLPCode pcode = obj->getPCode();
+			if (pcode != LL_PCODE_VOLUME &&
+				pcode != LL_PCODE_LEGACY_GRASS &&
+				pcode != LL_PCODE_LEGACY_TREE)
+			{
+				cmdline_printchat("exportworker: object has invalid pcode");
+				//return NULL;
+			}
+			obj->dirtyInventory();
+			obj->requestInventory();
+			
+			//if (req->object->isInventoryDirty()) //yet another crashy inventory call
+			//{
+			//	req->object->fetchInventoryFromServer();
+			//}
+
+			//sInstance->removeVOInventoryListener();
+			//sInstance->clearContents();
+			//sInstance->registerVOInventoryListener(obj,NULL);
+			//sInstance->requestVOInventory();
+
+
 			kick_count++;
 		}
-		requested_inventory.push_back(req);
+
+		if (req->num_retries < 40)
+			requested_inventory.push_back(req);
+		else
+		{
+			req->object->mInventoryRecieved = true;
+
+			//object->removeInventoryListener(sInstance);
+			//obj->mInventoryRecieved=true;
+			cmdline_printchat("failed to retrieve inventory for " + req->object->mID.asString());
+			ExportTrackerFloater::inventories_received++;
+		}
+
 		
-		if(kick_count>=25)
+		if(kick_count>=20)
 			break; // that will do for now				
 
 		total--;
@@ -859,8 +1029,15 @@ void JCExportTracker::exportworker(void *userdata)
 	{
 		if(!ExportTrackerFloater::objectselection.empty())
 		{
-			LLViewerObject * obj=ExportTrackerFloater::objectselection.get(0);
+			LLViewerObject* obj=ExportTrackerFloater::objectselection.get(0);
 			ExportTrackerFloater::objectselection.remove(0);
+
+			if (!obj)
+			{
+				cmdline_printchat("export worker (getasyncdata): invalid obj");
+				break;
+			}
+
 			ExportTrackerFloater::mOjectSelectionWaitList.push_back(obj);
 			// We need to go off and get properties, inventorys and textures now
 			getAsyncData(obj);
@@ -1458,7 +1635,7 @@ void JCExportTracker::finalize()
 					//add this prim to the linkset.
 
 					delete(inventory);
-					recieved_inventory.erase(LLUUID(prim["id"].asString()));
+					recieved_inventory.erase((LLUUID)prim["id"]);
 
 				}
 				linkset_xml->addChild(prim_xml);
