@@ -228,9 +228,9 @@
           <key>linux</key>
           <map>
             <key>md5sum</key>
-            <string>15149b8140d06f9bd1b8672b958c6915</string>
+            <string>d58ac1a8396ac983b67cc3e3541457e3</string>
             <key>url</key>
-            <uri>http://imprudenceviewer.org/download/libs/boost-1.36.0-linux-20091128.tar.bz2</uri>
+            <uri>http://s3.amazonaws.com/viewer-source-downloads/install_pkgs/boost-1.39.0-linux-20100222a.tar.bz2</uri>
           </map>
           <key>linux64</key>
           <map>
