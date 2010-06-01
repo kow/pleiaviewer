@@ -475,197 +475,198 @@ LLSD * JCExportTracker::subserialize(LLViewerObject* linkset)
 #endif
 	{ // we own this object.
 
-	// Add the root object to the export list
-	export_objects.put(object);
+		// Add the root object to the export list
+		export_objects.put(object);
 
-	//all child objects must also be active
-	llassert_always(object);
-	
-	// Iterate over all of this objects children
-	LLViewerObject::const_child_list_t& child_list = object->getChildren(); //this crashes sometimes. is using llassert a bad hack?? -Patrick Sapinski (Monday, November 23, 2009)
-	
-	for (LLViewerObject::child_list_t::const_iterator i = child_list.begin(); i != child_list.end(); i++)
-	{
-		LLViewerObject* child = *i;
-		if(!child->isAvatar())
+		//all child objects must also be active
+		llassert_always(object);
+		
+		// Iterate over all of this objects children
+		LLViewerObject::const_child_list_t& child_list = object->getChildren(); //this crashes sometimes. is using llassert a bad hack?? -Patrick Sapinski (Monday, November 23, 2009)
+		
+		for (LLViewerObject::child_list_t::const_iterator i = child_list.begin(); i != child_list.end(); i++)
 		{
-			// Put the child objects on the export list
-			export_objects.put(child);
-		}
-	}
-	//deselect everything because the render lag from a large selection really slows down the exporter.
-	LLSelectMgr::getInstance()->deselectAll();
-
-	S32 object_index = 0;
-	
-	while ((object_index < export_objects.count()))
-	{
-		object = export_objects.get(object_index++);
-		LLUUID id = object->getID();
-	
-		//llinfos << "Exporting prim " << object->getID().asString() << llendl;
-	
-		// Create an LLSD object that represents this prim. It will be injected in to the overall LLSD
-		// tree structure
-		LLSD prim_llsd;
-	
-		if (object_index == 1)
-		{
-			LLVOAvatar* avatar = find_avatar_from_object(object);
-			if (avatar)
+			LLViewerObject* child = *i;
+			if(!child->isAvatar())
 			{
-				LLViewerJointAttachment* attachment = avatar->getTargetAttachmentPoint(object);
-				U8 attachment_id = 0;
-				
-				if (attachment)
+				// Put the child objects on the export list
+				export_objects.put(child);
+			}
+		}
+		//deselect everything because the render lag from a large selection really slows down the exporter.
+		LLSelectMgr::getInstance()->deselectAll();
+
+		S32 object_index = 0;
+		
+		while ((object_index < export_objects.count()))
+		{
+			object = export_objects.get(object_index++);
+			LLUUID id = object->getID();
+		
+			//llinfos << "Exporting prim " << object->getID().asString() << llendl;
+		
+			// Create an LLSD object that represents this prim. It will be injected in to the overall LLSD
+			// tree structure
+			LLSD prim_llsd;
+		
+			if (object_index == 1)
+			{
+				LLVOAvatar* avatar = find_avatar_from_object(object);
+				if (avatar)
 				{
-					for (LLVOAvatar::attachment_map_t::iterator iter = avatar->mAttachmentPoints.begin();
-										iter != avatar->mAttachmentPoints.end(); ++iter)
+					LLViewerJointAttachment* attachment = avatar->getTargetAttachmentPoint(object);
+					U8 attachment_id = 0;
+					
+					if (attachment)
 					{
-						if (iter->second == attachment)
+						for (LLVOAvatar::attachment_map_t::iterator iter = avatar->mAttachmentPoints.begin();
+											iter != avatar->mAttachmentPoints.end(); ++iter)
 						{
-							attachment_id = iter->first;
-							break;
+							if (iter->second == attachment)
+							{
+								attachment_id = iter->first;
+								break;
+							}
+						}
+					}
+					else
+					{
+						// interpret 0 as "default location"
+						attachment_id = 0;
+					}
+					
+					prim_llsd["Attachment"] = attachment_id;
+					prim_llsd["attachpos"] = object->getPosition().getValue();
+					prim_llsd["attachrot"] = ll_sd_from_quaternion(object->getRotation());
+				}
+				
+				prim_llsd["position"] = object->getPositionRegion().getValue(); //LLVector3(0, 0, 0).getValue();
+				prim_llsd["rotation"] = ll_sd_from_quaternion(object->getRotation());
+			}
+			else
+			{
+				prim_llsd["position"] = object->getPositionRegion().getValue();
+				prim_llsd["rotation"] = ll_sd_from_quaternion(object->getRotationEdit());
+			}
+			//prim_llsd["name"] = "";//node->mName;
+			//prim_llsd["description"] = "";//node->mDescription;
+			// Transforms
+			prim_llsd["scale"] = object->getScale().getValue();
+			// Flags
+			prim_llsd["shadows"] = object->flagCastShadows();
+			prim_llsd["phantom"] = object->flagPhantom();
+			prim_llsd["physical"] = (BOOL)(object->mFlags & FLAGS_USE_PHYSICS);
+
+			// For saving tree and grass positions store the pcode so we 
+			// know what to restore and the state is the species
+			LLPCode pcode = object->getPCode();
+			prim_llsd["pcode"] = pcode;
+			prim_llsd["state"] = object->getState();
+
+			// Only volumes have all the prim parameters
+			if(LL_PCODE_VOLUME == pcode) 
+			{
+				LLVolumeParams params = object->getVolume()->getParams();
+				prim_llsd["volume"] = params.asLLSD();
+
+				if (object->isFlexible())
+				{
+					LLFlexibleObjectData* flex = (LLFlexibleObjectData*)object->getParameterEntry(LLNetworkData::PARAMS_FLEXIBLE);
+					prim_llsd["flexible"] = flex->asLLSD();
+				}
+				if (object->getParameterEntryInUse(LLNetworkData::PARAMS_LIGHT))
+				{
+					LLLightParams* light = (LLLightParams*)object->getParameterEntry(LLNetworkData::PARAMS_LIGHT);
+					prim_llsd["light"] = light->asLLSD();
+				}
+				if (object->getParameterEntryInUse(LLNetworkData::PARAMS_SCULPT))
+				{
+
+					LLSculptParams* sculpt = (LLSculptParams*)object->getParameterEntry(LLNetworkData::PARAMS_SCULPT);
+					prim_llsd["sculpt"] = sculpt->asLLSD();
+
+					if(export_tga || export_j2c)
+					{
+						LLFile::mkdir(asset_dir+"//sculptmaps//");
+						std::string path = asset_dir+"//sculptmaps//";
+						LLUUID asset_id = sculpt->getSculptTexture();
+						JCAssetInfo* info = new JCAssetInfo;
+						info->path = path + asset_id.asString();
+						info->name = "Sculpt Texture";
+						if(requested_textures.count(asset_id) == 0)
+						{
+							ExportTrackerFloater::total_textures++;
+							requested_textures.insert(asset_id);
+							LLViewerImage* img = gImageList.getImage(asset_id, MIPMAP_TRUE, FALSE);
+							img->setBoostLevel(LLViewerImageBoostLevel::BOOST_MAX_LEVEL);
+							img->forceToSaveRawImage(0); //this is required for us to receive the full res image.
+							//img->setAdditionalDecodePriority(1.0f) ;
+							img->setLoadedCallback( JCExportTracker::onFileLoadedForSave, 
+											0, TRUE, FALSE, info );
+							//llinfos << "Requesting texture " << asset_id.asString() << llendl;
 						}
 					}
 				}
-				else
-				{
-					// interpret 0 as "default location"
-					attachment_id = 0;
-				}
-				
-				prim_llsd["Attachment"] = attachment_id;
-				prim_llsd["attachpos"] = object->getPosition().getValue();
-				prim_llsd["attachrot"] = ll_sd_from_quaternion(object->getRotation());
 			}
+
+			// Textures
+			LLSD te_llsd;
+			U8 te_count = object->getNumTEs();
 			
-			prim_llsd["position"] = object->getPositionRegion().getValue(); //LLVector3(0, 0, 0).getValue();
-			prim_llsd["rotation"] = ll_sd_from_quaternion(object->getRotation());
-		}
-		else
-		{
-			prim_llsd["position"] = object->getPositionRegion().getValue();
-			prim_llsd["rotation"] = ll_sd_from_quaternion(object->getRotationEdit());
-		}
-		//prim_llsd["name"] = "";//node->mName;
-		//prim_llsd["description"] = "";//node->mDescription;
-		// Transforms
-		prim_llsd["scale"] = object->getScale().getValue();
-		// Flags
-		prim_llsd["shadows"] = object->flagCastShadows();
-		prim_llsd["phantom"] = object->flagPhantom();
-		prim_llsd["physical"] = (BOOL)(object->mFlags & FLAGS_USE_PHYSICS);
-
-		// For saving tree and grass positions store the pcode so we 
-		// know what to restore and the state is the species
-		LLPCode pcode = object->getPCode();
-		prim_llsd["pcode"] = pcode;
-		prim_llsd["state"] = object->getState();
-
-		// Only volumes have all the prim parameters
-		if(LL_PCODE_VOLUME == pcode) 
-		{
-			LLVolumeParams params = object->getVolume()->getParams();
-			prim_llsd["volume"] = params.asLLSD();
-
-			if (object->isFlexible())
+			for (U8 i = 0; i < te_count; i++)
 			{
-				LLFlexibleObjectData* flex = (LLFlexibleObjectData*)object->getParameterEntry(LLNetworkData::PARAMS_FLEXIBLE);
-				prim_llsd["flexible"] = flex->asLLSD();
+				te_llsd.append(object->getTE(i)->asLLSD());
 			}
-			if (object->getParameterEntryInUse(LLNetworkData::PARAMS_LIGHT))
-			{
-				LLLightParams* light = (LLLightParams*)object->getParameterEntry(LLNetworkData::PARAMS_LIGHT);
-				prim_llsd["light"] = light->asLLSD();
-			}
-			if (object->getParameterEntryInUse(LLNetworkData::PARAMS_SCULPT))
-			{
 
-				LLSculptParams* sculpt = (LLSculptParams*)object->getParameterEntry(LLNetworkData::PARAMS_SCULPT);
-				prim_llsd["sculpt"] = sculpt->asLLSD();
-
-				if(export_tga || export_j2c)
+			if(export_tga || export_j2c)
+			{
+				LLFile::mkdir(asset_dir+"//textures//");
+				std::string path = asset_dir+"//textures//";
+				for (U8 i = 0; i < te_count; i++)
 				{
-					LLFile::mkdir(asset_dir+"//sculptmaps//");
-					std::string path = asset_dir+"//sculptmaps//";
-					LLUUID asset_id = sculpt->getSculptTexture();
+					LLUUID asset_id = object->getTE(i)->getID();
 					JCAssetInfo* info = new JCAssetInfo;
 					info->path = path + asset_id.asString();
-					info->name = "Sculpt Texture";
+					info->name = "Prim Texture";
+					//gAssetStorage->getAssetData(asset_id, LLAssetType::AT_TEXTURE, JCAssetExportCallback, info,1);
 					if(requested_textures.count(asset_id) == 0)
 					{
 						ExportTrackerFloater::total_textures++;
 						requested_textures.insert(asset_id);
 						LLViewerImage* img = gImageList.getImage(asset_id, MIPMAP_TRUE, FALSE);
-						img->setBoostLevel(LLViewerImageBoostLevel::BOOST_MAX_LEVEL);
-						img->forceToSaveRawImage(0); //this is required for us to receive the full res image.
-						//img->setAdditionalDecodePriority(1.0f) ;
-						img->setLoadedCallback( JCExportTracker::onFileLoadedForSave, 
-										0, TRUE, FALSE, info );
-						//llinfos << "Requesting texture " << asset_id.asString() << llendl;
+						
+						//RC
+						//if we already have this texture it will never fire a loaded callback
+						//so kick directly and generate a raw image ourselves from a GL readback
+						if(img->getDiscardLevel()==0)
+						{
+							//llinfos << "Already have texture " << asset_id.asString() << " in memory, attemping GL readback" << llendl;
+							onFileLoadedForSave(true,img,NULL,NULL,0,true,info);
+						}
+						else
+						{
+							img->forceToSaveRawImage(0); //this is required for us to receive the full res image. (snowglobe)
+							img->setBoostLevel(LLViewerImageBoostLevel::BOOST_MAX_LEVEL);	
+							img->addTextureStats( (F32)MAX_IMAGE_AREA );
+							img->setLoadedCallback( JCExportTracker::onFileLoadedForSave, 
+											0, TRUE, FALSE, info );
+							//llinfos << "Requesting texture " << asset_id.asString() << llendl;
+						}
 					}
 				}
 			}
+
+			//JCExportTracker::mirror(asset, obj, asset_dir, asset->getUUID().asString());
+			
+			prim_llsd["textures"] = te_llsd;
+
+			prim_llsd["id"] = object->getID().asString();
+			
+			totalprims += 1;
+
+			// Changed to use link numbers zero-indexed.
+			(*pllsd)[object_index - 1] = prim_llsd;
 		}
-
-		// Textures
-		LLSD te_llsd;
-		U8 te_count = object->getNumTEs();
-		
-		for (U8 i = 0; i < te_count; i++)
-		{
-			te_llsd.append(object->getTE(i)->asLLSD());
-		}
-
-		if(export_tga || export_j2c)
-		{
-			LLFile::mkdir(asset_dir+"//textures//");
-			std::string path = asset_dir+"//textures//";
-			for (U8 i = 0; i < te_count; i++)
-			{
-				LLUUID asset_id = object->getTE(i)->getID();
-				JCAssetInfo* info = new JCAssetInfo;
-				info->path = path + asset_id.asString();
-				info->name = "Prim Texture";
-				//gAssetStorage->getAssetData(asset_id, LLAssetType::AT_TEXTURE, JCAssetExportCallback, info,1);
-				if(requested_textures.count(asset_id) == 0)
-				{
-					ExportTrackerFloater::total_textures++;
-					requested_textures.insert(asset_id);
-					LLViewerImage* img = gImageList.getImage(asset_id, MIPMAP_TRUE, FALSE);
-					
-					//RC
-					//if we already have this texture it will never fire a loaded callback
-					//so kick directly and generate a raw image ourselves from a GL readback
-					if(img->getDiscardLevel()==0)
-					{
-						//llinfos << "Already have texture " << asset_id.asString() << " in memory, attemping GL readback" << llendl;
-						onFileLoadedForSave(true,img,NULL,NULL,0,true,info);
-					}
-					else
-					{
-						img->forceToSaveRawImage(0); //this is required for us to receive the full res image. (snowglobe)
-						img->setBoostLevel(LLViewerImageBoostLevel::BOOST_MAX_LEVEL);	
-						img->addTextureStats( (F32)MAX_IMAGE_AREA );
-						img->setLoadedCallback( JCExportTracker::onFileLoadedForSave, 
-										0, TRUE, FALSE, info );
-						//llinfos << "Requesting texture " << asset_id.asString() << llendl;
-					}
-				}
-			}
-		}
-
-		//JCExportTracker::mirror(asset, obj, asset_dir, asset->getUUID().asString());
-		
-		prim_llsd["textures"] = te_llsd;
-
-		prim_llsd["id"] = object->getID().asString();
-		
-		totalprims += 1;
-
-		// Changed to use link numbers zero-indexed.
-		(*pllsd)[object_index - 1] = prim_llsd;
 	}
 	return pllsd;
 }
@@ -1635,7 +1636,7 @@ void JCExportTracker::finalize()
 					//add this prim to the linkset.
 
 					delete(inventory);
-					recieved_inventory.erase((LLUUID)prim["id"]);
+					recieved_inventory.erase((LLUUID)prim["id"].asString());
 
 				}
 				linkset_xml->addChild(prim_xml);
