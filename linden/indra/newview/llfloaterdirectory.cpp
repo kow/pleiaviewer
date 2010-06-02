@@ -4,7 +4,7 @@
  *
  * $LicenseInfo:firstyear=2002&license=viewergpl$
  * 
- * Copyright (c) 2002-2009, Linden Research, Inc.
+ * Copyright (c) 2002-2010, Linden Research, Inc.
  * 
  * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
@@ -96,6 +96,7 @@ LLFloaterDirectory::LLFloaterDirectory(const std::string& name)
 
 	LLCallbackMap::map_t factory_map;
 	factory_map["pleiades_search_panel"] = LLCallbackMap(createPleiadesSearch, this);
+	factory_map["find_all_old_panel"] = LLCallbackMap(createFindAllOld, this);
 	factory_map["find_all_panel"] = LLCallbackMap(createFindAll, this);
 	factory_map["classified_panel"] = LLCallbackMap(createClassified, this);
 	factory_map["events_panel"] = LLCallbackMap(createEvents, this);
@@ -123,6 +124,7 @@ LLFloaterDirectory::LLFloaterDirectory(const std::string& name)
 	}
 	
 	childSetTabChangeCallback("Directory Tabs", "pleiades_search_panel", onTabChanged, this);
+	childSetTabChangeCallback("Directory Tabs", "find_all_old_panel", onTabChanged, this);
 	childSetTabChangeCallback("Directory Tabs", "find_all_panel", onTabChanged, this);
 	childSetTabChangeCallback("Directory Tabs", "classified_panel", onTabChanged, this);
 	childSetTabChangeCallback("Directory Tabs", "events_panel", onTabChanged, this);
@@ -217,7 +219,14 @@ void* LLFloaterDirectory::createPeople(void* userdata)
 void* LLFloaterDirectory::createGroups(void* userdata)
 {
 	LLFloaterDirectory *self = (LLFloaterDirectory*)userdata;
-	return new LLPanelDirGroups("people_groups", self);
+	return new LLPanelDirGroups("groups_panel", self);
+}
+
+// static
+void *LLFloaterDirectory::createFindAllOld(void* userdata)
+{
+	LLFloaterDirectory *self = (LLFloaterDirectory*)userdata;
+	return new LLPanelDirFindAllOld("find_all_old_panel", self);
 }
 
 // static

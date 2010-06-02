@@ -13,6 +13,22 @@
 
 class LLSpinCtrl;
 
+struct InventoryImportInfo
+{
+	U32 localid;
+	LLAssetType::EType type;
+	LLInventoryType::EType inv_type;
+	EWearableType wear_type;
+	LLTransactionID tid;
+	LLUUID assetid;
+	std::string name;
+	std::string description;
+	bool compiled;
+	std::string filename;
+	U32 perms;
+	U32 retries;
+};
+
 class ImportTrackerFloater : public LLFloater
 {
 public:
@@ -30,6 +46,9 @@ public:
 	BOOL handleHover(S32 x,S32 y,MASK mask);
 
 	static void 	onCommitPosition(LLUICtrl* ctrl, void* userdata);
+
+	//Temporary function to rez a cube.
+	static void onClickPlywood(void* data);
 
 	//Reset button
 	static void onClickReset(void* data);
@@ -119,7 +138,9 @@ class ImportTracker
 
 		//Move to next texture upload
 		void upload_next_asset();
-		
+
+		static void import_asset(InventoryImportInfo* data);
+
 protected:		
 		void send_inventory(LLSD &prim);
 		void send_properties(LLSD &prim, int counter);
