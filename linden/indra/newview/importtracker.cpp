@@ -1153,13 +1153,16 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 		}
 
 		//we should have all our params by now, pack the LLSD.
+		prim_llsd["name"] = name;
+		prim_llsd["description"] = description;
 		prim_llsd["position"] = prim_pos;
 		prim_llsd["rotation"] = prim_rot;
 
 		prim_llsd["scale"] = prim_scale;
 		// Flags
 		//prim_llsd["shadows"] = object->flagCastShadows();
-		prim_llsd["phantom"] = is_phantom;
+		if (is_phantom)
+			prim_llsd["phantom"] = is_phantom;
 		//prim_llsd["physical"] = (BOOL)(object->mFlags & FLAGS_USE_PHYSICS);
 
 		if (pcode == LL_PCODE_LEGACY_GRASS || pcode == LL_PCODE_LEGACY_TREE)
@@ -1600,6 +1603,7 @@ struct InventoryImportInfo
 	bool compiled;
 	std::string filename;
 	U32 perms;
+	U32 retries;
 };
 
 void insert(LLViewerInventoryItem* item, LLViewerObject* objectp, InventoryImportInfo* data)
@@ -1625,6 +1629,23 @@ void insert(LLViewerInventoryItem* item, LLViewerObject* objectp, InventoryImpor
 	}
 }
 
+void import_asset(InventoryImportInfo* data)
+{
+	//InventoryImportInfo* data = (InventoryImportInfo*)data2;
+	//InventoryImportInfo* data = new InventoryImportInfo;
+	//InventoryImportInfo* data2 = data;
+	LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data);
+	//LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data2);
+	LLUUID parent_id = gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH);
+	create_inventory_item(gAgent.getID(), gAgent.getSessionID(),
+		gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH), LLTransactionID::tnull, data->name,
+		data->description, data->type, LLInventoryType::defaultForAssetType(data->type), data->wear_type,
+		LLFloaterPerms::getNextOwnerPerms(),
+		cb);
+
+	return;
+}
+
 class JCImportTransferCallback : public LLInventoryCallback
 {
 public:
@@ -1647,14 +1668,14 @@ class JCImportInventoryResponder : public LLAssetUploadResponder
 {
 public:
 	JCImportInventoryResponder(const LLSD& post_data,
-								const LLUUID& vfile_id,
-								LLAssetType::EType asset_type, InventoryImportInfo* idata) : LLAssetUploadResponder(post_data, vfile_id, asset_type)
+		const LLUUID& vfile_id,
+		LLAssetType::EType asset_type, InventoryImportInfo* idata) : LLAssetUploadResponder(post_data, vfile_id, asset_type)
 	{
 		data = idata;
 	}
 
 	JCImportInventoryResponder(const LLSD& post_data, const std::string& file_name,
-											   LLAssetType::EType asset_type) : LLAssetUploadResponder(post_data, file_name, asset_type)
+		LLAssetType::EType asset_type) : LLAssetUploadResponder(post_data, file_name, asset_type)
 	{
 
 	}
@@ -1669,7 +1690,7 @@ public:
 			data->description, data->type, LLInventoryType::defaultForAssetType(data->type), data->wear_type,
 			PERM_ALL,
 			cb);
-		
+
 	}
 private:
 	InventoryImportInfo* data;
@@ -1706,6 +1727,19 @@ public:
 
 		llinfos << "JCPostInvUploadResponder::error " << statusNum 
 			<< " reason: " << reason << llendl;
+
+
+		S32 file_size;
+		LLAPRFile infile ;
+		infile.open(data->filename, LL_APR_RB, LLAPRFile::local, &file_size);
+		if (infile.getFileHandle())
+		{
+			cmdline_printchat("RESENDING " + data->filename);
+
+			import_asset(data);
+		}
+		else
+			cmdline_printchat("does not exist " + data->filename);
 
 		//std::string agent_url = gAgent.getRegion()->getCapability("UpdateNotecardAgentInventory");
 		//LLSD body;
@@ -1783,6 +1817,10 @@ public:
 				break;
 			}
 		}
+		else
+		{
+			cmdline_printchat("FILE NOT FOUND: " + data->filename);
+		}
 	}
 private:
 	InventoryImportInfo* data;
@@ -1828,6 +1866,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 			data->type = LLAssetType::lookup(item["type"].asString());////LLAssetType::EType(U32(item["type"].asInteger()));
 			data->name = item["name"].asString();
 			data->description = item["desc"].asString();
+			data->retries = 0;
 			if(item.has("item_id"))
 			{
 				//cmdline_printchat("item id found");
@@ -1938,32 +1977,22 @@ void ImportTracker::send_inventory(LLSD& prim)
 												TRUE,
 												FALSE);
 						}
+						else
+						{
+							cmdline_printchat("FILE NOT FOUND: " + data->filename);
+						}
 					}
 					break;
 				case LLAssetType::AT_NOTECARD:
+				case LLAssetType::AT_LSL_TEXT:
 					//cmdline_printchat("case notecard");
 					{
-						//std::string agent_url = gAgent.getRegion()->getCapability("UpdateNotecardAgentInventory");
 						LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data);
-						LLPermissions perm;
 						LLUUID parent_id = gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH);
 						create_inventory_item(gAgent.getID(), gAgent.getSessionID(),
 							gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH), LLTransactionID::tnull, data->name,
 							data->description, data->type, LLInventoryType::defaultForAssetType(data->type), data->wear_type,
 							PERM_ALL,
-							cb);
-					}
-					break;
-				case LLAssetType::AT_LSL_TEXT:
-					//cmdline_printchat("case LSL text");
-					{
-						LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data);
-						LLPermissions perm;
-						LLUUID parent_id = gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH);
-						create_inventory_item(gAgent.getID(), gAgent.getSessionID(),
-							gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH), LLTransactionID::tnull, data->name,
-							data->description, data->type, LLInventoryType::defaultForAssetType(data->type), data->wear_type,
-							LLFloaterPerms::getNextOwnerPerms(),
 							cb);
 					}
 					break;
@@ -2458,7 +2487,6 @@ void ImportTracker::update_map(LLUUID uploaded_asset)
 
 }
 
-
 void myupload_new_resource(const LLTransactionID &tid, LLAssetType::EType asset_type,
 						 std::string name,
 						 std::string desc, S32 compression_info,
@@ -2589,6 +2617,6 @@ void ImportTracker::upload_next_asset()
 		 "Uploaded texture",
 		 NULL,
 		 NULL);
-return;
+	 return;
 
 }
