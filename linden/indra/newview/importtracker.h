@@ -31,6 +31,9 @@ public:
 
 	static void 	onCommitPosition(LLUICtrl* ctrl, void* userdata);
 
+	//Temporary function to rez a cube.
+	static void onClickPlywood(void* data);
+
 	//Reset button
 	static void onClickReset(void* data);
 

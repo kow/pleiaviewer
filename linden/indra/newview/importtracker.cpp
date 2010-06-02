@@ -1631,17 +1631,17 @@ void insert(LLViewerInventoryItem* item, LLViewerObject* objectp, InventoryImpor
 
 void import_asset(InventoryImportInfo* data)
 {
-	//InventoryImportInfo* data = (InventoryImportInfo*)data2;
-	//InventoryImportInfo* data = new InventoryImportInfo;
-	//InventoryImportInfo* data2 = data;
-	LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data);
-	//LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data2);
+	//InventoryImportInfo* data2 = (InventoryImportInfo*)data;
+	//InventoryImportInfo* data2 = new InventoryImportInfo;
+
+	//LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data);
 	LLUUID parent_id = gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH);
 	create_inventory_item(gAgent.getID(), gAgent.getSessionID(),
 		gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH), LLTransactionID::tnull, data->name,
 		data->description, data->type, LLInventoryType::defaultForAssetType(data->type), data->wear_type,
 		LLFloaterPerms::getNextOwnerPerms(),
-		cb);
+		//cb);
+		NULL);
 
 	return;
 }
