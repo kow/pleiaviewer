@@ -141,7 +141,7 @@ class ImportTracker
 
 		static void import_asset(InventoryImportInfo* data);
 
-protected:		
+	protected:		
 		void send_inventory(LLSD &prim);
 		void send_properties(LLSD &prim, int counter);
 		void send_vectors(LLSD &prim, int counter);
@@ -152,22 +152,19 @@ protected:
 		void link();
 		void wear(LLSD &prim);
 		void position(LLSD &prim);
-public:
+	public:
 		void plywood_above_head();
+
+		int					state;
+		LLSD				linksetgroups;
+		int					groupcounter;
 	
 	private:
 		int				numberExpected;
-	public:
-		int				state;
-	private:	
 		S32				last;
 		LLVector3			root;
 		LLQuaternion		rootrot;
 		std::list<S32>			localids;
-	public:
-		LLSD				linksetgroups;
-		int					groupcounter;
-	private:	
 		int					updated;
 		LLVector3			linksetoffset;
 		LLVector3			initialPos;

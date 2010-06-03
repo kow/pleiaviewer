@@ -1688,6 +1688,7 @@ public:
 		LLViewerObject* objectp = find(data->localid);
 		insert(item, objectp, data);
 	}
+
 	virtual void error(U32 statusNum, const std::string& reason)
 	{
 		cmdline_printchat("upload error:" + reason + " " + mVFileID.asString());
@@ -1695,7 +1696,6 @@ public:
 
 		llinfos << "JCPostInvUploadResponder::error " << statusNum 
 			<< " reason: " << reason << llendl;
-
 
 		S32 file_size;
 		LLAPRFile infile ;
@@ -1800,17 +1800,13 @@ private:
 
 void ImportTracker::import_asset(InventoryImportInfo* data)
 {
-	//InventoryImportInfo* data2 = (InventoryImportInfo*)data;
-	//InventoryImportInfo* data2 = new InventoryImportInfo;
-
 	LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data);
 	LLUUID parent_id = gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH);
 	create_inventory_item(gAgent.getID(), gAgent.getSessionID(),
 		gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH), LLTransactionID::tnull, data->name,
 		data->description, data->type, LLInventoryType::defaultForAssetType(data->type), data->wear_type,
-		LLFloaterPerms::getNextOwnerPerms(),
+		PERM_ALL,
 		cb);
-	//NULL);
 
 	return;
 }
@@ -1978,7 +1974,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 						LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data);
 						LLUUID parent_id = gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH);
 						create_inventory_item(gAgent.getID(), gAgent.getSessionID(),
-							gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH), data->tid, data->name,
+							gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH), LLTransactionID::tnull, data->name,
 							data->description, data->type, LLInventoryType::defaultForAssetType(data->type), data->wear_type,
 							PERM_ALL,
 							cb);
@@ -1989,7 +1985,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 						LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data);
 						LLUUID parent_id = gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH);
 						create_inventory_item(gAgent.getID(), gAgent.getSessionID(),
-							gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH), data->tid, data->name,
+							gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH), LLTransactionID::tnull, data->name,
 							data->description, data->type, LLInventoryType::defaultForAssetType(data->type), data->wear_type,
 							PERM_ALL,
 							cb);
