@@ -157,6 +157,7 @@ class ImportTracker
 
 		int					state;
 		LLSD				linksetgroups;
+		LLSD				linkset;
 		int					groupcounter;
 	
 	private:
@@ -168,7 +169,6 @@ class ImportTracker
 		int					updated;
 		LLVector3			linksetoffset;
 		LLVector3			initialPos;
-		LLSD				linkset;
 
 		std::string filepath;
 		std::string asset_dir;

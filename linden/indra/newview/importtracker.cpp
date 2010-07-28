@@ -26,6 +26,7 @@
 #include "llspinctrl.h"
 #include "llfocusmgr.h"
 #include "llcallbacklist.h"
+#include "llscrolllistctrl.h"
 
 #include "llfloaterperms.h"
 
@@ -180,6 +181,46 @@ void ImportTrackerFloater::draw()
 		+  llformat("\nTextures: %u/%u",textures_imported,total_textures)
 		+  llformat(" Contents: %u/%u",assets_imported,gImportTracker.asset_insertions)
 		);
+
+	//update import queue list
+	LLScrollListCtrl* mResultList;
+	mResultList = getChild<LLScrollListCtrl>("result_list");
+
+	LLDynamicArray<LLUUID> selected = mResultList->getSelectedIDs();
+	S32 scrollpos = mResultList->getScrollPos();
+	mResultList->deleteAllItems();
+
+	LLSD::array_const_iterator it, end = gImportTracker.linkset.endArray();
+	for (it = gImportTracker.linkset.beginArray(); it != end; ++it) {
+
+		LLSD prim = *it;
+
+		LLSD element;
+		element["id"] = prim["LocalID"].asInteger();
+		element["columns"][0]["column"] = "Name";
+		element["columns"][0]["type"] = "text";
+		//element["columns"][0]["color"] = gColors.getColor("DefaultListText").getValue();
+		element["columns"][0]["value"] = prim["name"];
+		/*
+		element["columns"][LIST_OBJECT_DESC]["column"] = "Description";
+		element["columns"][LIST_OBJECT_DESC]["type"] = "text";
+		element["columns"][LIST_OBJECT_DESC]["value"] = details->desc;//ai->second;
+		element["columns"][LIST_OBJECT_DESC]["color"] = gColors.getColor("DefaultListText").getValue();
+		element["columns"][LIST_OBJECT_OWNER]["column"] = "Owner";
+		element["columns"][LIST_OBJECT_OWNER]["type"] = "text";
+		element["columns"][LIST_OBJECT_OWNER]["value"] = onU;//aifirst;
+		element["columns"][LIST_OBJECT_OWNER]["color"] = gColors.getColor("DefaultListText").getValue();
+		element["columns"][LIST_OBJECT_GROUP]["column"] = "Group";
+		element["columns"][LIST_OBJECT_GROUP]["type"] = "text";
+		element["columns"][LIST_OBJECT_GROUP]["value"] = cnU;//ai->second;
+		element["columns"][LIST_OBJECT_GROUP]["color"] = gColors.getColor("DefaultListText").getValue();
+		*/
+		mResultList->addElement(element, ADD_BOTTOM);
+	}
+
+	mResultList->sortItems();
+	mResultList->selectMultiple(selected);
+	mResultList->setScrollPos(scrollpos);
 }
 
 ImportTrackerFloater::ImportTrackerFloater()

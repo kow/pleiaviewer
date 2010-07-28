@@ -80,7 +80,7 @@ public:
 
 
 	static LLDynamicArray<LLViewerObject*> objectselection;
-	static LLDynamicArray<LLViewerObject*> mOjectSelectionWaitList;
+	static LLDynamicArray<LLViewerObject*> mObjectSelectionWaitList;
 
 	static int		linksets_exported;
 	static int		properties_received;
@@ -165,8 +165,8 @@ public:
 	static std::list<InventoryRequest_t*> requested_inventory;
 
 	static std::list<LLSD *> processed_prims;
-	static std::map<LLUUID,LLSD *>recieved_inventory;
-	static std::map<LLUUID,LLSD *>recieved_properties;
+	static std::map<LLUUID,LLSD *>received_inventory;
+	static std::map<LLUUID,LLSD *>received_properties;
 
 private:
 	static LLSD total;
