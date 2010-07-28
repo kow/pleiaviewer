@@ -44,8 +44,13 @@
        font="SansSerifSmall" height="16" initial_value="true"
        label="Export prim properties" left="10" name="export_properties"
        width="200" />
-	
-	<button bottom="5" follows="right|bottom" font="SansSerif" halign="center" height="20"
+
+  <check_box bottom_delta="-25" follows="left|top"
+      font="SansSerifSmall" height="16" initial_value="false"
+      label="Randomly move avatar" left="10" name="move"
+      width="200" />
+
+  <button bottom="5" follows="right|bottom" font="SansSerif" halign="center" height="20"
      label="Backup simulator" label_selected="" right="-200"
      mouse_opaque="true" name="export"
      tool_tip="Export the selected linksets" width="130" />

@@ -351,7 +351,7 @@ void FloaterSimExport::statsupdate(void *userdata)
 		
 	time_t tnow=time(NULL);
 		
-	if( (sInstance->move_time+15)< tnow)
+	if(sInstance->getChild<LLCheckBoxCtrl>("move")->get() && ((sInstance->move_time+15)< tnow))
 	{
 		sInstance->move_time=time(NULL);
 		//move to random pos
