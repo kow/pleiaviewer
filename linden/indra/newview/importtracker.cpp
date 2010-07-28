@@ -376,6 +376,16 @@ void ImportTrackerFloater::onClickSetToMyPosition(void* data)
 // static
 void ImportTrackerFloater::onClickImport(void* data)
 {
+	F32 throttle = gSavedSettings.getF32("OutBandwidth");
+	// Gross magical value that is 128kbit/s
+	// Sim appears to drop requests if they come in faster than this. *sigh*
+	if(throttle < 128000.)
+	{
+		gMessageSystem->mPacketRing.setOutBandwidth(128000.0);
+	}
+	gMessageSystem->mPacketRing.setUseOutThrottle(TRUE);
+
+
 	gImportTracker.currentimportoffset = gImportTracker.importoffset;
 
 
@@ -615,7 +625,7 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 	else if (prim->hasName("grass"))
 		pcode = LL_PCODE_LEGACY_GRASS;
 	else {
-		//cmdline_printchat("ERROR INVALID OBJECT, skipping.");
+		cmdline_printchat("ERROR INVALID OBJECT, skipping.");
 		return NULL;
 	}
 
@@ -1723,8 +1733,8 @@ public:
 	}
 	virtual void uploadComplete(const LLSD& content)
 	{
-		//ImportTrackerFloater::assets_uploaded++;
-		//cmdline_printchat("completed upload, inserting");
+//TODO: flag asset as uploaded, insertion in progress
+		cmdline_printchat("completed upload, inserting");
 		LLViewerInventoryItem* item = (LLViewerInventoryItem*)gInventory.getItem(item_id);
 		LLViewerObject* objectp = find(data->localid);
 		insert(item, objectp, data);
@@ -1738,21 +1748,59 @@ public:
 		llinfos << "JCPostInvUploadResponder::error " << statusNum 
 			<< " reason: " << reason << llendl;
 
-		S32 file_size;
-		LLAPRFile infile ;
-		infile.open(data->filename, LL_APR_RB, LLAPRFile::local, &file_size);
-		if (infile.getFileHandle())
+		data->retries++;
+
+		if(data->retries <= 10)
 		{
 			cmdline_printchat("RESENDING " + data->filename);
+			/*
+			S32 file_size;
+			LLAPRFile infile ;
+			infile.open(data->filename, LL_APR_RB, LLAPRFile::local, &file_size);
+			if (infile.getFileHandle())
+			{
+				//InventoryImportInfo* data2 = (InventoryImportInfo*)data;
+				//InventoryImportInfo* data2 = new InventoryImportInfo;
+				ImportTracker::import_asset(data);
 
-			//InventoryImportInfo* data2 = (InventoryImportInfo*)data;
-			//InventoryImportInfo* data2 = new InventoryImportInfo;
-			ImportTracker::import_asset(data);
-
-			//return;
+				//return;
+			}
+			else
+				cmdline_printchat("does not exist " + data->filename);
+			*/
 		}
-		else
-			cmdline_printchat("does not exist " + data->filename);
+		else 
+		{
+			cmdline_printchat("exceeded max retries for " + data->filename + " : itemid = " + item_id.asString() + " assetid = " + data->assetid.asString());
+		}
+
+
+		//update import queue list
+		LLScrollListCtrl* mResultList;
+		mResultList = ImportTrackerFloater::sInstance->getChild<LLScrollListCtrl>("result_list");
+
+		LLSD element;
+		element["id"] = "tmp";
+		element["columns"][0]["column"] = "Name";
+		element["columns"][0]["type"] = "text";
+		//element["columns"][0]["color"] = gColors.getColor("DefaultListText").getValue();
+		element["columns"][0]["value"] = "tmp";
+		/*
+		element["columns"][LIST_OBJECT_DESC]["column"] = "Description";
+		element["columns"][LIST_OBJECT_DESC]["type"] = "text";
+		element["columns"][LIST_OBJECT_DESC]["value"] = details->desc;//ai->second;
+		element["columns"][LIST_OBJECT_DESC]["color"] = gColors.getColor("DefaultListText").getValue();
+		element["columns"][LIST_OBJECT_OWNER]["column"] = "Owner";
+		element["columns"][LIST_OBJECT_OWNER]["type"] = "text";
+		element["columns"][LIST_OBJECT_OWNER]["value"] = onU;//aifirst;
+		element["columns"][LIST_OBJECT_OWNER]["color"] = gColors.getColor("DefaultListText").getValue();
+		element["columns"][LIST_OBJECT_GROUP]["column"] = "Group";
+		element["columns"][LIST_OBJECT_GROUP]["type"] = "text";
+		element["columns"][LIST_OBJECT_GROUP]["value"] = cnU;//ai->second;
+		element["columns"][LIST_OBJECT_GROUP]["color"] = gColors.getColor("DefaultListText").getValue();
+		*/
+		mResultList->addElement(element, ADD_BOTTOM);
+
 
 		//std::string agent_url = gAgent.getRegion()->getCapability("UpdateNotecardAgentInventory");
 		//LLSD body;
@@ -1777,7 +1825,7 @@ public:
 	{
 		S32 file_size;
 		LLAPRFile infile ;
-		infile.open(data->filename, LL_APR_RB, LLAPRFile::local, &file_size);
+		infile.open(data->filename, LL_APR_RB, LLAPRFile::global, &file_size);
 		if (infile.getFileHandle())
 		{
 			//cmdline_printchat("got file handle @ postinv");
@@ -1794,9 +1842,35 @@ public:
 			case LLAssetType::AT_NOTECARD:
 				//cmdline_printchat("case notecard @ postinv");
 				{
+					/*
+					// We need to update the asset information
+					LLTransactionID tid;
+					LLAssetID asset_id;
+					tid.generate();
+					asset_id = tid.makeAssetID(gAgent.getSecureSessionID());
+
+					if (gAssetStorage)
+					{
+						cmdline_printchat("using asset storage"); 
+						LLSaveNotecardInfo* info = new LLSaveNotecardInfo(this, inv_item, find(data->localid)->getID(),
+							tid, copyitem);
+						gAssetStorage->storeAssetData(tid, LLAssetType::AT_NOTECARD,
+							NULL,
+							(void*)info,
+							FALSE); 
+					}*/
+
 					std::string agent_url = gAgent.getRegion()->getCapability("UpdateNotecardAgentInventory");
+					//cmdline_printchat("UpdateNotecardAgentInventory = " + agent_url);
+
+					//agent_url = gAgent.getRegion()->getCapability("UpdateNotecardTaskInventory");
+					//cmdline_printchat("UpdateNotecardTaskInventory = " + agent_url);
 					LLSD body;
+					//body["task_id"] = find(data->localid)->getID();
 					body["item_id"] = inv_item;
+					//cmdline_printchat("body[task_id] = " + body["task_id"].asString());
+					cmdline_printchat("body[item_id] = " + body["item_id"].asString());
+
 					cmdline_printchat("posting content as " + data->assetid.asString());
 					LLHTTPClient::post(agent_url, body,
 								new JCPostInvUploadResponder(body, data->assetid, data->type,inv_item,data));
@@ -1821,6 +1895,7 @@ public:
 						domono = FALSE;
 					}
 					delete buffer;
+					buffer = 0;
 					body["target"] = (domono == TRUE) ? "mono" : "lsl2";
 					cmdline_printchat("posting content as " + data->assetid.asString());
 					LLHTTPClient::post(url, body, new JCPostInvUploadResponder(body, data->assetid, data->type,inv_item,data));
@@ -1844,11 +1919,15 @@ void ImportTracker::import_asset(InventoryImportInfo* data)
 	LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data);
 	LLUUID parent_id = gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH);
 	create_inventory_item(gAgent.getID(), gAgent.getSessionID(),
-		gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH), LLTransactionID::tnull, data->name,
-		data->description, data->type, LLInventoryType::defaultForAssetType(data->type), data->wear_type,
-		PERM_ALL,
-		cb);
+		LLUUID::null, LLTransactionID::tnull, data->name,
+		data->description, LLAssetType::AT_NOTECARD,
+		LLInventoryType::IT_NOTECARD, NOT_WEARABLE, PERM_ALL, cb);
 
+	//LLPointer<LLInventoryCallback> cb = new AONotecardCallback(ao_template);
+	//create_inventory_item(gAgent.getID(), gAgent.getSessionID(),
+	//	LLUUID::null, LLTransactionID::tnull, "New AO Notecard", 
+	//	"Drop this notecard in your AO window to use", LLAssetType::AT_NOTECARD,
+	//	LLInventoryType::IT_NOTECARD, NOT_WEARABLE, PERM_ALL, cb);
 	return;
 }
 
@@ -1936,7 +2015,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 						std::string url = gAgent.getRegion()->getCapability("NewFileAgentInventory");
 						S32 file_size;
 						LLAPRFile infile ;
-						infile.open(data->filename, LL_APR_RB, LLAPRFile::local, &file_size);
+						infile.open(data->filename, LL_APR_RB, LLAPRFile::global, &file_size);
 						if (infile.getFileHandle())
 						{
 							//cmdline_printchat("got file handle");
@@ -1970,7 +2049,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 					{
 						S32 file_size;
 						LLAPRFile infile ;
-						infile.open(data->filename, LL_APR_RB, LLAPRFile::local, &file_size);
+						infile.open(data->filename, LL_APR_RB, LLAPRFile::global, &file_size);
 						if (infile.getFileHandle())
 						{
 							//cmdline_printchat("got file handle @ cloth");
@@ -2032,7 +2111,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 							cb);
 					}
 					break;
-				case LLAssetType::AT_SCRIPT://this shouldn't happen as this is legacy shit
+				case LLAssetType::AT_SCRIPT://this shouldn't happen as this is a legacy format
 				case LLAssetType::AT_GESTURE://we don't import you atm...
 				default:
 					break;
@@ -2048,7 +2127,7 @@ void ImportTracker::send_properties(LLSD& prim, int counter)
 {
 	if(prim.has("properties"))
 	{
-		if(counter == 1)//root only shit
+		if(counter == 1)//root only params
 		{
 			//prim["LocalID"]
 			LLMessageSystem* msg = gMessageSystem;
@@ -2564,7 +2643,7 @@ void myupload_new_resource(const LLTransactionID &tid, LLAssetType::EType asset_
 	}
 	else
 	{
-		llinfos << "NewAgentInventory capability not found, FUCK!" << llendl;	
+		llinfos << "NewAgentInventory capability not found" << llendl;	
 	}
 }
 

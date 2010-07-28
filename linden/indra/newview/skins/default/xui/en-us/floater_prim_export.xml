@@ -40,7 +40,7 @@
      mouse_opaque="true" name="status" v_pad="0" width="178">Export Status:</text>
 
   <panel
-     name="a_box" left_delta="2" width="180" height="100"
+     name="a_box" left_delta="2" width="200" height="100"
      border="true" mouse_opaque="true" bevel_style="in" background_visible="true"
      background_opaque="true" follows="top|left" bg_opaque_color="0,0,0,0.1"
      bg_alpha_color="blue" can_resize="false">
@@ -48,7 +48,7 @@
   </panel>
   
   <panel
-     name="progress_bar" left_delta="0" width="180" height="10"
+     name="progress_bar" left_delta="0" width="200" height="10"
      border="true" mouse_opaque="true" bevel_style="in" background_visible="true"
      background_opaque="true" follows="top|left" bg_opaque_color="0,0,0,0.1"
      bg_alpha_color="blue" can_resize="false">
@@ -65,23 +65,27 @@
   <button bottom_delta="-25" follows="left|top" font="SansSerif" halign="center" height="20"
      label="Backup Selection" label_selected="" left_delta="-2"
      mouse_opaque="true" name="export"
-     tool_tip="Export the selected linksets" width="120" />
+     tool_tip="Export the selected linksets" width="130" />
   <button bottom_delta="0" follows="left|top" font="SansSerif" halign="center" height="20"
-     label="Close" label_selected="" left_delta="125"
-     mouse_opaque="true" name="close" width="55" />
+     label="Close" label_selected="" left_delta="135"
+     mouse_opaque="true" name="close" width="65" />
   
   <tab_container top="-20" enabled="true" follows="left|top|right|bottom" height="210" bottom="10"
-	     left="200" mouse_opaque="false" name="exporttab" tab_position="top" width="490">
-    <panel border="true" enabled="true" follows="left|top|right|bottom"
-       height="210" label="Errors" left="0" mouse_opaque="true"
-       name="error_panel" width="458">
-      <scroll_list name="error_result_list" left="10" right="-10" top="-10" bottom="10" column_padding="0"
+	     left="220" mouse_opaque="false" name="exporttab" tab_position="top" width="470">
+    <panel border="true" bottom="-219" enabled="true" follows="left|top|right|bottom"
+       height="210" label="Inventory" left="0" mouse_opaque="true"
+       name="inventory_panel" width="458">
+      <scroll_list name="inventory_result_list" left="10" right="-10" top="-10" bottom="10" column_padding="0"
           can_resize="true" follows="left|top|bottom|right" draw_heading="true" multi_select="true"
           search_column="1" tool_tip="Hold shift or control while clicking to select multiple entries">
         <column name="Name" label="Name" width="100" dynamicwidth="true" />
-        <column name="Local ID" label="Local ID" width="100" dynamicwidth="true"/>
-        <column name="Position" label="Position" width="165"/>
-        <column name="Error Message" label="Error Message" width="250" dynamicwidth="true"/>
+        <column name="UUID" label="UUID" width="100"/>
+        <column name="Object ID" label="Object ID" width="75"/>
+        <column name="Position" label="Position" width="65"/>
+        <!--
+        <column name="Retries" label="Retries" width="31"/>
+        -->
+        <column label="Received" name="icon_rec" width="31" />
       </scroll_list>
     </panel>
     <panel border="true" bottom="-219" enabled="true" follows="left|top|right|bottom"
@@ -96,19 +100,19 @@
         <column label="Inventories" name="icon_inv" width="31" />
         <column name="Local ID" label="Local ID" width="65"/>
         <column name="Position" label="Position" width="100"/>
+        <column name="Retries" label="Retries" width="31"/>
       </scroll_list>
     </panel>
-    <panel border="true" bottom="-219" enabled="true" follows="left|top|right|bottom"
-       height="210" label="Inventory" left="0" mouse_opaque="true"
-       name="inventory_panel" width="458">
-      <scroll_list name="inventory_result_list" left="10" right="-10" top="-10" bottom="10" column_padding="0"
+    <panel border="true" enabled="true" follows="left|top|right|bottom"
+       height="210" label="Errors" left="0" mouse_opaque="true"
+       name="error_panel" width="458">
+      <scroll_list name="error_result_list" left="10" right="-10" top="-10" bottom="10" column_padding="0"
           can_resize="true" follows="left|top|bottom|right" draw_heading="true" multi_select="true"
           search_column="1" tool_tip="Hold shift or control while clicking to select multiple entries">
         <column name="Name" label="Name" width="100" dynamicwidth="true" />
-        <column name="UUID" label="UUID" width="100"/>
-        <column name="Object ID" label="Object ID" width="75"/>
-        <column name="Position" label="Position" width="65"/>
-        <column label="Received" name="icon_rec" width="31" />
+        <column name="Local ID" label="Local ID" width="100" dynamicwidth="true"/>
+        <column name="Position" label="Position" width="165"/>
+        <column name="Error Message" label="Error Message" width="250" dynamicwidth="true"/>
       </scroll_list>
     </panel>
   </tab_container>

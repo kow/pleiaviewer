@@ -65,6 +65,7 @@ include_directories(
     )
 
 set(viewer_SOURCE_FILES
+	aoremotectrl.cpp
 	importtracker.cpp
     emeraldboobutils.cpp
 	exporttracker.cpp
@@ -73,6 +74,7 @@ set(viewer_SOURCE_FILES
     floaterao.cpp
     floaterbusy.cpp
     floaterlogin.cpp
+    hbfloatergrouptitles.cpp
     hippoGridManager.cpp
     hippoLimits.cpp
     hippoRestRequest.cpp
@@ -465,12 +467,14 @@ set(viewer_SOURCE_FILES
     llxmlrpctransaction.cpp
     noise.cpp
     panelradar.cpp
+    panelradarentry.cpp
     pipeline.cpp
     rlvhandler.cpp
     rlvhelper.cpp
     rlvmultistringsearch.cpp
     rlvextensions.cpp
     rlvfloaterbehaviour.cpp
+    viewerversion.cpp
     )
 
 set(VIEWER_BINARY_NAME "imprudence-bin" CACHE STRING
@@ -493,10 +497,12 @@ endif (LINUX)
 set(viewer_HEADER_FILES
     CMakeLists.txt
     ViewerInstall.cmake
+    aoremotectrl.h
     emeraldboobutils.h
     floaterao.h
     floaterbusy.h
     floaterlogin.h
+    hbfloatergrouptitles.h
     hippoGridManager.h
     hippoLimits.h
     hippoRestRequest.h
@@ -900,6 +906,7 @@ set(viewer_HEADER_FILES
     macmain.h
     noise.h
     panelradar.h
+    panelradarentry.h
     pipeline.h
     randgauss.h
     VertexCache.h
@@ -911,6 +918,7 @@ set(viewer_HEADER_FILES
     rlvmultistringsearch.h
     rlvextensions.h
     rlvfloaterbehaviour.h
+    viewerversion.h
     )
 
 source_group("CMake Rules" FILES ViewerInstall.cmake)
@@ -1124,6 +1132,7 @@ set(viewer_XUI_FILES
     skins/default/xui/en-us/floater_gesture.xml
     skins/default/xui/en-us/floater_god_tools.xml
     skins/default/xui/en-us/floater_group_info.xml
+    skins/default/xui/en-us/floater_group_titles.xml
     skins/default/xui/en-us/floater_hardware_settings.xml
     skins/default/xui/en-us/floater_html.xml
     skins/default/xui/en-us/floater_html_simple.xml
@@ -1228,6 +1237,9 @@ set(viewer_XUI_FILES
     skins/default/xui/en-us/mime_types.xml
     skins/default/xui/en-us/notifications.xml
     skins/default/xui/en-us/notify.xml
+    skins/default/xui/en-us/panel_ao_remote_controls.xml
+    skins/default/xui/en-us/panel_ao_remote.xml
+    skins/default/xui/en-us/panel_ao_remote_expanded.xml
     skins/default/xui/en-us/panel_audio_device.xml
     skins/default/xui/en-us/panel_audio.xml
     skins/default/xui/en-us/panel_avatar_classified.xml
@@ -1323,6 +1335,7 @@ set(viewer_APPSETTINGS_FILES
     app_settings/trees.xml
     app_settings/ultra_graphics.xml
     app_settings/viewerart.xml
+    app_settings/viewerversion.xml
     ${CMAKE_SOURCE_DIR}/../etc/message.xml
     ${CMAKE_SOURCE_DIR}/../scripts/messages/message_template.msg
     )
