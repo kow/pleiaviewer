@@ -71,6 +71,7 @@
 #include "llrender.h"
 #include "llmediamanager.h"
 #include "llslider.h"
+#include "llfloaterchat.h"
 
 
 #ifdef TOGGLE_HACKED_GODLIKE_VIEWER
@@ -485,20 +486,17 @@ bool handleVoiceClientPrefsChanged(const LLSD& newvalue)
 	return true;
 }
 
-// [RLVa:KB] - Checked: 2009-08-11 (RLVa-1.0.1h) | Added: RLVa-1.0.1h
-bool rlvHandleEnableLegacyNamingChanged(const LLSD& newvalue)
+bool handleTranslateChatPrefsChanged(const LLSD& newvalue)
 {
-	rlv_handler_t::fLegacyNaming = newvalue.asBoolean();
+	LLFloaterChat* floaterp = LLFloaterChat::getInstance();
+
+	if(floaterp)
+	{
+		// update "translate chat" pref in "Local Chat" floater
+		floaterp->updateSettings();
+	}
 	return true;
 }
-
-bool rlvHandleShowNameTagsChanged(const LLSD& newvalue)
-{
-	RlvSettings::fShowNameTags = newvalue.asBoolean();
-	return true;
-}
-// [/RLVa:KB]
-
 bool handleMediaDebugLevelChanged(const LLSD& newvalue)
 {
 	LLMediaManager *mgr = LLMediaManager::getInstance();
@@ -520,6 +518,20 @@ bool handleSliderScrollWheelMultiplierChanged(const LLSD& newvalue)
 	LLSlider::setScrollWheelMultiplier( newvalue.asInteger() );
 	return true;
 }
+
+// [RLVa:KB] - Checked: 2009-08-11 (RLVa-1.0.1h) | Added: RLVa-1.0.1h
+bool rlvHandleEnableLegacyNamingChanged(const LLSD& newvalue)
+{
+	rlv_handler_t::fLegacyNaming = newvalue.asBoolean();
+	return true;
+}
+
+bool rlvHandleShowNameTagsChanged(const LLSD& newvalue)
+{
+	RlvSettings::fShowNameTags = newvalue.asBoolean();
+	return true;
+}
+// [/RLVa:KB]
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -582,6 +594,7 @@ void settings_setup_listeners()
 	gSavedSettings.getControl("AudioLevelMusic")->getSignal()->connect(boost::bind(&handleAudioVolumeChanged, _1));
 	gSavedSettings.getControl("AudioLevelMedia")->getSignal()->connect(boost::bind(&handleAudioVolumeChanged, _1));
 	gSavedSettings.getControl("AudioLevelVoice")->getSignal()->connect(boost::bind(&handleAudioVolumeChanged, _1));
+	gSavedSettings.getControl("AudioLevelGestures")->getSignal()->connect(boost::bind(&handleAudioVolumeChanged, _1));
 	gSavedSettings.getControl("AudioLevelDistance")->getSignal()->connect(boost::bind(&handleAudioVolumeChanged, _1));
 	gSavedSettings.getControl("AudioLevelDoppler")->getSignal()->connect(boost::bind(&handleAudioVolumeChanged, _1));
 	gSavedSettings.getControl("AudioLevelRolloff")->getSignal()->connect(boost::bind(&handleAudioVolumeChanged, _1));
@@ -593,6 +606,7 @@ void settings_setup_listeners()
 	gSavedSettings.getControl("MuteVoice")->getSignal()->connect(boost::bind(&handleAudioVolumeChanged, _1));
 	gSavedSettings.getControl("MuteAmbient")->getSignal()->connect(boost::bind(&handleAudioVolumeChanged, _1));
 	gSavedSettings.getControl("MuteUI")->getSignal()->connect(boost::bind(&handleAudioVolumeChanged, _1));
+	gSavedSettings.getControl("MuteGestures")->getSignal()->connect(boost::bind(&handleAudioVolumeChanged, _1));
 	gSavedSettings.getControl("RenderVBOEnable")->getSignal()->connect(boost::bind(&handleRenderUseVBOChanged, _1));
 	gSavedSettings.getControl("WLSkyDetail")->getSignal()->connect(boost::bind(&handleWLSkyDetailChanged, _1));
 	gSavedSettings.getControl("RenderLightingDetail")->getSignal()->connect(boost::bind(&handleRenderLightingDetailChanged, _1));
@@ -661,7 +675,8 @@ void settings_setup_listeners()
 	gSavedSettings.getControl("LipSyncEnabled")->getSignal()->connect(boost::bind(&handleVoiceClientPrefsChanged, _1));	
 	gSavedSettings.getControl("MediaDebugLevel")->getSignal()->connect(boost::bind(&handleMediaDebugLevelChanged, _1));	
 	gSavedSettings.getControl("SliderScrollWheelMultiplier")->getSignal()->connect(boost::bind(&handleSliderScrollWheelMultiplierChanged, _1));	
-
+	gSavedSettings.getControl("TranslateChat")->getSignal()->connect(boost::bind(&handleTranslateChatPrefsChanged, _1));	
+	
 // [RLVa:KB] - Checked: 2009-08-11 (RLVa-1.0.1h) | Added: RLVa-1.0.1h
 	if (gSavedSettings.controlExists(RLV_SETTING_ENABLELEGACYNAMING))
 		gSavedSettings.getControl(RLV_SETTING_ENABLELEGACYNAMING)->getSignal()->connect(boost::bind(&rlvHandleEnableLegacyNamingChanged, _1));
@@ -748,7 +763,6 @@ template <> eControlType get_control_type<LLSD>(const LLSD& in, LLSD& out)
 	out = in;
 	return TYPE_LLSD; 
 }
-
 
 #if TEST_CACHED_CONTROL
 

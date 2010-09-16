@@ -540,9 +540,14 @@ LLSD ImportTracker::parse_hpa_group(LLXmlTreeNode* group)
 			LLSD temp = parse_hpa_object(child);
 			if (temp)
 			{
-				LLSD object;
-				object["Object"] = temp;
-				group_llsd[group_llsd.size()] = object;
+				//our code assumes everything is a linkset so insert this lone object into an array
+				LLSD array_llsd;
+				array_llsd[array_llsd.size()] = temp;
+
+				//then add it to a linkset
+				LLSD linkset;
+				linkset["Object"] = array_llsd;
+				group_llsd.append(linkset);
 			}
 			else
 				cmdline_printchat("ERROR, INVALID OBJECT");
@@ -626,7 +631,7 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 		pcode = LL_PCODE_LEGACY_GRASS;
 	else {
 		cmdline_printchat("ERROR INVALID OBJECT, skipping.");
-		return NULL;
+		return false;
 	}
 
 	if (is_object)
@@ -817,6 +822,12 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 				param->getAttributeF32("amount", hollow);
 				param->getAttributeS32("shape", selected_hole);
 			}
+			//<dimple begin="0.00000" end="0.00000" />
+			else if (param->hasName("dimple"))
+			{
+				param->getAttributeF32("begin", adv_cut_begin);
+				param->getAttributeF32("end", adv_cut_end);
+			}
 			//<topology val="1" />
 			else if (param->hasName("topology"))
 				param->getAttributeU8("val", topology);
@@ -952,6 +963,8 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 				for (LLXmlTreeNode* face = param->getFirstChild(); face; face = param->getNextChild())
 				{
 					LLTextureEntry thisface;
+					std::string imagefile;
+					LLUUID imageuuid;
 
 					//<face id="0">
 					for (LLXmlTreeNode* param = face->getFirstChild(); param; param = face->getNextChild())
@@ -982,25 +995,12 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 						//<image_file><![CDATA[87008270-fe87-bf2a-57ea-20dc6ecc4e6a.tga]]></image_file>
 						else if (param->hasName("image_file"))
 						{
+							imagefile = param->getTextContents();
 						}
 						//<image_uuid>87008270-fe87-bf2a-57ea-20dc6ecc4e6a</image_uuid>
 						else if (param->hasName("image_uuid"))
 						{
-							LLUUID temp = LLUUID(param->getTextContents());
-							thisface.setID(temp);
-
-							bool alreadyseen=false;
-							std::list<LLUUID>::iterator iter;
-							for(iter = uploadtextures.begin(); iter != uploadtextures.end() ; iter++) 
-							{
-								if( (*iter)==temp)
-									alreadyseen=true;
-							}
-							if(alreadyseen==false)
-							{
-								//llinfos << "Found a surface texture, adding to list "<<temp<<llendl;
-								uploadtextures.push_back(temp);
-							}
+							imageuuid = LLUUID(param->getTextContents());
 						}
 						//<color b="1.00000" g="1.00000" r="1.00000" />
 						else if (param->hasName("color"))
@@ -1043,6 +1043,40 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 							thisface.setShiny(shiny);
 						}
 					}
+
+					if (imageuuid.notNull())
+					{
+						//an image UUID was specified, lets use it
+						thisface.setID(imageuuid);
+						bool alreadyseen=false;
+						std::list<LLUUID>::iterator iter;
+						for(iter = uploadtextures.begin(); iter != uploadtextures.end() ; iter++) 
+						{
+							if( (*iter)==imageuuid)
+								alreadyseen=true;
+						}
+						if(alreadyseen==false)
+						{
+							//llinfos << "Found a surface texture, adding to list "<<temp<<llendl;
+							uploadtextures.push_back(imageuuid);
+						}
+					}
+					else if (imagefile != "")
+					{
+						//an image file was specified
+						cmdline_printchat("imagefile = " + imagefile);
+						//generate a temporary UUID that will be replaced once this texture is uploaded
+						LLUUID temp;
+						temp.generate();
+						thisface.setID(temp);
+					}
+					else
+					{
+						cmdline_printchat("ERROR: no valid texture found for current face");
+						//make this an ERROR texture or something
+						//temp = error!
+					}
+
 					textures[texture_count] = thisface.asLLSD();
 					texture_count++;
 				}

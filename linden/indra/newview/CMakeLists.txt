@@ -10,7 +10,9 @@ include(DirectX)
 include(ELFIO)
 include(FMOD)
 include(OPENAL)
+include(HUNSPELL)
 include(FindOpenGL)
+include(JsonCpp)
 include(LLAddBuildTest)
 include(LLAudio)
 include(LLCharacter)
@@ -44,7 +46,9 @@ endif (WINDOWS)
 
 include_directories(
     ${DBUSGLIB_INCLUDE_DIRS}
+    ${HUNSPELL_INCLUDE_DIR}
     ${ELFIO_INCLUDE_DIR}
+    ${JSONCPP_INCLUDE_DIRS}
     ${LLAUDIO_INCLUDE_DIRS}
     ${LLCHARACTER_INCLUDE_DIRS}
     ${LLCOMMON_INCLUDE_DIRS}
@@ -65,20 +69,27 @@ include_directories(
     )
 
 set(viewer_SOURCE_FILES
+	lggautocorrectfloater.cpp
+	lggautocorrect.cpp
+	lgghunspell_wrapper.cpp
+	lggdicdownload.cpp
 	aoremotectrl.cpp
 	importtracker.cpp
     emeraldboobutils.cpp
 	exporttracker.cpp
 	chatbar_as_cmdline.cpp
-	floatersimexport.cpp
     floaterao.cpp
     floaterbusy.cpp
-    floaterlogin.cpp
+    floatergriddefault.cpp
+    floatergridmanager.cpp
+    floatervoicelicense.cpp
     hbfloatergrouptitles.cpp
     hippoGridManager.cpp
     hippoLimits.cpp
     hippoRestRequest.cpp
     jcfloater_animation_list.cpp
+    jcfloaterareasearch.cpp
+    lightshare.cpp
     llagent.cpp
     llagentaccess.cpp
     llagentdata.cpp
@@ -303,7 +314,6 @@ set(viewer_SOURCE_FILES
     llpanellandobjects.cpp
     llpanellandoptions.cpp
     llpanellogin.cpp
-    llpanelmorph.cpp
     llpanelmsgs.cpp
     llpanelnetwork.cpp
     llpanelobject.cpp
@@ -378,6 +388,7 @@ set(viewer_SOURCE_FILES
     lltoolview.cpp
     lltracker.cpp
     lltrans.cpp
+    lltranslate.cpp
     lluploaddialog.cpp
     llurl.cpp
     llurldispatcher.cpp
@@ -474,6 +485,7 @@ set(viewer_SOURCE_FILES
     rlvmultistringsearch.cpp
     rlvextensions.cpp
     rlvfloaterbehaviour.cpp
+    viewertime.cpp
     viewerversion.cpp
     )
 
@@ -501,16 +513,23 @@ set(viewer_HEADER_FILES
     emeraldboobutils.h
     floaterao.h
     floaterbusy.h
-    floaterlogin.h
+    floatergriddefault.h
+    floatergridmanager.h
+    floatervoicelicense.h
     hbfloatergrouptitles.h
     hippoGridManager.h
     hippoLimits.h
     hippoRestRequest.h
     jcfloater_animation_list.h
+    jcfloaterareasearch.h
+    lightshare.h
 	chatbar_as_cmdline.h
-	floatersimexport.h
     importtracker.h
 	exporttracker.h
+	lggautocorrectfloater.h
+	lggautocorrect.h
+	lggdicdownload.h
+	lgghunspell_wrapper.h
     llagent.h
     llagentaccess.h
     llagentdata.h
@@ -737,7 +756,6 @@ set(viewer_HEADER_FILES
     llpanellandoptions.h
     llpanelLCD.h
     llpanellogin.h
-    llpanelmorph.h
     llpanelmsgs.h
     llpanelnetwork.h
     llpanelobject.h
@@ -814,6 +832,7 @@ set(viewer_HEADER_FILES
     lltoolview.h
     lltracker.h
     lltrans.h
+    lltranslate.h
     lluiconstants.h
     lluploaddialog.h
     llurl.h
@@ -904,13 +923,12 @@ set(viewer_HEADER_FILES
     llworldmapview.h
     llxmlrpctransaction.h
     macmain.h
+    meta7windlight.h
     noise.h
     panelradar.h
     panelradarentry.h
     pipeline.h
     randgauss.h
-    VertexCache.h
-    VorbisFramework.h
     rlvdefines.h
     rlvevent.h
     rlvhandler.h
@@ -918,6 +936,9 @@ set(viewer_HEADER_FILES
     rlvmultistringsearch.h
     rlvextensions.h
     rlvfloaterbehaviour.h
+    VertexCache.h
+    VorbisFramework.h
+    viewertime.h
     viewerversion.h
     )
 
@@ -1092,223 +1113,22 @@ if (WINDOWS)
 endif (WINDOWS)
 
 # Add the xui files. This is handy for searching for xui elements
-# from within the IDE
+# from within the IDE.
+
+file(GLOB viewer_XUI_FILE_GLOB_LIST
+     ${CMAKE_CURRENT_SOURCE_DIR}/skins/default/xui/en-us/*.xml)
+
 set(viewer_XUI_FILES
-    skins/default/colors.xml
-    skins/default/colors_base.xml
-    skins/default/xui/en-us/alerts.xml
-    skins/default/xui/en-us/floater_about_land.xml
-    skins/default/xui/en-us/floater_about.xml
-    skins/default/xui/en-us/floater_active_speakers.xml
-    skins/default/xui/en-us/floater_animation_list.xml
-    skins/default/xui/en-us/floater_animation_preview.xml
-    skins/default/xui/en-us/floater_ao.xml
-    skins/default/xui/en-us/floater_asset_browser.xml
-    skins/default/xui/en-us/floater_auction.xml
-    skins/default/xui/en-us/floater_audio_volume.xml
-    skins/default/xui/en-us/floater_avatar_picker.xml
-    skins/default/xui/en-us/floater_avatar_textures.xml
-    skins/default/xui/en-us/floater_beacons.xml
-    skins/default/xui/en-us/floater_build_options.xml
-    skins/default/xui/en-us/floater_bulk_perms.xml
-    skins/default/xui/en-us/floater_bumps.xml
-    skins/default/xui/en-us/floater_busy.xml
-    skins/default/xui/en-us/floater_buy_contents.xml
-    skins/default/xui/en-us/floater_buy_currency.xml
-    skins/default/xui/en-us/floater_buy_land.xml
-    skins/default/xui/en-us/floater_buy_object.xml
-    skins/default/xui/en-us/floater_camera.xml
-    skins/default/xui/en-us/floater_chat_history.xml
-    skins/default/xui/en-us/floater_chatterbox.xml
-    skins/default/xui/en-us/floater_choose_group.xml
-    skins/default/xui/en-us/floater_color_picker.xml
-    skins/default/xui/en-us/floater_critical.xml
-    skins/default/xui/en-us/floater_customize.xml
-    skins/default/xui/en-us/floater_day_cycle_options.xml
-    skins/default/xui/en-us/floater_device_settings.xml
-    skins/default/xui/en-us/floater_directory.xml
-    skins/default/xui/en-us/floater_env_settings.xml
-    skins/default/xui/en-us/floater_font_test.xml
-    skins/default/xui/en-us/floater_gesture.xml
-    skins/default/xui/en-us/floater_god_tools.xml
-    skins/default/xui/en-us/floater_group_info.xml
-    skins/default/xui/en-us/floater_group_titles.xml
-    skins/default/xui/en-us/floater_hardware_settings.xml
-    skins/default/xui/en-us/floater_html.xml
-    skins/default/xui/en-us/floater_html_simple.xml
-    skins/default/xui/en-us/floater_hud.xml
-    skins/default/xui/en-us/floater_image_preview.xml
-    skins/default/xui/en-us/floater_im.xml
-    skins/default/xui/en-us/floater_inspect.xml
-    skins/default/xui/en-us/floater_instant_message_ad_hoc.xml
-    skins/default/xui/en-us/floater_instant_message_group.xml
-    skins/default/xui/en-us/floater_instant_message.xml
-    skins/default/xui/en-us/floater_inventory_item_properties.xml
-    skins/default/xui/en-us/floater_inventory_view_finder.xml
-    skins/default/xui/en-us/floater_inventory.xml
-    skins/default/xui/en-us/floater_joystick.xml
-    skins/default/xui/en-us/floater_lagmeter.xml
-    skins/default/xui/en-us/floater_land_holdings.xml
-    skins/default/xui/en-us/floater_landmark_ctrl.xml
-    skins/default/xui/en-us/floater_live_lsleditor.xml
-    skins/default/xui/en-us/floater_login.xml
-    skins/default/xui/en-us/floater_lsl_guide.xml
-    skins/default/xui/en-us/floater_media_browser.xml
-    skins/default/xui/en-us/floater_mini_map.xml
-    skins/default/xui/en-us/floater_moveview.xml
-    skins/default/xui/en-us/floater_mute_object.xml
-    skins/default/xui/en-us/floater_mute.xml
-    skins/default/xui/en-us/floater_my_friends.xml
-    skins/default/xui/en-us/floater_name_description.xml
-    skins/default/xui/en-us/floater_new_im.xml
-    skins/default/xui/en-us/floater_new_outfit_dialog.xml
-    skins/default/xui/en-us/floater_notifications_console.xml
-    skins/default/xui/en-us/floater_notification.xml
-    skins/default/xui/en-us/floater_object_im_info.xml
-    skins/default/xui/en-us/floater_openobject.xml
-    skins/default/xui/en-us/floater_pay_object.xml
-    skins/default/xui/en-us/floater_pay.xml
-    skins/default/xui/en-us/floater_postcard.xml
-    skins/default/xui/en-us/floater_post_process.xml
-    skins/default/xui/en-us/floater_perm_prefs.xml
-    skins/default/xui/en-us/floater_preferences.xml
-    skins/default/xui/en-us/floater_preview_animation.xml
-    skins/default/xui/en-us/floater_preview_classified.xml
-    skins/default/xui/en-us/floater_preview_embedded_texture.xml
-    skins/default/xui/en-us/floater_preview_event.xml
-    skins/default/xui/en-us/floater_preview_existing_landmark.xml
-    skins/default/xui/en-us/floater_preview_gesture.xml
-    skins/default/xui/en-us/floater_preview_notecard_keep_discard.xml
-    skins/default/xui/en-us/floater_preview_notecard.xml
-    skins/default/xui/en-us/floater_preview_sound.xml
-    skins/default/xui/en-us/floater_preview_texture_keep_discard.xml
-    skins/default/xui/en-us/floater_preview_texture.xml
-    skins/default/xui/en-us/floater_preview_url.xml
-    skins/default/xui/en-us/floater_price_for_listing.xml
-	skins/default/xui/en-us/floater_prim_export.xml
-	skins/default/xui/en-us/floater_prim_import.xml
-    skins/default/xui/en-us/floater_profile.xml
-    skins/default/xui/en-us/floater_region_info.xml
-    skins/default/xui/en-us/floater_report_abuse.xml
-    skins/default/xui/en-us/floater_report_bug.xml
-    skins/default/xui/en-us/floater_script_debug.xml
-    skins/default/xui/en-us/floater_script_ed_panel.xml
-    skins/default/xui/en-us/floater_script_preview.xml
-    skins/default/xui/en-us/floater_script_queue.xml
-    skins/default/xui/en-us/floater_script_search.xml
-    skins/default/xui/en-us/floater_select_key.xml
-    skins/default/xui/en-us/floater_sell_land.xml
-    skins/default/xui/en-us/floater_settings_debug.xml
-    skins/default/xui/en-us/floater_sim_export.xml
-    skins/default/xui/en-us/floater_sim_release_message.xml
-    skins/default/xui/en-us/floater_snapshot.xml
-    skins/default/xui/en-us/floater_sound_preview.xml
-    skins/default/xui/en-us/floater_statistics.xml
-    skins/default/xui/en-us/floater_telehub.xml
-    skins/default/xui/en-us/floater_test.xml
-    skins/default/xui/en-us/floater_texture_ctrl.xml
-    skins/default/xui/en-us/floater_tools.xml
-    skins/default/xui/en-us/floater_top_objects.xml
-    skins/default/xui/en-us/floater_tos.xml
-    skins/default/xui/en-us/floater_url_entry.xml
-    skins/default/xui/en-us/floater_voice_wizard.xml
-    skins/default/xui/en-us/floater_water.xml
-    skins/default/xui/en-us/floater_wearable_save_as.xml
-    skins/default/xui/en-us/floater_windlight_options.xml
-    skins/default/xui/en-us/floater_world_map.xml
-    skins/default/xui/en-us/fonts.xml
-    skins/default/xui/en-us/legacy_menu_pie_attachment.xml
-	skins/default/xui/en-us/legacy_menu_pie_avatar.xml
-	skins/default/xui/en-us/legacy_menu_pie_land.xml
-	skins/default/xui/en-us/legacy_menu_pie_object.xml
-	skins/default/xui/en-us/legacy_menu_pie_self.xml
-    skins/default/xui/en-us/menu_inventory.xml
-    skins/default/xui/en-us/menu_login.xml
-    skins/default/xui/en-us/menu_mini_map.xml
-    skins/default/xui/en-us/menu_pie_attachment.xml
-    skins/default/xui/en-us/menu_pie_avatar.xml
-    skins/default/xui/en-us/menu_pie_hud.xml
-    skins/default/xui/en-us/menu_pie_land.xml
-    skins/default/xui/en-us/menu_mini_map.xml
-    skins/default/xui/en-us/menu_pie_object.xml
-    skins/default/xui/en-us/menu_pie_self.xml
-    skins/default/xui/en-us/menu_slurl.xml
-    skins/default/xui/en-us/menu_viewer.xml
-    skins/default/xui/en-us/mime_types.xml
-    skins/default/xui/en-us/notifications.xml
-    skins/default/xui/en-us/notify.xml
-    skins/default/xui/en-us/panel_ao_remote_controls.xml
-    skins/default/xui/en-us/panel_ao_remote.xml
-    skins/default/xui/en-us/panel_ao_remote_expanded.xml
-    skins/default/xui/en-us/panel_audio_device.xml
-    skins/default/xui/en-us/panel_audio.xml
-    skins/default/xui/en-us/panel_avatar_classified.xml
-    skins/default/xui/en-us/panel_avatar_pick.xml
-    skins/default/xui/en-us/panel_avatar.xml
-    skins/default/xui/en-us/panel_bars.xml
-    skins/default/xui/en-us/panel_bg_tab.xml
-    skins/default/xui/en-us/panel_bg_toolbar.xml
-    skins/default/xui/en-us/panel_chat_bar.xml
-    skins/default/xui/en-us/panel_classified.xml
-    skins/default/xui/en-us/panel_event.xml
-    skins/default/xui/en-us/panel_friends.xml
-    skins/default/xui/en-us/panel_group_finder.xml
-    skins/default/xui/en-us/panel_group_general.xml
-    skins/default/xui/en-us/panel_group_invite.xml
-    skins/default/xui/en-us/panel_group_land_money.xml
-    skins/default/xui/en-us/panel_group_notices.xml
-    skins/default/xui/en-us/panel_group_roles.xml
-    skins/default/xui/en-us/panel_groups.xml
-    skins/default/xui/en-us/panel_group_voting.xml
-    skins/default/xui/en-us/panel_group.xml
-    skins/default/xui/en-us/panel_login.xml
-    skins/default/xui/en-us/panel_master_volume.xml
-    skins/default/xui/en-us/panel_media_controls.xml
-    skins/default/xui/en-us/panel_media_remote_expanded.xml
-    skins/default/xui/en-us/panel_media_remote.xml
-    skins/default/xui/en-us/panel_mini_map.xml
-    skins/default/xui/en-us/panel_notifications_channel.xml
-    skins/default/xui/en-us/panel_overlaybar.xml
-    skins/default/xui/en-us/panel_place_small.xml
-    skins/default/xui/en-us/panel_place.xml
-    skins/default/xui/en-us/panel_preferences_advanced.xml
-    skins/default/xui/en-us/panel_preferences_audio.xml
-    skins/default/xui/en-us/panel_preferences_chat.xml
-    skins/default/xui/en-us/panel_preferences_general.xml
-    skins/default/xui/en-us/panel_preferences_graphics1.xml
-    skins/default/xui/en-us/panel_preferences_im.xml
-    skins/default/xui/en-us/panel_preferences_input.xml
-    skins/default/xui/en-us/panel_preferences_network.xml
-    skins/default/xui/en-us/panel_preferences_popups.xml
-    skins/default/xui/en-us/panel_preferences_skins.xml
-    skins/default/xui/en-us/panel_preferences_voice.xml
-    skins/default/xui/en-us/panel_preferences_web.xml
-    skins/default/xui/en-us/panel_progress.xml
-    skins/default/xui/en-us/panel_radar.xml
-    skins/default/xui/en-us/panel_region_covenant.xml
-    skins/default/xui/en-us/panel_region_debug.xml
-    skins/default/xui/en-us/panel_region_estate.xml
-    skins/default/xui/en-us/panel_region_general.xml
-    skins/default/xui/en-us/panel_region_terrain.xml
-    skins/default/xui/en-us/panel_region_texture.xml
-    skins/default/xui/en-us/panel_scrolling_param.xml
-    skins/default/xui/en-us/panel_speaker_controls.xml
-    skins/default/xui/en-us/panel_status_bar.xml
-    skins/default/xui/en-us/panel_toolbar.xml
-    skins/default/xui/en-us/panel_top_pick.xml
-    skins/default/xui/en-us/panel_voice_controls.xml
-    skins/default/xui/en-us/panel_voice_enable.xml
-    skins/default/xui/en-us/panel_voice_options.xml
-    skins/default/xui/en-us/panel_voice_remote_expanded.xml
-    skins/default/xui/en-us/panel_voice_remote.xml
-    skins/default/xui/en-us/panel_windlight_controls.xml
-    skins/default/xui/en-us/panel_windlight_remote.xml
-    skins/default/xui/en-us/panel_windlight_remote_expanded.xml
-    skins/default/xui/en-us/role_actions.xml
-    skins/default/xui/en-us/strings.xml
-    skins/default/xui/en-us/teleport_strings.xml
-    skins/default/xui/en-us/xui_version.xml
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/skins/default/colors.xml
+    ${CMAKE_CURRENT_SOURCE_DIR}/skins/default/colors_base.xml
+
+
+
     )
+
+list(APPEND viewer_XUI_FILES ${viewer_XUI_FILE_GLOB_LIST})
+list(SORT viewer_XUI_FILES)
 
 source_group("XUI Files" FILES ${viewer_XUI_FILES})
 
@@ -1319,6 +1139,7 @@ list(APPEND viewer_SOURCE_FILES ${viewer_XUI_FILES})
 
 set(viewer_APPSETTINGS_FILES
     app_settings/anim.ini
+    app_settings/ao_template.ini
     app_settings/cmd_line.xml
     app_settings/grass.xml
     app_settings/high_graphics.xml
@@ -1531,12 +1352,14 @@ target_link_libraries(${VIEWER_BINARY_NAME}
     ${FMODWRAPPER_LIBRARY}
     ${OPENGL_LIBRARIES}
     ${MOZLIB_LIBRARIES}
+    ${JSONCPP_LIBRARIES}
     ${SDL_LIBRARY}
     ${SMARTHEAP_LIBRARY}
     ${UI_LIBRARIES}
     ${WINDOWS_LIBRARIES}
     ${XMLRPCEPI_LIBRARIES}
     ${ELFIO_LIBRARIES}
+    ${HUNSPELL_LIBRARY}
     )
 
 build_version(viewer)
@@ -1553,7 +1376,7 @@ if (LINUX)
       DEPENDS imprudence-bin
       )
 
-  set(product Imprudence-${ARCH}-${viewer_VERSION})
+  set(product Imprudence_Pleiades.ca-${ARCH}-${viewer_VERSION})
 
   add_custom_command(
       OUTPUT ${product}.tar.bz2

@@ -69,6 +69,7 @@
 #include "llui.h"
 #include "lluictrlfactory.h"
 
+#include "chatbar_as_cmdline.h"
 
 //
 // Globals
@@ -182,6 +183,12 @@ BOOL LLChatBar::handleKeyHere( KEY key, MASK mask )
 		{
 			// shout
 			sendChat(CHAT_TYPE_SHOUT);
+			handled = TRUE;
+		}
+		else if (mask == MASK_SHIFT)
+		{
+			// whisper
+			sendChat( CHAT_TYPE_WHISPER );	
 			handled = TRUE;
 		}
 		else if (mask == MASK_NONE)
@@ -410,6 +417,36 @@ void LLChatBar::sendChat( EChatType type )
 			std::string utf8_revised_text;
 			if (0 == channel)
 			{
+				if (gSavedSettings.getBOOL("AutoCloseOOC"))
+				{
+					// Try to find any unclosed OOC chat (i.e. an opening
+					// double parenthesis without a matching closing double
+					// parenthesis.
+					if (utf8text.find("((") != -1 && utf8text.find("))") == -1)
+					{
+						if (utf8text.at(utf8text.length() - 1) == ')')
+						{
+							// cosmetic: add a space first to avoid a closing triple parenthesis
+							utf8text += " ";
+						}
+						// add the missing closing double parenthesis.
+						utf8text += "))";
+					}
+				}
+
+				// Convert MU*s style poses into IRC emotes here.
+				if (gSavedSettings.getBOOL("AllowMUpose") && utf8text.find(":") == 0 && utf8text.length() > 3)
+				{
+					if (utf8text.find(":'") == 0)
+					{
+						utf8text.replace(0, 1, "/me");
+	 				}
+					else if (isalpha(utf8text.at(1)))	// Do not prevent smileys and such.
+					{
+						utf8text.replace(0, 1, "/me ");
+					}
+				}
+
 				// discard returned "found" boolean
 				gGestureManager.triggerAndReviseString(utf8text, &utf8_revised_text);
 			}
@@ -421,6 +458,8 @@ void LLChatBar::sendChat( EChatType type )
 			utf8_revised_text = utf8str_trim(utf8_revised_text);
 
 			if (!utf8_revised_text.empty())
+
+			if (!utf8_revised_text.empty() && cmd_line_chat(utf8_revised_text, type))
 			{
 				// Chat with animation
 				sendChatFromViewer(utf8_revised_text, type, TRUE);
@@ -522,12 +561,19 @@ void LLChatBar::onInputEditorKeystroke( LLLineEditor* caller, void* userdata )
 
 	S32 length = raw_text.length();
 
-	//if( (length > 0) && (raw_text[0] != '/') )  // forward slash is used for escape (eg. emote) sequences
-// [RLVa:KB] - Checked: 2009-07-07 (RLVa-1.0.0d)
-	if ( (length > 0) && (raw_text[0] != '/') && (!gRlvHandler.hasBehaviour(RLV_BHVR_REDIRCHAT)) )
-// [/RLVa:KB]
+	if( (length > 0) && (raw_text[0] != '/') )  // forward slash is used for escape (eg. emote) sequences
 	{
-		gAgent.startTyping();
+		if (self->mChanCtrlEnabled && (S32)(self->mChannelControl->get()) != 0)
+		{
+			gAgent.stopTyping();
+		}
+//		else
+// [RLVa:KB] - Checked: 2009-07-07 (RLVa-1.0.0d)
+		else if (!gRlvHandler.hasBehaviour(RLV_BHVR_REDIRCHAT))
+// [/RLVa:KB]
+		{
+			gAgent.startTyping();
+		}
 	}
 	else
 	{

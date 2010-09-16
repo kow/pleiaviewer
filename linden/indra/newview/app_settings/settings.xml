@@ -4,6 +4,39 @@
   
   <!-- Imprudence-specific settings -->
 
+  <key>AllowMUpose</key>
+  <map>
+    <key>Comment</key>
+    <string>Allow MU* pose style in chat and IM (':' works like '/me ')</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>AudioLevelGestures</key>
+  <map>
+    <key>Comment</key>
+    <string>Audio level of environment gestures</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>0.5</real>
+  </map>
+  <key>AutoCloseOOC</key>
+  <map>
+    <key>Comment</key>
+    <string>Auto-close OOC chat (i.e. add \"))\" if not found and \"((\" was used)</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
   <key>AppearanceAnimate</key>
   <map>
     <key>Comment</key>
@@ -58,6 +91,17 @@
     <string>U32</string>
     <key>Value</key>
     <real>20</real>
+  </map>
+  <key>ConnectingToRegionTimeout</key>
+  <map>
+    <key>Comment</key>
+    <string>Time (in seconds) until the viewer times out while connecting to region at login</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>45.0</real>
   </map>
   <key>CmdLineCacheLocation</key>
   <map>
@@ -147,6 +191,28 @@
     <key>Value</key>
     <integer>1</integer>
   </map>
+  <key>ExporterNumberRetrys</key>
+  <map>
+    <key>Comment</key>
+    <string>How many times to resent info requests.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <real>40</real>
+  </map>
+  <key>ExporterNumberConcurentDownloads</key>
+  <map>
+    <key>Comment</key>
+    <string>How many inventroy contents to ask for at the same time</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>S32</string>
+    <key>Value</key>
+    <real>4</real>
+  </map>
   <key>FloaterAnimationListRect</key>
   <map>
     <key>Comment</key>
@@ -161,6 +227,22 @@
       <integer>275</integer>
       <integer>1000</integer>
       <integer>0</integer>
+    </array>
+  </map>
+  <key>FloaterAreaSearchRect</key>
+	<map>
+		<key>Comment</key>
+		<string>Rectangle for the area search floater</string>
+		<key>Persist</key>
+		<integer>1</integer>
+		<key>Type</key>
+		<string>Rect</string>
+		<key>Value</key>
+		<array>
+			<integer>0</integer>
+			<integer>400</integer>
+			<integer>200</integer>
+			<integer>0</integer>
     </array>
   </map>
   <key>FloaterGroupTitlesRect</key>
@@ -283,6 +365,28 @@
     <key>Value</key>
     <integer>0</integer>
   </map>
+  <key>LightShareAllowed</key>
+  <map>
+    <key>Comment</key>
+    <string>Allow LightShare (Windlight settings broadcast from the region): Never (0), Ask (1), or Always (2).</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>LightShareIgnoreTimer</key>
+  <map>
+    <key>Comment</key>
+    <string>After ignoring a region Windlight settings message, new messages are ignored for this many seconds. The timer starts again each time a message is ignored.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <integer>30</integer>
+  </map>  
   <key>MapShowAgentCount</key>
   <map>
     <key>Comment</key>
@@ -360,6 +464,17 @@
     <key>Value</key>
     <integer>1</integer>
   </map>
+  <key>MuteGestures</key>
+  <map>
+    <key>Comment</key>
+    <string>Gesture sound effects, play at 0 volume</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
   <key>MuteWind</key>
   <map>
     <key>Comment</key>
@@ -396,7 +511,7 @@
     <key>Type</key>
     <string>Boolean</string>
     <key>Value</key>
-    <integer>1</integer>
+    <integer>0</integer>
   </map>
   <key>PersistShowLookAt</key>
   <map>
@@ -413,6 +528,17 @@
   <map>
     <key>Comment</key>
     <string>If true, viewer won't tell other viewers where your avatar is looking.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>PrivatePointAtTarget</key>
+  <map>
+    <key>Comment</key>
+    <string>If true, viewer won't show the editing arm motion.</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
@@ -707,6 +833,28 @@
     <key>Value</key>
     <string>f54a0c32-3cd1-d49a-5b4f-7b792bebc204</string>
   </map>
+  <key>TimeFormat</key>
+  <map>
+    <key>Comment</key>
+    <string>0 = 12 hr, 1 = 24 hr, 2 = UTC</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <real>0</real>
+  </map>
+  <key>Use24HourTime</key>
+  <map>
+    <key>Comment</key>
+    <string>Display time in the 24 hour format</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
   <key>UseKDUIfAvailable</key>
   <map>
     <key>Comment</key>
@@ -718,10 +866,32 @@
     <key>Value</key>
     <integer>1</integer>
   </map>
+  <key>UseUTCTime</key>
+  <map>
+    <key>Comment</key>
+    <string>Display time in UTC (universal time)</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
   <key>VerticalIMTabs</key>
   <map>
     <key>Comment</key>
     <string>Enable vertical layout for IM tabs</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>VivoxLicenseAccepted</key>
+  <map>
+    <key>Comment</key>
+    <string>By setting to true, you indicate your agreement to the Vivox Acceptable Use Policy at http://www.vivox.com/vivox_aup.html</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
@@ -740,10 +910,32 @@
     <key>Value</key>
     <integer>1</integer>
   </map>
+  <key>WarnFirstLoginScreen</key>
+  <map>
+    <key>Comment</key>
+    <string>Enables default grid selector on FirstLoginScreen</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
   <key>WarnFirstMiniMap</key>
   <map>
     <key>Comment</key>
     <string>Enables FirstMiniMap warning dialog</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+  <key>WarnFirstVoiceLicense</key>
+  <map>
+    <key>Comment</key>
+    <string>Enables FirstVoiceLicense window on login</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
@@ -973,7 +1165,28 @@
   </map>
 
   <!-- Begin: Client Name Tag -->
-
+  <key>ShowClientColor</key>
+  <map>
+    <key>Comment</key>
+    <string>Show *others* clients specific color in the name tag</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+  <key>ShowClientNameHoverTip</key>
+  <map>
+    <key>Comment</key>
+    <string>Show *others* client in the hovertip</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
   <key>ShowClientNameTag</key>
   <map>
     <key>Comment</key>
@@ -985,7 +1198,7 @@
     <key>Value</key>
     <integer>1</integer>
   </map>
-  
+
   <key>ShowMyClientTagToOthers</key>
   <map>
     <key>Comment</key>
@@ -1047,6 +1260,302 @@
   </map>
 
   <!-- End: Client Name Tag -->
+
+  <!-- Begin: chatbar_as_cmdline -->
+
+  <key>EmeraldCmdLine</key>
+  <map>
+    <key>Comment</key>
+    <string>Enable usage of chat bar as a command line</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+  <key>EmeraldCmdLineMapToKeepPos</key>
+  <map>
+    <key>Comment</key>
+    <string>Whether to use current local pos on tp to the new sim</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>EmeraldCmdLineAO</key>
+  <map>
+    <key>Comment</key>
+    <string>Turn AO on/off</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>cao</string>
+  </map>
+  <key>EmeraldCmdLineAutocorrect</key>
+  <map>
+    <key>Comment</key>
+    <string>Command for adding new entries to autocorrect</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>/addac</string>
+  </map>
+  <key>EmeraldCmdLineMedia</key>
+  <map>
+    <key>Comment</key>
+    <string>Chat command for setting a media url</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>/media</string>
+  </map>
+  <key>EmeraldCmdLineMusic</key>
+  <map>
+    <key>Comment</key>
+    <string>Chat command for setting a music url</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>/music</string>
+  </map>
+  <key>EmeraldCmdLineClearChat</key>
+  <map>
+    <key>Comment</key>
+    <string>Clear chat hsitory to stop lag from chat spam</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>clrchat</string>
+  </map>
+  <key>EmeraldCmdLineHeight</key>
+  <map>
+    <key>Comment</key>
+    <string>Teleport to height function command</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>gth</string>
+  </map>
+  <key>EmeraldCmdLinePos</key>
+  <map>
+    <key>Comment</key>
+    <string>Teleport to position function command</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>gtp</string>
+  </map>
+  <key>EmeraldCmdLineGround</key>
+  <map>
+    <key>Comment</key>
+    <string>Teleport to ground function command</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>flr</string>
+  </map>
+  <key>EmeraldCmdLineTeleportHome</key>
+  <map>
+    <key>Comment</key>
+    <string>Teleport to home function command</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>tph</string>
+  </map>
+  <key>EmeraldCmdLineRezPlatform</key>
+  <map>
+    <key>Comment</key>
+    <string>Rez a platform underneath you</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>rezplat</string>
+  </map>
+  <key>EmeraldCmdLinePlatformSize</key>
+  <map>
+    <key>Comment</key>
+    <string>How wide the rezzed platform will appear to be.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>30</real>
+  </map>
+  <key>EmeraldCmdLineMapTo</key>
+  <map>
+    <key>Comment</key>
+    <string>Teleport to a region by name rapidly</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>mapto</string>
+  </map>
+  <key>EmeraldCmdLineDrawDistance</key>
+  <map>
+    <key>Comment</key>
+    <string>Change draw distance quickly</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>dd</string>
+  </map>
+  <key>EmeraldCmdTeleportToCam</key>
+  <map>
+    <key>Comment</key>
+    <string>Teleport to your camera</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>tp2cam</string>
+  </map>
+  <key>EmeraldCmdLineKeyToName</key>
+  <map>
+    <key>Comment</key>
+    <string>Use a fast key to name querry</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>key2name</string>
+  </map>
+  <key>EmeraldCmdLineOfferTp</key>
+  <map>
+    <key>Comment</key>
+    <string>Offer a teleport to target avatar</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>offertp</string>
+  </map>
+  <key>EmeraldCmdLineCalc</key>
+  <map>
+    <key>Comment</key>
+    <string>Calculates an expression</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>calc</string>
+  </map>
+  <key>EmeraldCmdLineTP2</key>
+  <map>
+    <key>Comment</key>
+    <string>Teleport to a person by name, partials work.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>tp2</string>
+  </map>
+
+  <!-- End: chatbar_as_cmdline -->
+
+  <!-- Begin: Spellcheck & Translation -->
+
+  <key>EmeraldEnableAutoCorrect</key>
+  <map>
+    <key>Comment</key>
+    <string>whether to enable autocorrect or not</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>EmeraldAutoCorrectCount</key>
+  <map>
+    <key>Comment</key>
+    <string>How many words have been auto replaced.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>S32</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>EmeraldTranslateReplace</key>
+  <map>
+    <key>Comment</key>
+    <string>Whether or not right click tranlate replaces the selected text or adds to it.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>EmeraldSpellDisplay</key>
+  <map>
+    <key>Comment</key>
+    <string>Turn on to show mispelled text in red</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>EmeraldSpellInstalled</key>
+  <map>
+    <key>Comment</key>
+    <string>The list of installed dictionaries</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>EN_SL</string>
+  </map>
+  <key>EmeraldSpellBase</key>
+  <map>
+    <key>Comment</key>
+    <string>The base dictionary to spell check with</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>String</string>
+    <key>Value</key>
+    <string>English (United States of America)</string>
+  </map>
+  
+  <!-- End: Spellcheck & Translation -->
 
   <key>RestrainedLife</key>
   <map>
@@ -4384,7 +4893,7 @@
     <key>Type</key>
     <string>Boolean</string>
     <key>Value</key>
-    <integer>1</integer>
+    <integer>0</integer>
   </map>
   <key>EnergyFromTop</key>
   <map>
@@ -6225,6 +6734,17 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>JoystickAutoEnable</key>
+    <map>
+      <key>Comment</key>
+      <string>Enables the Joystick at startup if plugged in.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>JoystickAvatarEnabled</key>
     <map>
       <key>Comment</key>
@@ -6471,7 +6991,29 @@
         <string>Boolean</string>
         <key>Value</key>
         <integer>1</integer>
-        </map>
+    </map>
+    <key>TranslateLanguage</key>
+    <map>
+      <key>Comment</key>
+      <string>Translate Language specifier</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>default</string>
+    </map>
+    <key>TranslateChat</key>
+    <map>
+      <key>Comment</key>
+      <string>Translate incoming chat messages</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>LastFeatureVersion</key>
     <map>
       <key>Comment</key>
@@ -10625,7 +11167,7 @@
       <key>Type</key>
       <string>F32</string>
       <key>Value</key>
-      <real>1.699999988079</real>
+      <real>0.699999988079</real>
     </map>
     <key>ToolboxAutoMove</key>
     <map>
@@ -12281,21 +12823,6 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
-
-<!-- Begin: Use Serverside Windlight Settings -->
-    <key>UseServersideWindlightSettings</key>
-    <map>
-      <key>Comment</key>
-      <string>Whether or not to use Windlight settings presented by the server.</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>1</integer>
-    </map>
-<!-- End: Use Serverside Windlight Settings -->
-
     <key>UseStartScreen</key>
     <map>
       <key>Comment</key>
