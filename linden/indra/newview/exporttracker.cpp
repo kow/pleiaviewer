@@ -1523,8 +1523,8 @@ void JCExportTracker::finalize()
 
 				if(props!=NULL)
 				{
-					prim_xml->createChild("name", FALSE)->setValue("<![CDATA[" + std::string((*props)["name"]) + "]]>");
-					prim_xml->createChild("description", FALSE)->setValue("<![CDATA[" + std::string((*props)["description"]) + "]]>");
+					prim_xml->createChild("name", FALSE)->setStringValue(std::string((*props)["name"]));
+					prim_xml->createChild("description", FALSE)->setStringValue(std::string((*props)["description"]));
 					prim_xml->createChild("uuid",FALSE)->setValue(prim["id"].asString());
 					
 					//All done with properties?
@@ -1822,7 +1822,7 @@ void JCExportTracker::finalize()
 					std::string uuid_string;
 					object.getTE(i)->getID().toString(uuid_string);
 					
-					face_xml->createChild("image_file", FALSE)->setValue("<![CDATA[" + uuid_string + ".tga]]>");
+					face_xml->createChild("image_file", FALSE)->setStringValue(uuid_string);
 					face_xml->createChild("image_uuid", FALSE)->setValue(uuid_string);
 					//<color r="255" g="255" b="255" />
 					LLXMLNodePtr color_xml = face_xml->createChild("color", FALSE);
