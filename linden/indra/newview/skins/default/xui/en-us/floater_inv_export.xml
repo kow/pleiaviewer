@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater can_close="true" can_drag_on_left="false" can_minimize="true" rect_control="FloaterInvExport"
+     min_height="230" min_width="220" can_resize="true" width="220" height="230"
+     name="Export" title="Backup Inventory">
+  <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+     bottom_delta="-42" drop_shadow_visible="true" follows="left|top"
+     font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="10"
+     mouse_opaque="true" name="status" v_pad="0" width="178">Export Status:</text>
+
+  <panel
+     name="a_box" left_delta="2" width="200" height="100"
+     border="true" mouse_opaque="true" bevel_style="in" background_visible="true"
+     background_opaque="true" follows="top|left" bg_opaque_color="0,0,0,0.1"
+     bg_alpha_color="blue" can_resize="false">
+    <text follows="top|left" height="97" left_delta="5" name="status label" bottom_delta="-100">export status</text>
+  </panel>
+  
+  <panel
+     name="progress_bar" left_delta="0" width="200" height="10"
+     border="true" mouse_opaque="true" bevel_style="in" background_visible="true"
+     background_opaque="true" follows="top|left" bg_opaque_color="0,0,0,0.1"
+     bg_alpha_color="blue" can_resize="false">
+  </panel>
+
+  
+  <button bottom_delta="-25" follows="left|top" font="SansSerif" halign="center" height="20"
+     label="Backup Additional Inventory" label_selected="" left_delta="-2"
+     mouse_opaque="true" name="export"
+     tool_tip="Export the hpa's inventory" width="200" />
+  <button bottom_delta="-30" follows="left|top" font="SansSerif" halign="center" height="20"
+     label="Stop for now" label_selected="" left_delta="0"
+     mouse_opaque="true" name="stop" width="200" />
+  
+  
+</floater>

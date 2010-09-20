@@ -73,6 +73,7 @@
 
 #include "importtracker.h"
 #include "floatersimexport.h"
+#include "exportaditionalinventory.h"
 
 typedef LLMemberListener<LLView> view_listener_t;
 
@@ -375,6 +376,15 @@ class ExportSim : public view_listener_t
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
 		FloaterSimExport::getInstance()->startexport();
+		return true;
+	}
+};
+
+class ExportInv : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		ExportInvTrackerFloater::getInstance()->show();
 		return true;
 	}
 };
@@ -1165,6 +1175,7 @@ void init_menu_file()
 	(new LLFileUploadBulk())->registerListener(gMenuHolder, "File.UploadBulk");
 	(new ImportLinkset())->registerListener(gMenuHolder, "File.ImportLinkset");
 	(new ExportSim())->registerListener(gMenuHolder, "File.ExportSim");
+	(new ExportInv())->registerListener(gMenuHolder, "File.ExportInv");
 	(new LLFileCloseWindow())->registerListener(gMenuHolder, "File.CloseWindow");
 	(new LLFileCloseAllWindows())->registerListener(gMenuHolder, "File.CloseAllWindows");
 	(new LLFileEnableCloseWindow())->registerListener(gMenuHolder, "File.EnableCloseWindow");

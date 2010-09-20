@@ -191,6 +191,17 @@
     <key>Value</key>
     <integer>1</integer>
   </map>
+  <key>ExporterInventoryLater</key>
+  <map>
+    <key>Comment</key>
+    <string>Do Inventory Requests when exporting later.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
   <key>ExporterNumberRetrys</key>
   <map>
     <key>Comment</key>
@@ -5666,6 +5677,22 @@
       <integer>11</integer>
       <integer>215</integer>
       <integer>351</integer>
+      <integer>65</integer>
+    </array>
+  </map>
+  <key>FloaterInvExport</key>
+  <map>
+    <key>Comment</key>
+    <string>Inventory Export floater position/size</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Rect</string>
+    <key>Value</key>
+    <array>
+      <integer>11</integer>
+      <integer>215</integer>
+      <integer>230</integer>
       <integer>65</integer>
     </array>
   </map>

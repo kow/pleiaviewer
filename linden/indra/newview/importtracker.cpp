@@ -1092,26 +1092,32 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 
 				for (LLXmlTreeNode* item = param->getFirstChild(); item; item = param->getNextChild())
 				{
-					LLSD sd;
-
-					//<item>
-					for (LLXmlTreeNode* param = item->getFirstChild(); param; param = item->getNextChild())
+					if(item->hasName("received"))
 					{
-						//<description>2008-01-29 05:01:19 note card</description>
-						if (param->hasName("description"))
-							sd["desc"] = param->getTextContents();
-						//<item_id>673b00e8-990f-3078-9156-c7f7b4a5f86c</item_id>
-						else if (param->hasName("item_id"))
-							sd["item_id"] = param->getTextContents();
-						//<name>blah blah</name>
-						else if (param->hasName("name"))
-							sd["name"] = param->getTextContents();
-						//<type>notecard</type>
-						else if (param->hasName("type"))
-							sd["type"] = param->getTextContents();
+						//uh, ok, we don't care here
+					}else if(item->hasName("item"))
+					{
+						LLSD sd;
+						
+						//<item>
+						for (LLXmlTreeNode* param = item->getFirstChild(); param; param = item->getNextChild())
+						{
+							//<description>2008-01-29 05:01:19 note card</description>
+							if (param->hasName("description"))
+								sd["desc"] = param->getTextContents();
+							//<item_id>673b00e8-990f-3078-9156-c7f7b4a5f86c</item_id>
+							else if (param->hasName("item_id"))
+								sd["item_id"] = param->getTextContents();
+							//<name>blah blah</name>
+							else if (param->hasName("name"))
+								sd["name"] = param->getTextContents();
+							//<type>notecard</type>
+							else if (param->hasName("type"))
+								sd["type"] = param->getTextContents();
+						}
+						inventory[inventory_count] = sd;
+						inventory_count++;
 					}
-					inventory[inventory_count] = sd;
-					inventory_count++;
 				}
 				prim_llsd["inventory"] = inventory;
 					

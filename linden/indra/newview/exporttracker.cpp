@@ -860,7 +860,9 @@ LLSD * JCExportTracker::subserialize(LLViewerObject* linkset)
 		prim_llsd["textures"] = te_llsd;
 
 		prim_llsd["id"] = object->getID().asString();
-		
+
+		prim_llsd["inventoryReceived"]=object->mInventoryRecieved;
+
 		totalprims += 1;
 
 		// Changed to use link numbers zero-indexed.
@@ -967,6 +969,7 @@ bool JCExportTracker::getAsyncData(LLViewerObject * obj)
 				ireq->request_time = 0;	
 				ireq->num_retries = 0;	
 				requested_inventory.push_back(ireq);
+				obj->mInventoryRecieved=false;
 				obj->registerInventoryListener(sInstance,(void*)ireq);
 				//cmdline_printchat("registered inventory listener for: " + llformat("%d",ireq->object->getLocalID()));
 			}
@@ -1140,7 +1143,8 @@ void JCExportTracker::exportworker(void *userdata)
 {
 	//CHECK IF WE'RE DONE
 	if(ExportTrackerFloater::objectselection.empty() && ExportTrackerFloater::mObjectSelectionWaitList.empty()
-		&& requested_inventory.empty() && requested_properties.empty())
+		&& (requested_inventory.empty() ||gSavedSettings.getBOOL("ExporterInventoryLater"))
+		&& requested_properties.empty())
 	{
 		gIdleCallbacks.deleteFunction(exportworker);
 		finalize();
@@ -1235,7 +1239,7 @@ void JCExportTracker::exportworker(void *userdata)
 				cmdline_printchat("exportworker: object has invalid pcode");
 				//return NULL;
 			}
-			//lgg test obj->dirtyInventory();
+			obj->dirtyInventory();
 			obj->requestInventory();
 			//kick_count++;
 		}
@@ -1316,7 +1320,8 @@ void JCExportTracker::exportworker(void *userdata)
 	{
 		//Find an object that has completed export
 		
-		if(((export_properties==FALSE) || (*iter)->mPropertiesRecieved) && ((export_inventory==FALSE) || (*iter)->mInventoryRecieved))
+		if(((export_properties==FALSE) || (*iter)->mPropertiesRecieved) && 
+			( ((export_inventory==FALSE) || (*iter)->mInventoryRecieved))|| gSavedSettings.getBOOL("ExporterInventoryLater") )
 		{
 			//we have the root properties and inventory now check all children
 			bool got_all_stuff=true;
@@ -1520,6 +1525,7 @@ void JCExportTracker::finalize()
 				{
 					prim_xml->createChild("name", FALSE)->setValue("<![CDATA[" + std::string((*props)["name"]) + "]]>");
 					prim_xml->createChild("description", FALSE)->setValue("<![CDATA[" + std::string((*props)["description"]) + "]]>");
+					prim_xml->createChild("uuid",FALSE)->setValue(prim["id"].asString());
 					
 					//All done with properties?
 					free(props);
@@ -1859,10 +1865,17 @@ void JCExportTracker::finalize()
 
 				if(inventory !=NULL)
 				{
+					if(prim["inventoryReceived"].asBoolean())
+					{
+						//flag that we have already received inventory contents
+						inventory_xml->createChild("received", FALSE)->setValue("true");
+					}
+
 					//for each inventory item
 					for (LLSD::array_iterator inv = (*inventory).beginArray(); inv != (*inventory).endArray(); ++inv)
 					{
 						LLSD item = (*inv);
+					
 						//<item>
 						LLXMLNodePtr field_xml = inventory_xml->createChild("item", FALSE);
 						   //<description>2008-01-29 05:01:19 note card</description>

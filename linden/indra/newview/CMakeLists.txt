@@ -76,6 +76,7 @@ set(viewer_SOURCE_FILES
 	aoremotectrl.cpp
 	importtracker.cpp
     emeraldboobutils.cpp
+	exportaditionalinventory.cpp
 	exporttracker.cpp
 	chatbar_as_cmdline.cpp
     floaterao.cpp
@@ -527,6 +528,7 @@ set(viewer_HEADER_FILES
     lightshare.h
 	chatbar_as_cmdline.h
     importtracker.h
+	exportaditionalinventory.h
 	exporttracker.h
 	lggautocorrectfloater.h
 	lggautocorrect.h
