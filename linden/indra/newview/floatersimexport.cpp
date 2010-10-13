@@ -365,7 +365,7 @@ void FloaterSimExport::statsupdate(void *userdata)
 	}
 }
 
-void ExportTrackerFloater::RemoteStart(	LLDynamicArray<LLViewerObject*> catfayse,int primcount)
+void ExportTrackerFloater::RemoteStart(	LLDynamicArray<LLViewerObject*> objectArray,int primcount)
 {
 	ExportTrackerFloater::getInstance()->show();
 	
@@ -376,10 +376,10 @@ void ExportTrackerFloater::RemoteStart(	LLDynamicArray<LLViewerObject*> catfayse
 	ExportTrackerFloater::getInstance()->childSetEnabled("export_properties",false);
 	ExportTrackerFloater::getInstance()->childSetEnabled("export_contents",false);
 	
-	objectselection=catfayse;
-	total_linksets=objectselection.count();
-	total_objects=primcount;
+	ExportTrackerFloater::mObjectSelection = objectArray;
+	JCExportTracker::mTotalLinksets = mObjectSelection.count();
+	JCExportTracker::mTotalObjects = primcount;
 	JCExportTracker::selection_size = LLVector3(256,256,256);
 	JCExportTracker::selection_center = LLVector3(128,128,128);
-	JCExportTracker::serialize(objectselection);
+	JCExportTracker::serialize(mObjectSelection);
 }

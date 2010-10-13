@@ -57,10 +57,13 @@ class ExportTrackerFloater : public LLFloater
 {
 public:
 	void draw();
-	static ExportTrackerFloater* getInstance();
+	static ExportTrackerFloater* getInstance() { return sInstance; }
 	virtual ~ExportTrackerFloater();
 	//close me
 	static void close();
+	void refresh();
+	BOOL postBuild(void);
+
 	void show();
 	ExportTrackerFloater();	
 	static ExportTrackerFloater* sInstance;
@@ -73,26 +76,38 @@ public:
 
 	//Import button
 	static void onClickExport(void* data);
+	void addAvatarStuff(LLVOAvatar* avatarp);
+	void buildExportListFromSelection();
+	void buildExportListFromAvatar(LLVOAvatar* avatarp);
+
+	//List handling
+	static void onClickSelectAll(void* user_data);
+	static void onClickSelectNone(void* user_data);
+	static void onClickSelectObjects(void* user_data);
+	static void onClickSelectWearables(void* user_data);
+	static void onChangeFilter(void* user_data, std::string filter);
+	void buildListDisplays();
+	void addObjectToList(LLUUID id, BOOL checked, std::string name, std::string type, LLUUID owner_id);
 	
-	static void RemoteStart(LLDynamicArray<LLViewerObject*> catfayse,int primcount);
+	static void RemoteStart(LLDynamicArray<LLViewerObject*> catfayse, int primcount);
 
 	//Close button
 	static void onClickClose(void* data);
 
 
-	static LLDynamicArray<LLViewerObject*> objectselection;
+	static LLDynamicArray<LLViewerObject*> mObjectSelection;
 	static LLDynamicArray<LLViewerObject*> mObjectSelectionWaitList;
 
-	static int		linksets_exported;
-	static int		properties_received;
-	static int		inventories_received;
-	static int		property_queries;
-	static int		assets_exported;
-	static int		textures_exported;
-	static int		total_objects;
-	static int		total_linksets;
-	static int		total_assets;
-	static int		total_textures;
+private:
+	enum LIST_COLUMN_ORDER
+	{
+		LIST_CHECKED,
+		LIST_TYPE,
+		LIST_NAME,
+		LIST_AVATARID
+	};
+	LLObjectSelectionHandle mSelection;
+
 };
 
 class JCExportTracker : public LLVOInventoryListener
@@ -132,6 +147,7 @@ public:
 
 	//Export idle callback
 	static void exportworker(void *userdata);
+	static void propertyworker(void *userdata);
 
 	static bool serializeSelection();
 	static void finalize();
@@ -145,7 +161,7 @@ private:
 public:
 	enum ExportState { IDLE, EXPORTING };
 
-	static U32 status;
+	static U32 mStatus;
 
 	//enum ExportLevel { DEFAULT, PROPERTIES, INVENTORY };
 
@@ -154,15 +170,29 @@ public:
 	static BOOL export_tga;
 	static BOOL export_j2c;
 
-	//static U32 level;
+	static BOOL export_is_avatar;
 
-	static U32 propertyqueries;
-	static U32 invqueries;
-	static U32 totalprims;
+	//static U32 level;
 	static LLVector3 selection_center;
 	static LLVector3 selection_size;
+
+	static U32		propertyqueries;
+	static U32		invqueries;
+	static U32		mTotalPrims;
+	static U32		mLinksetsExported;
+	static U32		mPropertiesReceived;
+	static U32		mInventoriesReceived;
+	static U32		mPropertiesQueries;
+	static U32		mAssetsExported;
+	static U32		mTexturesExported;
+	static U32		mTotalObjects;
+	static U32		mTotalLinksets;
+	static U32		mTotalAssets;
+	static U32		mTotalTextures;
 	
 	static void cleanup();
+
+	static std::set<LLUUID> mRequestedTextures;
 
 	static std::list<PropertiesRequest_t*> requested_properties;
 	static std::list<InventoryRequest_t*> requested_inventory;
@@ -176,7 +206,6 @@ private:
 
 	static std::string destination;
 	static std::string asset_dir;
-	static std::set<LLUUID> requested_textures;
 	//static std::list<S32> copied_objects;
 	//static LLDynamicArray<U32> copied_objects;
 };

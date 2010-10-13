@@ -5153,3 +5153,17 @@ void LLViewerObject::resetChildrenPosition(const LLVector3& offset, BOOL simplif
 	return ;
 }
 
+S32 LLViewerObject::getAttachmentPoint()
+{
+	return ((S32)((((U8)mState & AGENT_ATTACH_MASK) >> 4) | (((U8)mState & ~AGENT_ATTACH_MASK) << 4)));
+}
+
+std::string LLViewerObject::getAttachmentPointName()
+{
+	S32 point = getAttachmentPoint();
+	if((point > 0) && (point < 39))
+	{
+		return gAgent.getAvatarObject()->mAttachmentPoints[point]->getName();
+	}
+	return llformat("unsupported point %d", point);
+}

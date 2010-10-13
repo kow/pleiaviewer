@@ -66,15 +66,15 @@ public:
 	LLSpinCtrl*		mCtrlPosY;
 	LLSpinCtrl*		mCtrlPosZ;
 
-	static int		total_objects;
-	static int		objects_imported;
-	static int		total_linksets;
-	static int		total_textures;
-	static int		linksets_imported;
-	static int		textures_imported;
-	static int		total_assets;
-	static int		assets_imported;
-	static int		assets_uploaded;
+	static int		mTotalObjects;
+	static int		mObjectsImported;
+	static int		mTotalLinksets;
+	static int		mTotalTextures;
+	static int		mLinksetsImported;
+	static int		mTexturesImported;
+	static int		mTotalAssets;
+	static int		mAssetsImported;
+	static int		mAssetsUploaded;
 
 protected:
 	void			sendPosition();
@@ -112,7 +112,7 @@ class ImportTracker
 		
 		const int getState() { return state; }
 
-		U32 total_linksets;
+		U32 mTotalLinksets;
 		U32 objects;
 		U32 textures;
 		LLSD linksets;

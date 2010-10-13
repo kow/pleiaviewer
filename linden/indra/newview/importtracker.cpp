@@ -68,15 +68,15 @@ ImportTracker gImportTracker;
 extern LLAgent gAgent;
 
 ImportTrackerFloater* ImportTrackerFloater::sInstance = 0;
-int ImportTrackerFloater::total_objects = 0;
-int ImportTrackerFloater::objects_imported = 0;
-int ImportTrackerFloater::total_linksets = 0;
-int ImportTrackerFloater::total_textures = 0;
-int ImportTrackerFloater::linksets_imported = 0;
-int ImportTrackerFloater::textures_imported = 0;
-int ImportTrackerFloater::total_assets = 0;
-int ImportTrackerFloater::assets_imported = 0;
-int ImportTrackerFloater::assets_uploaded = 0;
+int ImportTrackerFloater::mTotalObjects = 0;
+int ImportTrackerFloater::mObjectsImported = 0;
+int ImportTrackerFloater::mTotalLinksets = 0;
+int ImportTrackerFloater::mTotalTextures = 0;
+int ImportTrackerFloater::mLinksetsImported = 0;
+int ImportTrackerFloater::mTexturesImported = 0;
+int ImportTrackerFloater::mTotalAssets = 0;
+int ImportTrackerFloater::mAssetsImported = 0;
+int ImportTrackerFloater::mAssetsUploaded = 0;
 
 void cmdline_printchat(std::string message);
 
@@ -176,10 +176,10 @@ void ImportTrackerFloater::draw()
 	//is this a bad place for this function? -Patrick Sapinski (Friday, November 13, 2009)
 	sInstance->getChild<LLTextBox>("status label")->setValue(
 		"Status: " + status_text
-		+  llformat("\nObjects: %u/%u",objects_imported,total_objects)
-		+  llformat(" Linksets: %u/%u",linksets_imported,total_linksets)
-		+  llformat("\nTextures: %u/%u",textures_imported,total_textures)
-		+  llformat(" Contents: %u/%u",assets_imported,gImportTracker.asset_insertions)
+		+  llformat("\nObjects: %u/%u",mObjectsImported,mTotalObjects)
+		+  llformat(" Linksets: %u/%u",mLinksetsImported,mTotalLinksets)
+		+  llformat("\nTextures: %u/%u",mTexturesImported,mTotalTextures)
+		+  llformat(" Contents: %u/%u",mAssetsImported,gImportTracker.asset_insertions)
 		);
 
 	//update import queue list
@@ -492,7 +492,7 @@ class importResponder: public LLNewAgentInventoryResponder
 	//LLUploadDialog::modalUploadFinished();
 	
 	gImportTracker.update_map(content["new_asset"].asUUID());
-	ImportTrackerFloater::textures_imported++;
+	ImportTrackerFloater::mTexturesImported++;
 	gImportTracker.upload_next_asset();
 
 	}
@@ -586,7 +586,8 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 	LLSD prim_llsd;
 	LLVolumeParams volume_params;
 	std::string name, description;
-	LLSD prim_scale, prim_pos, prim_rot;
+	LLSD prim_scale, prim_pos, prim_rot, attachment_pos, attachment_rot;
+	U8 attachment_point = 0;
 	F32 shearx = 0.f, sheary = 0.f;
 	F32 taperx = 0.f, tapery = 0.f;
 	S32 selected_type = MI_BOX;
@@ -740,6 +741,39 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 				prim_rot.append((F64)quat.mQ[VW]);
 			}
 
+			//<attach_point val="0" />
+			else if (param->hasName("attach_point"))
+			{
+				param->getAttributeU8("val", attachment_point);
+			}
+			//<attach_position x="0.00000" y="0.00000" z="0.00000" />
+			else if (param->hasName("attach_position"))
+			{
+				LLVector3 vec;
+				param->getAttributeF32("x", vec.mV[VX]);
+				param->getAttributeF32("y", vec.mV[VY]);
+				param->getAttributeF32("z", vec.mV[VZ]);
+				attachment_pos.append((F64)vec.mV[VX]);
+				attachment_pos.append((F64)vec.mV[VY]);
+				attachment_pos.append((F64)vec.mV[VZ]);
+
+				//cmdline_printchat("attachment position: " + llformat("%.1f, %.1f, %.1f ", vec.mV[VX], vec.mV[VY], vec.mV[VZ]));
+			}
+			//<attach_rotation w="0.00000" x="0.00000" y="0.00000" z="1.00000" />
+			else if (param->hasName("attach_rotation"))
+			{
+				LLQuaternion quat;
+				param->getAttributeF32("w", quat.mQ[VW]);
+				param->getAttributeF32("x", quat.mQ[VX]);
+				param->getAttributeF32("y", quat.mQ[VY]);
+				param->getAttributeF32("z", quat.mQ[VZ]);
+				attachment_rot.append((F64)quat.mQ[VX]);
+				attachment_rot.append((F64)quat.mQ[VY]);
+				attachment_rot.append((F64)quat.mQ[VZ]);
+				attachment_rot.append((F64)quat.mQ[VW]);
+
+				cmdline_printchat("attachment rotation: " + llformat("%.1f, %.1f, %.1f, %.1f", quat.mQ[VX], quat.mQ[VY], quat.mQ[VZ], quat.mQ[VW]));
+			}
 
 			//<phantom val="true" />
 			else if (param->hasName("phantom"))
@@ -1248,6 +1282,12 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 		prim_llsd["description"] = description;
 		prim_llsd["position"] = prim_pos;
 		prim_llsd["rotation"] = prim_rot;
+		if (0 < attachment_point)
+		{
+			prim_llsd["attachpos"] = attachment_pos;
+			prim_llsd["attachrot"] = attachment_rot;
+			prim_llsd["Attachment"] = attachment_point;
+		}
 
 		prim_llsd["scale"] = prim_scale;
 		// Flags
@@ -1274,8 +1314,8 @@ void ImportTracker::loadhpa(std::string file)
 	linksets = 0;
 	textures = 0;
 	objects = 0;
-	ImportTrackerFloater::textures_imported = 0;
-	ImportTrackerFloater::linksets_imported = 0;
+	ImportTrackerFloater::mTexturesImported = 0;
+	ImportTrackerFloater::mLinksetsImported = 0;
 
 	std::string xml_filename = file;
 	asset_dir = gDirUtilp->getDirName(filepath);	
@@ -1316,7 +1356,7 @@ void ImportTracker::loadhpa(std::string file)
 		{
 			linksets = parse_hpa_group(child);
 
-			//total_linksets = temp.size();
+			//mTotalLinksets = temp.size();
 			//llinfos << "imported "<<temp.size()<<" linksets"<<llendl;
 
 
@@ -1357,8 +1397,8 @@ void ImportTracker::loadhpa(std::string file)
 		size = (size - importposition) * 2;
 		importoffset.clear();
 		ImportTrackerFloater::sInstance->getChild<LLTextBox>("size label")->setValue("Size: " + llformat("%.3f,%.3f,%.3f", size.mV[VX], size.mV[VY], size.mV[VZ]));
-		ImportTrackerFloater::total_linksets = linksets.size();
-		ImportTrackerFloater::total_textures = gImportTracker.uploadtextures.size();
+		ImportTrackerFloater::mTotalLinksets = linksets.size();
+		ImportTrackerFloater::mTotalTextures = gImportTracker.uploadtextures.size();
 	}
 }
 
@@ -1418,7 +1458,7 @@ void ImportTracker::import(LLSD& ls_data)
 			initialPos=importposition + importoffset;
 			//initialPos=gAgent.getCameraPositionAgent();
 	linkset = ls_data;
-	ImportTrackerFloater::total_objects = linkset.size();
+	ImportTrackerFloater::mTotalObjects = linkset.size();
 	updated=0;
 	LLSD rot = linkset[0]["rotation"];
 	rootrot.mQ[VX] = (F32)(rot[0].asReal());
@@ -1465,7 +1505,7 @@ LLViewerObject* find(U32 local)
 }
 void ImportTracker::finish()
 {
-	if(asset_insertions == ImportTrackerFloater::assets_imported)
+	if(asset_insertions == ImportTrackerFloater::mAssetsImported)
 	{
 		if(lastrootid != 0)
 		{
@@ -1582,7 +1622,7 @@ void ImportTracker::get_update(S32 newid, BOOL justCreated, BOOL createSelected)
 				if (!(prim).has("Updated"))
 				{
 					++updated;
-					ImportTrackerFloater::objects_imported = updated;
+					ImportTrackerFloater::mObjectsImported = updated;
 
 					// here be trees
 					LLPCode pcode = prim["pcode"].asInteger();
@@ -1698,8 +1738,8 @@ void insert(LLViewerInventoryItem* item, LLViewerObject* objectp, InventoryImpor
 		//cmdline_printchat("inserted.");
 	}
 	delete data;
-	ImportTrackerFloater::assets_imported++;
-	if(gImportTracker.asset_insertions == ImportTrackerFloater::assets_imported)
+	ImportTrackerFloater::mAssetsImported++;
+	if(gImportTracker.asset_insertions == ImportTrackerFloater::mAssetsImported)
 	{
 		gImportTracker.finish();
 	}
@@ -2159,7 +2199,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 				asset_insertions++;
 			}
 		}
-	ImportTrackerFloater::total_assets = asset_insertions;
+	ImportTrackerFloater::mTotalAssets = asset_insertions;
 	}
 }
 
@@ -2528,9 +2568,9 @@ void ImportTracker::link()
 	}
 
 	llinfos << "FINISHED IMPORT" << llendl;
-	ImportTrackerFloater::linksets_imported++;
+	ImportTrackerFloater::mLinksetsImported++;
 
-	if (ImportTrackerFloater::linksets_imported >= ImportTrackerFloater::total_linksets)
+	if (ImportTrackerFloater::mLinksetsImported >= ImportTrackerFloater::mTotalLinksets)
 	{
 		gIdleCallbacks.deleteFunction(plywoodtracker);
 		cmdline_printchat("FINISHED IMPORT");
