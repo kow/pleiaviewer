@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <floater can_close="true" can_drag_on_left="false" can_minimize="true" rect_control="FloaterPrimExport"
-     min_height="300" min_width="600" can_resize="true" width="700" height="300"
+     min_height="305" min_width="600" can_resize="true" width="700" height="305"
      name="Export" title="Backup Objects">
 
   <!--
@@ -20,24 +20,26 @@
   <check_box bottom_delta="-23" control_name="ExportJ2CTextures" follows="left|top"
      font="SansSerifSmall" height="16" initial_value="true" 
      label="Export J2C textures" left_delta="0" name="export_j2c"
-     width="200" />
+     width="200" enabled="true"/>
   <check_box bottom_delta="-20" control_name="ExportTGATextures" follows="left|top"
      font="SansSerifSmall" height="16" initial_value="true"
      label="Export TGA textures" left_delta="0" name="export_tga"
-     width="200" />
+     width="200" enabled="true"/>
   <check_box bottom_delta="-20" control_name="EmeraldExportProperties" follows="left|top"
      font="SansSerifSmall" height="16" initial_value="true"
      label="Export Properties" left_delta="0" name="export_properties"
-     width="200" />
+     width="200" enabled="true"/>
   <check_box bottom_delta="-20" control_name="EmeraldExportInventory" follows="left|top"
      font="SansSerifSmall" height="16" initial_value="true"
      label="Export Contents" left_delta="20" name="export_contents"
-     width="200" />
+     width="200" enabled="true"/>
   
   <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
      bottom_delta="-22" drop_shadow_visible="true" follows="left|top"
      font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="-17"
-     mouse_opaque="true" name="status" v_pad="0" width="178">Export Status:</text>
+     mouse_opaque="true" name="status" v_pad="0" width="178">
+	 Export Status:
+	</text>
 
   <panel
      name="a_box" left_delta="2" width="200" height="100"
@@ -70,8 +72,38 @@
      label="Close" label_selected="" left_delta="135"
      mouse_opaque="true" name="close" width="65" />
   
-  <tab_container top="-20" enabled="true" follows="left|top|right|bottom" height="210" bottom="10"
-	     left="220" mouse_opaque="false" name="exporttab" tab_position="top" width="470">
+	<tab_container top="-20" enabled="true" follows="left|top|right|bottom" height="210" bottom="10"
+	     left="220" mouse_opaque="false" name="export_tab" tab_position="top" width="470">
+	<panel border="true" bottom="-219" enabled="true" follows="left|top|right|bottom"
+       height="210" label="Objects" left="0" mouse_opaque="true"
+       name="object_panel" width="458">
+      <scroll_list name="object_result_list" left="10" right="-10" top="-10" bottom="30" column_padding="0"
+          can_resize="true" follows="left|top|bottom|right" draw_heading="false" search_column="2">
+		<column name="Selected" width="20" />
+		<column name="Type" type="icon" width="20" />
+        <column name="Name" label="Name" width="100" dynamicwidth="true" />
+		<column name="Avatar ID" visible="false" />
+		<column name="icon_rec" label="Received" type="icon" width="20" />
+        <column name="UUID" label="UUID" visible="false"/>
+        <!--<column label="Properties" name="icon_prop" width="31" />
+        <column label="Inventories" name="icon_inv" width="31" />
+        <column name="Local ID" label="Local ID" width="65"/>
+        <column name="Position" label="Position" width="100"/>
+        <column name="Retries" label="Retries" width="31"/>-->
+      </scroll_list>
+	  <text bottom="2" follows="bottom|left" height="20" 
+		 border_drop_shadow_visible="false" border_visible="false" drop_shadow_visible="true" 
+		 font="SansSerifSmall" h_pad="0" halign="left" left="10"
+		 mouse_opaque="true" name="select label" v_pad="0" width="166">Select:</text>
+	  <button bottom_delta="3" follows="bottom|left" height="20" label="All"
+		 left="50" name="select_all_btn" width="40" />
+	  <button bottom_delta="0" follows="bottom|left" height="20" label="None"
+		 left_delta="42" name="select_none_btn" width="50" />
+	  <button bottom_delta="0" follows="bottom|left" height="20" label="Objects"
+		 left_delta="52" name="select_objects_btn" width="64" />
+	  <button bottom_delta="0" follows="bottom|left" height="20" label="Wearables"
+		 left_delta="66"  name="select_wearables_btn" width="80" />
+    </panel>
     <panel border="true" bottom="-219" enabled="true" follows="left|top|right|bottom"
        height="210" label="Inventory" left="0" mouse_opaque="true"
        name="inventory_panel" width="458">
@@ -86,21 +118,6 @@
         <column name="Retries" label="Retries" width="31"/>
         -->
         <column label="Received" name="icon_rec" width="31" />
-      </scroll_list>
-    </panel>
-    <panel border="true" bottom="-219" enabled="true" follows="left|top|right|bottom"
-       height="210" label="Objects" left="0" mouse_opaque="true"
-       name="object_panel" width="458">
-      <scroll_list name="object_result_list" left="10" right="-10" top="-10" bottom="10" column_padding="0"
-          can_resize="true" follows="left|top|bottom|right" draw_heading="true" multi_select="true"
-          search_column="1" tool_tip="Hold shift or control while clicking to select multiple entries">
-        <column name="Name" label="Name" width="100" dynamicwidth="true" />
-        <column name="UUID" label="UUID" width="200"/>
-        <column label="Properties" name="icon_prop" width="31" />
-        <column label="Inventories" name="icon_inv" width="31" />
-        <column name="Local ID" label="Local ID" width="65"/>
-        <column name="Position" label="Position" width="100"/>
-        <column name="Retries" label="Retries" width="31"/>
       </scroll_list>
     </panel>
     <panel border="true" enabled="true" follows="left|top|right|bottom"

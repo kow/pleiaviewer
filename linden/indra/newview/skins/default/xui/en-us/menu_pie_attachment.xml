@@ -37,7 +37,10 @@
       <on_enable function="Object.EnableInspect" />
     </menu_item_call>
     <menu_item_separator />
-    <menu_item_separator />
+    <menu_item_call label="Export" hidden="false" mouse_opaqu="true" name="Export">
+        <on_click function="Object.Export" />
+		<on_visible function="Object.VisibleExport" />
+    </menu_item_call>
     <menu_item_separator />
   </pie_menu>
   <menu_item_call enabled="false" label="Edit..." mouse_opaque="true" name="Edit...">

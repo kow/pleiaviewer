@@ -662,6 +662,12 @@ protected:
 
 private:	
 	static S32 sNumObjects;
+private:
+	LLUUID mAttachmentItemID; // ItemID when item is in user inventory.
+public:
+	S32 getAttachmentPoint();
+	std::string getAttachmentPointName();
+// </edit>
 };
 
 ///////////////////

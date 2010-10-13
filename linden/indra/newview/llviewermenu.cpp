@@ -2368,10 +2368,15 @@ class LLObjectVisibleExport : public view_listener_t
 		
 		if (new_value)
 		{
-			new_value = !object->isAvatar() && object->permYouOwner() && object->permModify() && object->permCopy() && object->permTransfer();
-			// Disable for avatars, we can only export prims
-			//LLVOAvatar* avatar = find_avatar_from_object(object); 
-			//new_value = (avatar == NULL);
+			if (!object->isAvatar())
+			{
+				new_value =  object->permYouOwner() && object->permModify() && object->permCopy() && object->permTransfer();
+			}
+			else
+			{
+				LLVOAvatar* avatar = find_avatar_from_object(object); 
+				new_value = (avatar->isSelf());
+			}			
 		}
 		
 		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
