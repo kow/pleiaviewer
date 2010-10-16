@@ -2034,6 +2034,12 @@ void JCExportTracker::finalize()
 					LLXMLNodePtr taper_xml = prim_xml->createChild("taper", FALSE);
 					taper_xml->createChild("x", TRUE)->setValue(llformat("%.5f", taper_x));
 					taper_xml->createChild("y", TRUE)->setValue(llformat("%.5f", taper_y));
+					// Slice (Hacked Dimple)
+					//<slice begin="0.0" end="1.0" />
+					LLXMLNodePtr shear_xml = prim_xml->createChild("slice", FALSE);
+					shear_xml->createChild("begin", TRUE)->setValue(llformat("%.5f", adv_cut_begin));
+					shear_xml->createChild("end", TRUE)->setValue(llformat("%.5f", adv_cut_end));
+
 				}
 				else if (selected_item == "torus" || selected_item == "tube" || selected_item == "ring")
 				{
