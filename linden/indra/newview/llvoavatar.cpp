@@ -7410,7 +7410,8 @@ LLGLuint LLVOAvatar::getScratchTexName( LLGLenum format, U32* texture_bytes )
 	{
 	case GL_LUMINANCE:			components = 1; internal_format = GL_LUMINANCE8;		break;
 	case GL_ALPHA:				components = 1; internal_format = GL_ALPHA8;			break;
-	case GL_COLOR_INDEX:		components = 1; internal_format = GL_COLOR_INDEX8_EXT;	break;
+// Deprecated.  See http://svn.secondlife.com/trac/linden/changeset/2757
+//	case GL_COLOR_INDEX:		components = 1; internal_format = GL_COLOR_INDEX8_EXT;	break;
 	case GL_LUMINANCE_ALPHA:	components = 2; internal_format = GL_LUMINANCE8_ALPHA8;	break;
 	case GL_RGB:				components = 3; internal_format = GL_RGB8;				break;
 	case GL_RGBA:				components = 4; internal_format = GL_RGBA8;				break;
@@ -8401,7 +8402,7 @@ LLBBox LLVOAvatar::getHUDBBox() const
 	{
 		attachment_map_t::const_iterator curiter = iter++;
 		LLViewerJointAttachment* attachment = curiter->second;
-		if (attachment->getIsHUDAttachment() && attachment->getObject())
+		if (attachment && attachment->getIsHUDAttachment() && attachment->getObject())
 		{
 			LLViewerObject* hud_object = attachment->getObject();
 
