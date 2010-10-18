@@ -1987,8 +1987,18 @@ void JCExportTracker::finalize()
 				// Hollowness
 				F32 hollow = volume_params.getHollow();
 				// Twist
-				F32 twist		= volume_params.getTwist() * 180.0;
-				F32 twist_begin = volume_params.getTwistBegin() * 180.0;
+				F32 twist		= volume_params.getTwist();
+				F32 twist_begin = volume_params.getTwistBegin();
+				if (path == LL_PCODE_PATH_LINE || path == LL_PCODE_PATH_FLEXIBLE)
+				{
+					twist		*= OBJECT_TWIST_LINEAR_MAX;
+					twist_begin	*= OBJECT_TWIST_LINEAR_MAX;
+				}
+				else
+				{
+					twist		*= OBJECT_TWIST_MAX;
+					twist_begin	*= OBJECT_TWIST_MAX;
+				}
 				// Cut interpretation varies based on base object type
 				F32 cut_begin, cut_end, adv_cut_begin, adv_cut_end;
 				if ( selected_item == "sphere" || selected_item == "torus" || 
