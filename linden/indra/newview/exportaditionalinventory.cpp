@@ -652,9 +652,12 @@ void ExportInvTracker::inventoryChanged(LLViewerObject* obj,
 				{
 					LLInventoryItem* item = (LLInventoryItem*)((LLInventoryObject*)(*it));
 					LLViewerInventoryItem* new_item = (LLViewerInventoryItem*)item;
-					new_item; //ugh
+
 					LLPermissions perm;
-					llassert(perm = new_item->getPermissions());
+					llassert(new_item && new_item->getPermissions());
+
+					perm = new_item->getPermissions();
+
 					if(canDL(asset->getType())
 						&& perm.allowCopyBy(gAgent.getID())
 						&& perm.allowModifyBy(gAgent.getID())

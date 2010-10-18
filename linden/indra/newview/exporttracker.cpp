@@ -142,7 +142,6 @@ BOOL ExportTrackerFloater::postBuild()
 
 	gIdleCallbacks.deleteFunction(JCExportTracker::exportworker);
 	
-	mObjectSelection;
 	//Only attachments have sub-parents (?)
 	if (mSelection->getFirstRootObject()->getSubParent())
 	{
@@ -2582,9 +2581,12 @@ void JCExportTracker::inventoryChanged(LLViewerObject* obj,
 				{
 					LLInventoryItem* item = (LLInventoryItem*)((LLInventoryObject*)(*it));
 					LLViewerInventoryItem* new_item = (LLViewerInventoryItem*)item;
-					new_item; //ugh
+
 					LLPermissions perm;
-					llassert(perm = new_item->getPermissions());
+					llassert(new_item && new_item->getPermissions());
+
+					perm = new_item->getPermissions();
+
 					if(couldDL(asset->getType())
 						&& perm.allowCopyBy(gAgent.getID())
 						&& perm.allowModifyBy(gAgent.getID())
