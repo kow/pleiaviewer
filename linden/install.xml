@@ -301,16 +301,23 @@
           <key>darwin</key>
           <map>
             <key>md5sum</key>
-            <string>279834a12a0ed4531fd602594eac8509</string>
+            <string>bb8552f22769da81593f7d47a51d83d8</string>
             <key>url</key>
-            <uri>http://s3.amazonaws.com/viewer-source-downloads/install_pkgs/boost-1.32.0-darwin-20080812.tar.bz2</uri>
+            <uri>http://s3.amazonaws.com/viewer-source-downloads/install_pkgs/boost-1.39.0-darwin-20100226.tar.bz2</uri>
           </map>
           <key>linux</key>
           <map>
             <key>md5sum</key>
-            <string>15149b8140d06f9bd1b8672b958c6915</string>
+            <string>4db3d74e40d149eeec06f4d97a609bb1</string>
             <key>url</key>
-            <uri>http://imprudenceviewer.org/download/libs/boost-1.36.0-linux-20091128.tar.bz2</uri>
+            <uri>http://s3.amazonaws.com/viewer-source-downloads/install_pkgs/boost-1.39.0-linux-20100624.tar.bz2</uri>
+	      </map>
+          <key>windows</key>
+          <map>
+            <key>md5sum</key>
+            <string>d631c18f447ff4d413525f3c7d52db42</string>
+            <key>url</key>
+            <uri>http://cloud.github.com/downloads/HazimGazov/Inertia/boost-1.39-windows.tar.bz2</uri>
           </map>
           <key>linux64</key>
           <map>
@@ -318,13 +325,6 @@
             <string>b97ae0855e77cc25b37ca63df093bb9b</string>
             <key>url</key>
             <uri>http://s3.amazonaws.com/viewer-source-downloads/install_pkgs/boost-1.34.0-linux64-20080909.tar.bz2</uri>
-          </map>
-          <key>windows</key>
-          <map>
-            <key>md5sum</key>
-            <string>094acc8173faca882ed9532e868d767f</string>
-            <key>url</key>
-            <uri>http://imprudenceviewer.org/download/libs/boost-1.36.0-windows-20091124.tar.bz2</uri>
           </map>
         </map>
       </map>
