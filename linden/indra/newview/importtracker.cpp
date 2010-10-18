@@ -379,7 +379,7 @@ void ImportTrackerFloater::onClickImport(void* data)
 	F32 throttle = gSavedSettings.getF32("OutBandwidth");
 	// Gross magical value that is 128kbit/s
 	// Sim appears to drop requests if they come in faster than this. *sigh*
-	if(throttle < 128000.)
+	if(throttle > 128000.)
 	{
 		gMessageSystem->mPacketRing.setOutBandwidth(128000.0);
 	}
