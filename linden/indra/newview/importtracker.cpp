@@ -1082,6 +1082,20 @@ LLSD ImportTracker::parse_hpa_object(LLXmlTreeNode* prim)
 							param->getAttributeU8("val", shiny);
 							thisface.setShiny(shiny);
 						}
+						//<bump val="0" />
+						else if (param->hasName("bump"))
+						{
+							U8 bump;
+							param->getAttributeU8("val", bump);
+							thisface.setBumpmap(bump);
+						}
+						//<mapping val="0" />
+						else if (param->hasName("mapping"))
+						{
+							U8 mapping;
+							param->getAttributeU8("val", mapping);
+							thisface.setTexGen(mapping);
+						}
 					}
 
 					if (imageuuid.notNull())

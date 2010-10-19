@@ -2286,6 +2286,7 @@ void JCExportTracker::finalize()
 					}
 						
 					//<mapping val="0" />
+					face_xml->createChild("mapping", FALSE)->createChild("val", TRUE)->setValue(llformat("%d", object.getTE(i)->getTexGen()));
 				} // end for each texture
 				//<inventory>
 
