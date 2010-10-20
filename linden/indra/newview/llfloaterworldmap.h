@@ -116,6 +116,7 @@ protected:
 	static void		onPanBtn( void* userdata );
 
 	static void		onGoHome(void* data);
+
 	static void		onLandmarkComboPrearrange( LLUICtrl* ctrl, void* data );
 	static void		onLandmarkComboCommit( LLUICtrl* ctrl, void* data );
 
@@ -163,7 +164,7 @@ protected:
 protected:
 	LLTabContainer*	mTabs;
 
-	// Sets gMapScale, in pixels per region
+	// Sets sMapScale, in pixels per region
 	F32						mCurZoomVal;
 	LLFrameTimer			mZoomTimer;
 

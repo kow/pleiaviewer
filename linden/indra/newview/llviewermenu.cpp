@@ -841,6 +841,9 @@ void init_client_menu(LLMenuGL* menu)
 
 	menu->append(new LLMenuItemCallGL("Clear Group Cache", 
 									  LLGroupMgr::debugClearAllGroups));
+
+	menu->append(new LLMenuItemCheckGL("Use Web Map Tiles", menu_toggle_control, NULL, menu_check_control, (void*)"UseWebMapTiles"));
+
 	menu->appendSeparator();
 
 	sub_menu = new LLMenuGL("Rendering");
@@ -6997,11 +7000,16 @@ void handle_test_female(void*)
 
 void handle_toggle_pg(void*)
 {
-	gAgent.setTeen( !gAgent.isTeen() );
-
-	LLFloaterWorldMap::reloadIcons(NULL);
-
-	llinfos << "PG status set to " << (S32)gAgent.isTeen() << llendl;
+	if(gSavedSettings.getBOOL("ToggleTeenMode"))
+	{
+		gAgent.setTeen( !gAgent.isTeen() );
+		LLFloaterWorldMap::reloadIcons(NULL);
+		llinfos << "PG status set to " << (S32)gAgent.isTeen() << llendl;
+	}
+	else
+	{
+		llinfos << "Teen mode cannot be toggled on this region" << llendl;
+	}
 }
 
 void handle_dump_attachments(void*)

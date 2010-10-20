@@ -89,8 +89,10 @@ set(viewer_SOURCE_FILES
     hippoGridManager.cpp
     hippoLimits.cpp
     hippoRestRequest.cpp
+    impprefsfonts.cpp
     jcfloater_animation_list.cpp
     jcfloaterareasearch.cpp
+    kowopenregionsettings.cpp
     lightshare.cpp
     llagent.cpp
     llagentaccess.cpp
@@ -523,6 +525,7 @@ set(viewer_HEADER_FILES
     hippoGridManager.h
     hippoLimits.h
     hippoRestRequest.h
+    impprefsfonts.h
     jcfloater_animation_list.h
     jcfloaterareasearch.h
     lightshare.h
@@ -1251,9 +1254,9 @@ add_custom_target(
 
 if (WINDOWS)
     if(MSVC71)
-        set(release_flags "/MAP:Release/${VIEWER_BINARY_NAME}.map /MAPINFO:LINES")
+        set(release_flags "/MAP:Release/${VIEWER_BINARY_NAME}.map /MAPINFO:LINES /LARGEADDRESSAWARE")
     else(MSVC71)
-        set(release_flags "/MAP:Release/${VIEWER_BINARY_NAME}.map")
+        set(release_flags "/MAP:Release/${VIEWER_BINARY_NAME}.map /LARGEADDRESSAWARE")
     endif(MSVC71)
     
     set_target_properties(${VIEWER_BINARY_NAME}

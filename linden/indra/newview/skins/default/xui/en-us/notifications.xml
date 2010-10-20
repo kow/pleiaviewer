@@ -7053,6 +7053,13 @@ Apply this region's settings? (&quot;Ignore&quot; will ignore all region setting
 </notification>
 
 <notification
+ name="ChangeFont"
+ icon="alertmodal.tga"
+ type="alertmodal">
+The new font will appear after you restart [VIEWER_NAME].
+</notification>
+
+<notification
  icon="alertmodal.tga"
  label="Emerald Help"
  name="EmeraldHelp_CmdLine"
@@ -7070,6 +7077,7 @@ To Spell Check a word, right click on it and choose its replacement.
 You may choose a base dictionary which stores the language style and basic words
 You may also choose to install other word lists by choosing them from the list and "Install"
 </notification>
+
 
 <!--End Imprudence notifications-->
 
