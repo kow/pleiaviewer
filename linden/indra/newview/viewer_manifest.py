@@ -64,7 +64,7 @@ class ViewerManifest(LLManifest):
             # include the entire shaders directory recursively
             self.path("shaders")
 
-	        self.path("dictionaries")
+            self.path("dictionaries")
 
             # ... and the entire windlight directory
             self.path("windlight")
