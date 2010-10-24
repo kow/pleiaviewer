@@ -231,6 +231,11 @@ class WindowsManifest(ViewerManifest):
 
         self.path("featuretable.txt")
 
+        # For spellcheck
+        if self.prefix(src="../../libraries/i686-win32/lib/release", dst=""):
+		    self.path("libhunspell.dll")
+        self.end_prefix()
+        
         # For use in crash reporting (generates minidumps)
         self.path("dbghelp.dll")
 
@@ -461,14 +466,14 @@ class WindowsManifest(ViewerManifest):
         if self.default_channel():
             if self.default_grid():
                 # release viewer
-                installer_file = "Imprudence_%(version_dashes)s_Setup.exe"
+                installer_file = "ImprudencePLEIADES_%(version_dashes)s_Setup.exe"
                 grid_vars_template = """
                 OutFile "%(installer_file)s"
                 !define INSTFLAGS "%(flags)s"
-                !define INSTNAME   "Imprudence"
-                !define SHORTCUT   "Imprudence"
+                !define INSTNAME   "ImprudencePLEIADES"
+                !define SHORTCUT   "ImprudencePLEIADES"
                 !define URLNAME   "imprudence"
-                Caption "Imprudence ${VERSION}"
+                Caption "ImprudencePLEIADES ${VERSION}"
                 """
             else:
                 # beta grid viewer

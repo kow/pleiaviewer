@@ -1379,7 +1379,7 @@ if (LINUX)
       DEPENDS imprudence-bin
       )
 
-  set(product Imprudence_Pleiades.ca-${ARCH}-${viewer_VERSION})
+  set(product Imprudence-${ARCH}-${viewer_VERSION})
 
   add_custom_command(
       OUTPUT ${product}.tar.bz2

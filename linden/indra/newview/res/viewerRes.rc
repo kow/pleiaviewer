@@ -74,7 +74,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
     ICON            IDI_LL_ICON,IDC_STATIC,7,7,20,20
-    LTEXT           "Loading Imprudence...",666,36,13,91,8
+    LTEXT           "Loading ImprudencePLEIADES...",666,36,13,91,8
 END
 
 

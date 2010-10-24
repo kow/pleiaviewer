@@ -12,7 +12,7 @@ if (COMMAND cmake_policy)
   cmake_policy(SET CMP0003 OLD)
 endif (COMMAND cmake_policy)
 
-set(ROOT_PROJECT_NAME "Imprudence (Pleiades.ca mod)" CACHE STRING
+set(ROOT_PROJECT_NAME "ImprudencePLEIADES" CACHE STRING
     "The root project/makefile/solution name. Defaults to Imprudence.")
 project(${ROOT_PROJECT_NAME})
 
