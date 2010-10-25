@@ -76,7 +76,7 @@ class PlatformSetup(object):
     build_type = build_types['relwithdebinfo']
     standalone = 'OFF'
     unattended = 'OFF'
-    project_name = 'Imprudence'
+    project_name = 'ImprudencePLEIADES'
     distcc = True
     cmake_opts = []
 
@@ -600,7 +600,7 @@ class WindowsSetup(PlatformSetup):
                 continue
             vstool_cmd = (os.path.join('tools','vstool','VSTool.exe') +
                           ' --solution ' +
-                          os.path.join(build_dir,'Imprudence.sln') +
+                          os.path.join(build_dir,self.project_name + '.sln') +
                           ' --config ' + self.build_type +
                           ' --startup imprudence-bin')
             print 'Running %r in %r' % (vstool_cmd, getcwd())
