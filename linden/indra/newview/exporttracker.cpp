@@ -2787,6 +2787,43 @@ BOOL JCExportTracker::mirror(LLInventoryObject* item, LLViewerObject* container,
 			info->path = root;
 			info->name = item->getName();
 			info->assetid = item->getUUID();
+
+			//add to floater list
+			LLSD element;
+			element["id"] = item->getUUID(); //object->getLocalID();
+
+			element["columns"][0]["column"] = "Name";
+			element["columns"][0]["type"] = "text";
+			element["columns"][0]["value"] = item->getName();
+
+			element["columns"][1]["column"] = "UUID";
+			element["columns"][1]["type"] = "text";
+			element["columns"][1]["value"] = item->getUUID().asString();
+
+			element["columns"][2]["column"] = "Object ID";
+			element["columns"][2]["type"] = "text";
+			element["columns"][2]["value"] = llformat("%u",container->getLocalID());
+
+			LLVector3 object_pos = container->getPositionRegion();
+			std::stringstream sstr;
+			sstr <<llformat("%.1f", object_pos.mV[VX]);
+			sstr <<","<<llformat("%.1f", object_pos.mV[VY]);
+			sstr <<","<<llformat("%.1f", object_pos.mV[VZ]);
+
+			element["columns"][3]["column"] = "Position";
+			element["columns"][3]["type"] = "text";
+			element["columns"][3]["value"] = sstr.str();
+
+			//element["columns"][4]["column"] = "Retries";
+			//element["columns"][4]["type"] = "text";
+			//element["columns"][4]["value"] = "0";
+
+			element["columns"][4]["column"] = "icon_rec";
+			element["columns"][4]["type"] = "icon";
+
+			LLScrollListCtrl* mResultList;
+			mResultList = ExportTrackerFloater::sInstance->getChild<LLScrollListCtrl>("inventory_result_list");
+			mResultList->addElement(element, ADD_BOTTOM);
 			
 			//LLHost host = container != NULL ? container->getRegion()->getHost() : LLHost::invalid;
 
@@ -2823,43 +2860,6 @@ BOOL JCExportTracker::mirror(LLInventoryObject* item, LLViewerObject* container,
 				gAssetStorage->getAssetData(inv_item->getAssetUUID(), item->getType(), JCAssetExportCallback, info, TRUE);
 				break;
 			}
-
-			//add to floater list
-			LLSD element;
-			element["id"] = info->assetid; //object->getLocalID();
-
-			element["columns"][0]["column"] = "Name";
-			element["columns"][0]["type"] = "text";
-			element["columns"][0]["value"] = info->name;
-
-			element["columns"][1]["column"] = "UUID";
-			element["columns"][1]["type"] = "text";
-			element["columns"][1]["value"] = info->assetid;
-
-			element["columns"][2]["column"] = "Object ID";
-			element["columns"][2]["type"] = "text";
-			element["columns"][2]["value"] = llformat("%u",container->getLocalID());
-
-			LLVector3 object_pos = container->getPositionRegion();
-			std::stringstream sstr;	
-			sstr <<llformat("%.1f", object_pos.mV[VX]);
-			sstr <<","<<llformat("%.1f", object_pos.mV[VY]);
-			sstr <<","<<llformat("%.1f", object_pos.mV[VZ]);
-
-			element["columns"][3]["column"] = "Position";
-			element["columns"][3]["type"] = "text";
-			element["columns"][3]["value"] = sstr.str();
-
-			//element["columns"][4]["column"] = "Retries";
-			//element["columns"][4]["type"] = "text";
-			//element["columns"][4]["value"] = "0";
-
-			element["columns"][4]["column"] = "icon_rec";
-			element["columns"][4]["type"] = "icon";
-
-			LLScrollListCtrl* mResultList;
-			mResultList = ExportTrackerFloater::sInstance->getChild<LLScrollListCtrl>("inventory_result_list");
-			mResultList->addElement(element, ADD_BOTTOM);
 
 			return TRUE;
 
