@@ -2101,11 +2101,11 @@ bool LLAppViewer::initConfiguration()
 	// Set the name of the window
 	//
 #if LL_RELEASE_FOR_DOWNLOAD
-	gWindowTitle = gSecondLife + std::string(" (Pleiades.ca mod) ");
+	gWindowTitle = gSecondLife;
 #elif LL_DEBUG
 	gWindowTitle = gSecondLife + std::string(" [DEBUG] ") + gArgs;
 #else
-	gWindowTitle = gSecondLife + std::string(" (Pleiades.ca mod) ") + gArgs;
+	gWindowTitle = gSecondLife + gArgs;
 #endif
 	LLStringUtil::truncate(gWindowTitle, 255);
 

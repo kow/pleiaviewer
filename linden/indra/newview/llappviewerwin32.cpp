@@ -82,23 +82,23 @@ extern "C" {
 #if defined(_MSC_VER)
 #if _MSC_VER >= 1500
 #ifdef LL_DEBUG
-#pragma comment( lib, "libboost_signals-vc90-mt-gd-1_36.lib" )
-#pragma comment( lib, "libboost_regex-vc90-mt-gd-1_36.lib" )
-#pragma comment( lib, "libboost_program_options-vc90-mt-gd-1_36.lib" )
+#pragma comment( lib, "libboost_signals-vc90-mt-gd-1_39.lib" )
+#pragma comment( lib, "libboost_regex-vc90-mt-gd-1_39.lib" )
+#pragma comment( lib, "libboost_program_options-vc90-mt-gd-1_39.lib" )
 #else
-#pragma comment( lib, "libboost_signals-vc90-mt-1_36.lib" )
-#pragma comment( lib, "libboost_regex-vc90-mt-1_36.lib" )
-#pragma comment( lib, "libboost_program_options-vc90-mt-1_36.lib" )
+#pragma comment( lib, "libboost_signals-vc90-mt-1_39.lib" )
+#pragma comment( lib, "libboost_regex-vc90-mt-1_39.lib" )
+#pragma comment( lib, "libboost_program_options-vc90-mt-1_39.lib" )
 #endif
 #elif _MSC_VER >= 1400
 #ifdef LL_DEBUG
-#pragma comment( lib, "libboost_signals-vc80-mt-gd-1_36.lib" )
-#pragma comment( lib, "libboost_regex-vc80-mt-gd-1_36.lib" )
-#pragma comment( lib, "libboost_program_options-vc80-mt-gd-1_36.lib" )
+#pragma comment( lib, "libboost_signals-vc80-mt-gd-1_39.lib" )
+#pragma comment( lib, "libboost_regex-vc80-mt-gd-1_39.lib" )
+#pragma comment( lib, "libboost_program_options-vc80-mt-gd-1_39.lib" )
 #else
-#pragma comment( lib, "libboost_signals-vc80-mt-1_36.lib" )
-#pragma comment( lib, "libboost_regex-vc80-mt-1_36.lib" )
-#pragma comment( lib, "libboost_program_options-vc80-mt-1_36.lib" )
+#pragma comment( lib, "libboost_signals-vc80-mt-1_39.lib" )
+#pragma comment( lib, "libboost_regex-vc80-mt-1_39.lib" )
+#pragma comment( lib, "libboost_program_options-vc80-mt-1_39.lib" )
 #endif
 #endif
 #endif

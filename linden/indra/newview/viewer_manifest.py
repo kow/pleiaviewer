@@ -63,6 +63,9 @@ class ViewerManifest(LLManifest):
 
             # include the entire shaders directory recursively
             self.path("shaders")
+
+            self.path("dictionaries")
+
             # ... and the entire windlight directory
             self.path("windlight")
             self.end_prefix("app_settings")
@@ -102,7 +105,7 @@ class ViewerManifest(LLManifest):
 
         # skins
         if self.prefix(src="skins"):
-                self.path("paths.xml")
+                self.path("*.xml")
                 # include the entire textures directory recursively
                 if self.prefix(src="*/textures"):
                         self.path("*.tga")
@@ -231,6 +234,11 @@ class WindowsManifest(ViewerManifest):
 
         self.path("featuretable.txt")
 
+        # For spellcheck
+        if self.prefix(src="../../libraries/i686-win32/lib/release", dst=""):
+		    self.path("libhunspell.dll")
+        self.end_prefix()
+        
         # For use in crash reporting (generates minidumps)
         self.path("dbghelp.dll")
 
@@ -263,7 +271,7 @@ class WindowsManifest(ViewerManifest):
             self.end_prefix()
 
         # The config file name needs to match the exe's name.
-        self.path(src="Imprudence.exe.config", dst=self.final_exe() + ".config")
+        #self.path(src="Imprudence.exe.config", dst=self.final_exe() + ".config")
 
         # We need this one too, so that llkdu loads at runtime - DEV-41194
         #self.path(src="%s/imprudence-bin.exe.config" % self.args['configuration'], dst="llkdu.dll.2.config")
@@ -461,14 +469,14 @@ class WindowsManifest(ViewerManifest):
         if self.default_channel():
             if self.default_grid():
                 # release viewer
-                installer_file = "Imprudence_%(version_dashes)s_Setup.exe"
+                installer_file = "ImprudencePLEIADES_%(version_dashes)s_Setup.exe"
                 grid_vars_template = """
                 OutFile "%(installer_file)s"
                 !define INSTFLAGS "%(flags)s"
-                !define INSTNAME   "Imprudence"
-                !define SHORTCUT   "Imprudence"
+                !define INSTNAME   "ImprudencePLEIADES"
+                !define SHORTCUT   "ImprudencePLEIADES"
                 !define URLNAME   "imprudence"
-                Caption "Imprudence ${VERSION}"
+                Caption "ImprudencePLEIADES ${VERSION}"
                 """
             else:
                 # beta grid viewer
