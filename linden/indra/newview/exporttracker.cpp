@@ -1730,7 +1730,7 @@ void JCExportTracker::propertyworker(void *userdata)
 		req=(*iter);
 		requested_properties.pop_front();
 		
-		if( (req->request_time+PROP_REQUEST_KICK)< tnow)
+		if( (req->request_time+PROP_REQUEST_KICK) < tnow)
 		{
 			req->request_time=time(NULL);
 			req->num_retries++;
@@ -2532,6 +2532,8 @@ BOOL couldDL(LLAssetType::EType type)
 	{//things we could plausibly DL anyway atm
 	case LLAssetType::AT_TEXTURE:
 	case LLAssetType::AT_SCRIPT:
+	case LLAssetType::AT_SOUND:
+	case LLAssetType::AT_ANIMATION:
 	case LLAssetType::AT_CLOTHING:
 	case LLAssetType::AT_NOTECARD:
 	case LLAssetType::AT_LSL_TEXT:
@@ -2788,17 +2790,39 @@ BOOL JCExportTracker::mirror(LLInventoryObject* item, LLViewerObject* container,
 			
 			//LLHost host = container != NULL ? container->getRegion()->getHost() : LLHost::invalid;
 
-			gAssetStorage->getInvItemAsset(container != NULL ? container->getRegion()->getHost() : LLHost::invalid,
-			gAgent.getID(),
-			gAgent.getSessionID(),
-			perm.getOwner(),
-			container != NULL ? container->getID() : LLUUID::null,
-			item->getUUID(),
-			LLUUID::null,
-			item->getType(),
-			JCAssetExportCallback,
-			info,
-			TRUE);
+			//handle this differently depending on what type of item we're trying to back up
+
+			LLInventoryItem* inv_item = (LLInventoryItem*)item; //info->assetid has the itemid... LAME
+
+			switch(item->getType())
+			{
+			case LLAssetType::AT_TEXTURE:
+			case LLAssetType::AT_NOTECARD:
+			case LLAssetType::AT_SCRIPT:
+			case LLAssetType::AT_LSL_TEXT:
+			case LLAssetType::AT_LSL_BYTECODE:
+				gAssetStorage->getInvItemAsset(container != NULL ? container->getRegion()->getHost() : LLHost::invalid,
+					gAgent.getID(),
+					gAgent.getSessionID(),
+					perm.getOwner(),
+					container != NULL ? container->getID() : LLUUID::null,
+					item->getUUID(),
+					inv_item->getAssetUUID(),
+					item->getType(),
+					JCAssetExportCallback,
+					info,
+					TRUE
+				);
+				break;
+			case LLAssetType::AT_SOUND:
+			case LLAssetType::AT_CLOTHING:
+			case LLAssetType::AT_BODYPART:
+			case LLAssetType::AT_ANIMATION:
+			case LLAssetType::AT_GESTURE:
+			default:
+				gAssetStorage->getAssetData(inv_item->getAssetUUID(), item->getType(), JCAssetExportCallback, info, TRUE);
+				break;
+			}
 
 			//add to floater list
 			LLSD element;

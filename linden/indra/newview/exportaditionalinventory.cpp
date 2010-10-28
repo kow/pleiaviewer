@@ -606,6 +606,8 @@ BOOL canDL(LLAssetType::EType type)
 	{//things we could plausibly DL anyway atm
 	case LLAssetType::AT_TEXTURE:
 	case LLAssetType::AT_SCRIPT:
+	case LLAssetType::AT_SOUND:
+	case LLAssetType::AT_ANIMATION:
 	case LLAssetType::AT_CLOTHING:
 	case LLAssetType::AT_NOTECARD:
 	case LLAssetType::AT_LSL_TEXT:
@@ -803,17 +805,35 @@ BOOL ExportInvTracker::mirror(LLInventoryObject* item, LLViewerObject* container
 			
 			//LLHost host = container != NULL ? container->getRegion()->getHost() : LLHost::invalid;
 
-			gAssetStorage->getInvItemAsset(container != NULL ? container->getRegion()->getHost() : LLHost::invalid,
-			gAgent.getID(),
-			gAgent.getSessionID(),
-			perm.getOwner(),
-			container != NULL ? container->getID() : LLUUID::null,
-			item->getUUID(),
-			LLUUID::null,
-			item->getType(),
-			InvAssetExportCallback,
-			info,
-			TRUE);			
+			switch(item->getType())
+			{
+			case LLAssetType::AT_TEXTURE:
+			case LLAssetType::AT_NOTECARD:
+			case LLAssetType::AT_SCRIPT:
+			case LLAssetType::AT_LSL_TEXT: // normal script download
+			case LLAssetType::AT_LSL_BYTECODE:
+				gAssetStorage->getInvItemAsset(container != NULL ? container->getRegion()->getHost() : LLHost::invalid,
+					gAgent.getID(),
+					gAgent.getSessionID(),
+					perm.getOwner(),
+					container != NULL ? container->getID() : LLUUID::null,
+					item->getUUID(),
+					info->assetid,
+					item->getType(),
+					InvAssetExportCallback,
+					info,
+					TRUE
+				);
+				break;
+			case LLAssetType::AT_SOUND:
+			case LLAssetType::AT_CLOTHING:
+			case LLAssetType::AT_BODYPART:
+			case LLAssetType::AT_ANIMATION:
+			case LLAssetType::AT_GESTURE:
+			default:
+				gAssetStorage->getAssetData(info->assetid, item->getType(), InvAssetExportCallback, info, TRUE);
+				break;
+			}
 
 			return TRUE;
 
