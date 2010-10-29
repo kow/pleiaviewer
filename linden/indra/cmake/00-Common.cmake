@@ -37,7 +37,7 @@ if (WINDOWS)
       CACHE STRING "C++ compiler release options" FORCE)
   else (MSVC80)
       set(CMAKE_CXX_FLAGS_RELEASE
-      "${CMAKE_CXX_FLAGS_RELEASE} ${LL_CXX_FLAGS} /O2 /Zi /MD"
+      "${CMAKE_CXX_FLAGS_RELEASE} ${LL_CXX_FLAGS} /O2 /Zi /MD /arch:SSE2 /MP"
       CACHE STRING "C++ compiler release options" FORCE)
   endif (MSVC80)
 
