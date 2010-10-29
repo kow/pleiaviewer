@@ -787,6 +787,7 @@ JCExportTracker::~JCExportTracker()
 
 void JCExportTracker::close()
 {
+	JCExportTracker::cleanup();
 	if(sInstance)
 	{
 		delete sInstance;
@@ -1545,7 +1546,7 @@ void JCExportTracker::exportworker(void *userdata)
 				cmdline_printchat("exportworker: object has invalid pcode");
 				//return NULL;
 			}
-			//lgg test obj->dirtyInventory();
+			obj->dirtyInventory();
 			obj->requestInventory();
 			//kick_count++;
 		}
@@ -1608,16 +1609,17 @@ void JCExportTracker::exportworker(void *userdata)
 			if (!itemp)
 			{
 				llwarns << "ERROR: Could not find " << name << " in list." << llendl;
-				return;
+				//return;
 			}
 
-			if (!itemp->getColumn(0)->getValue().asBoolean())
+			else if (!itemp->getColumn(0)->getValue().asBoolean())
 			{
 				llinfos << "Object " << name << " is not selected for export, skipping." << llendl;
 				break;
 			}
 
-			itemp->getColumn(4)->setValue("OK");
+			if (itemp)
+				itemp->getColumn(4)->setValue("OK");
 
 			ExportTrackerFloater::mObjectSelectionWaitList.push_back(obj);
 			// We need to go off and get properties, inventorys and textures now
@@ -2686,25 +2688,28 @@ void JCAssetExportCallback(LLVFS *vfs, const LLUUID& uuid, LLAssetType::EType ty
 
 		JCExportTracker::mAssetsExported++;
 
-		//mark as downloaded in inventory list
-		LLScrollListCtrl* mResultList;
-		mResultList = ExportTrackerFloater::sInstance->getChild<LLScrollListCtrl>("inventory_result_list");
-
-		if (mResultList->getItemIndex(info->assetid) >= 0)
+		if (ExportTrackerFloater::sInstance)
 		{
-			ExportTrackerFloater::getInstance()->refresh();
-			LLScrollListItem* invitemp = mResultList->getItem(info->assetid);
-			invitemp->getColumn(4)->setValue("account_id_green.tga");
+			//mark as downloaded in inventory list
+			LLScrollListCtrl* mResultList;
+			mResultList = ExportTrackerFloater::sInstance->getChild<LLScrollListCtrl>("inventory_result_list");
 
-			//LLSD temp = mResultList->getColumn(mResultList->getItemIndex(info->assetid))->getValue();
-			//mResultList->deleteSingleItem(mResultList->getItemIndex(info->assetid));
-			//mResultList->addElement(element, ADD_BOTTOM);
+			if (mResultList->getItemIndex(info->assetid) >= 0)
+			{
+				ExportTrackerFloater::getInstance()->refresh();
+				LLScrollListItem* invitemp = mResultList->getItem(info->assetid);
+				invitemp->getColumn(4)->setValue("account_id_green.tga");
 
+				//LLSD temp = mResultList->getColumn(mResultList->getItemIndex(info->assetid))->getValue();
+				//mResultList->deleteSingleItem(mResultList->getItemIndex(info->assetid));
+				//mResultList->addElement(element, ADD_BOTTOM);
+
+			}
+			else 
+				cmdline_printchat("received unrequested asset");
+
+			//delete buffer;
 		}
-		else 
-			cmdline_printchat("received unrequested asset");
-
-		//delete buffer;
 	} 
 	else 
 		cmdline_printchat("Failed to save file "+info->path+" ("+info->name+") : "+std::string(LLAssetStorage::getErrorString(result)));

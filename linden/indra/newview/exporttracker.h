@@ -201,10 +201,10 @@ public:
 	static std::map<LLUUID,LLSD *>received_inventory;
 	static std::map<LLUUID,LLSD *>received_properties;
 
+	static std::string destination;
 private:
 	static LLSD total;
 
-	static std::string destination;
 	static std::string asset_dir;
 	//static std::list<S32> copied_objects;
 	//static LLDynamicArray<U32> copied_objects;
