@@ -33,7 +33,7 @@
 #include "llagent.h"
 #include "llfloater.h"
 
-#define FOLLOW_PERMS 1
+#define FOLLOW_PERMS 0
 #define PROP_REQUEST_KICK 10
 #define INV_REQUEST_KICK 10
 

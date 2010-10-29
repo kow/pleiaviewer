@@ -111,6 +111,7 @@ void FloaterSimExport::startexport()
 void FloaterSimExport::onClickExport(void* data)
 {
 	gIdleCallbacks.deleteFunction(statsupdate);
+	JCExportTracker::init();
 	
 	JCExportTracker::export_tga = sInstance->getChild<LLCheckBoxCtrl>("export_textures_tga")->get();
 	JCExportTracker::export_j2c = sInstance->getChild<LLCheckBoxCtrl>("export_textures")->get();
@@ -382,4 +383,78 @@ void ExportTrackerFloater::RemoteStart(	LLDynamicArray<LLViewerObject*> objectAr
 	JCExportTracker::selection_size = LLVector3(256,256,256);
 	JCExportTracker::selection_center = LLVector3(128,128,128);
 	JCExportTracker::serialize(mObjectSelection);
+
+	LLViewerRegion *regionp = gAgent.getRegion();
+
+	std::string destination = gDirUtilp->getDirName(JCExportTracker::destination) 
+		+ gDirUtilp->getDirDelimiter() + regionp->getName() + ".raw";
+
+	F32 water_height=regionp->getWaterHeight();
+
+	U16 terrain[256][256][13];
+
+	//LLFilePicker& file_picker = LLFilePicker::instance();
+		
+	//if (!file_picker.getSaveFile(LLFilePicker::FFSAVE_RAW))
+		//return; // User canceled save.
+		
+	//std::string destination = file_picker.getFirstFile();
+	
+	llofstream out(destination,llofstream::binary);
+
+	for (int x=255;x>=0;x--)
+	{
+		for (int y=0;y<256;y++)
+		{			
+			F32 height=regionp->getLandHeightRegion(LLVector3((float)x,(float)y,0.0));
+			
+			if(height>256)
+			{
+				terrain[x][y][0]=(height/2.0);
+				terrain[x][y][1]=256;
+			}
+			if(height>128 && height <=256)
+			{
+				terrain[x][y][0]=height;
+				terrain[x][y][1]=128;
+			}
+
+			if(height>64 && height <=128)
+			{
+				terrain[x][y][0]=(height*2.0);
+				terrain[x][y][1]=64;
+			}
+			if(height<=64)
+			{
+				terrain[x][y][0]=(height*4.0);
+				terrain[x][y][1]=32;
+			}
+
+			terrain[x][y][2]=water_height;
+			terrain[x][y][3]=0x00;
+			terrain[x][y][4]=0x00;
+			terrain[x][y][5]=0x00;
+			terrain[x][y][6]=0x00;
+			terrain[x][y][7]=0xff;
+			terrain[x][y][8]=0xff;
+			terrain[x][y][9]=0xff;
+			terrain[x][y][10]=0xff;
+			terrain[x][y][11]=terrain[x][y][0];
+			terrain[x][y][12]=terrain[x][y][1];
+		}
+	}
+
+	for (int x=255;x>=0;x--)
+	{
+		for (int y=0;y<256;y++)
+		{			
+			for(int z=0;z<13;z++)
+			{
+				char ch=terrain[y][x][z];
+				out.write(&ch,1);
+			}
+		}
+	}
+
+	out.close();
 }
