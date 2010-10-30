@@ -661,7 +661,9 @@ void ExportInvTracker::inventoryChanged(LLViewerObject* obj,
 					perm = new_item->getPermissions();
 
 					if(canDL(asset->getType())
-						&& perm.allowModifyBy(gAgent.getID()))
+						&& perm.allowCopyBy(gAgent.getID())
+						&& perm.allowModifyBy(gAgent.getID())
+						&& perm.allowTransferTo(LLUUID::null))// && is_asset_id_knowable(asset->getType()))
 					{
 						LLSD inv_item;
 						inv_item["name"] = asset->getName();
