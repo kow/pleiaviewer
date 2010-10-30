@@ -104,6 +104,11 @@ std::list<LLSD *> JCExportTracker::processed_prims;
 std::map<LLUUID,LLSD *> JCExportTracker::received_inventory;
 std::map<LLUUID,LLSD *> JCExportTracker::received_properties;
 
+std::map<U32, U32> JCExportTracker::copied_objects;
+std::map<U32, std::queue<U32> > JCExportTracker::linkset_children;
+
+std::map<U32, LLVector3d> JCExportTracker::expected_surrogate_pos;
+
 //Export Floater constructor
 ExportTrackerFloater::ExportTrackerFloater() :
 	LLFloater( std::string("Prim Export Floater") )
@@ -2913,6 +2918,9 @@ void JCExportTracker::cleanup()
 		free((*iter2).second);
 	}
 	received_inventory.clear();
+
+	linkset_children.clear();
+	copied_objects.clear();
 }
 
 BOOL zip_folder(const std::string& srcfile, const std::string& dstfile)

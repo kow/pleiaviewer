@@ -49,6 +49,8 @@ struct InventoryRequest_t
 {
 	time_t	request_time;
 	LLViewerObject * object; // I can't be bothered to itterate the objects list on every kick, so hold the pointer here
+	bool has_surrogate; //whether or not this object has a surrogate object for us to pull inventory out of
+	LLViewerObject * surrogate_object;
 	U32		num_retries;
 };
 
@@ -201,13 +203,16 @@ public:
 	static std::map<LLUUID,LLSD *>received_inventory;
 	static std::map<LLUUID,LLSD *>received_properties;
 
+	std::map<U32, U32> copied_objects;
+	std::map<U32, std::queue<U32> > linkset_children;
+
+	std::map<U32, LLVector3d> JCExportTracker::expected_surrogate_pos;
+
 	static std::string destination;
 private:
 	static LLSD total;
 
 	static std::string asset_dir;
-	//static std::list<S32> copied_objects;
-	//static LLDynamicArray<U32> copied_objects;
 };
 
 // zip a folder. this doesn't work yet.
