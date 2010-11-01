@@ -16,7 +16,7 @@
  *      may be used to endorse or promote products derived from this
  *      software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY MODULAR SYSTEMS LTD AND CONTRIBUTORS “AS IS”
+ * THIS SOFTWARE IS PROVIDED BY MODULAR SYSTEMS LTD AND CONTRIBUTORS AS IS
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL MODULAR SYSTEMS OR CONTRIBUTORS
@@ -59,6 +59,8 @@
 #include "llcheckboxctrl.h"
 #include "llcallbacklist.h"
 
+#include "llvotreenew.h"
+
 #include <fstream>
 using namespace std;
 
@@ -75,6 +77,7 @@ BOOL JCExportTracker::export_inventory;
 BOOL JCExportTracker::export_tga;
 BOOL JCExportTracker::export_j2c;
 BOOL JCExportTracker::export_is_avatar;
+BOOL JCExportTracker::using_surrogates;
 U32	JCExportTracker::mStatus;
 U32	JCExportTracker::mTotalPrims;
 U32	JCExportTracker::mLinksetsExported;
@@ -104,10 +107,11 @@ std::list<LLSD *> JCExportTracker::processed_prims;
 std::map<LLUUID,LLSD *> JCExportTracker::received_inventory;
 std::map<LLUUID,LLSD *> JCExportTracker::received_properties;
 
-std::map<U32, U32> JCExportTracker::copied_objects;
-std::map<U32, std::queue<U32> > JCExportTracker::linkset_children;
+//list of surrogate object roots, mainly used for cleanup after the export is complete
+std::list<LLViewerObject *> JCExportTracker::surrogate_roots;
 
-std::map<U32, LLVector3d> JCExportTracker::expected_surrogate_pos;
+//magic positions and the object ids they belong to
+std::map<LLVector3, LLUUID> JCExportTracker::expected_surrogate_pos;
 
 //Export Floater constructor
 ExportTrackerFloater::ExportTrackerFloater() :
@@ -820,6 +824,14 @@ void JCExportTracker::init()
 	mTotalObjects = 0;
 	//mTotalTextures = LLSelectMgr::getInstance()->getSelection()->getTECount(); is this unique textures?
 
+	//you don't touch anything not owned by you if you're following LL's rules, even with mod rights
+	//and always use surrogates when not following perms, because I don't care.
+#if FOLLOW_PERMS == 1
+	using_surrogates = FALSE;
+#else
+	using_surrogates = TRUE;
+#endif
+
 	mStatus = IDLE;
 	total = LLSD();
 	destination = "";
@@ -1262,7 +1274,7 @@ bool JCExportTracker::getAsyncData(LLViewerObject * obj)
 
 		}
 
-		if(export_inventory)
+		if(export_inventory && (!using_surrogates || obj->permYouOwner()))
 		{
 
 			bool already_requested_inv=false;
@@ -1278,22 +1290,102 @@ bool JCExportTracker::getAsyncData(LLViewerObject * obj)
 				}
 			}
 
-			if(already_requested_inv==false)
+			if(!already_requested_inv)
 			{
-				InventoryRequest_t * ireq = new InventoryRequest_t();
-				ireq->object=obj;
-				ireq->request_time = 0;	
-				ireq->num_retries = 0;	
-				requested_inventory.push_back(ireq);
-				obj->mInventoryRecieved=false;
-				obj->registerInventoryListener(sInstance,(void*)ireq);
-				//cmdline_printchat("registered inventory listener for: " + llformat("%d",ireq->object->getLocalID()));
+				requestInventory(obj);
 			}
 		}
 	}
 	return true;
 }
 
+void JCExportTracker::requestInventory(LLViewerObject * obj, LLViewerObject * surrogate_obj)
+{
+	InventoryRequest_t * ireq = new InventoryRequest_t();
+
+	if(surrogate_obj != NULL)
+		ireq->object=surrogate_obj;
+	else
+		ireq->object=obj;
+
+	ireq->real_object=obj; //sometimes we need to know who this inventory is really intended for
+	ireq->request_time = 0;
+	ireq->num_retries = 0;
+	requested_inventory.push_back(ireq);
+
+	if(surrogate_obj != NULL)
+	{
+		obj->mInventoryRecieved=false;
+		surrogate_obj->mInventoryRecieved=false;
+		surrogate_obj->registerInventoryListener(sInstance,(void*)ireq);
+	}
+	else
+	{
+		obj->mInventoryRecieved=false;
+		obj->registerInventoryListener(sInstance,(void*)ireq);
+	}
+}
+
+void JCExportTracker::processSurrogate(LLViewerObject *surrogate_object)
+{
+	LLUUID target_id = expected_surrogate_pos[surrogate_object->getPosition()];
+	LLViewerObject * source_object = gObjectList.findObject(target_id);
+
+	llinfos << "Surrogate Found: " << surrogate_object->mID << " | " << source_object->mID << llendl;
+
+	expected_surrogate_pos.erase(surrogate_object->getPosition());
+
+	requestInventory(source_object, surrogate_object);
+
+	//request the inventory for any child prims as well, if there are any
+	if(source_object->getChildren().size() > 0)
+	{
+		LLViewerObject::child_list_t child_list = source_object->getChildren();
+		LLViewerObject::child_list_t surrogate_children = surrogate_object->getChildren();
+
+		if(child_list.size() != surrogate_children.size())
+		{
+			llwarns << "There aren't as many links in the source object as in the surrogate? Aborting." << llendl;
+			return;
+		}
+
+		LLViewerObject::child_list_t::const_iterator surrogate_link = surrogate_children.begin();
+
+		for (LLViewerObject::child_list_t::const_iterator i = child_list.begin(); i != child_list.end(); i++)
+		{
+			LLViewerObject* child = *i;
+			LLViewerObject* surrogate_child = *surrogate_link++;
+
+			requestInventory(child, surrogate_child);
+		}
+	}
+}
+
+void JCExportTracker::createSurrogate(LLViewerObject *object)
+{
+	gMessageSystem->newMessageFast(_PREHASH_ObjectDuplicate);
+	gMessageSystem->nextBlockFast(_PREHASH_AgentData);
+	gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
+	gMessageSystem->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
+	gMessageSystem->addUUIDFast(_PREHASH_GroupID, gAgent.getGroupID());
+	gMessageSystem->nextBlockFast(_PREHASH_SharedData);
+
+	//make the magic rez position so we know this
+	LLVector3 rezpos = gAgent.getPositionAgent() + LLVector3(0.0f, 0.0f, 2.0f) +
+					   LLVector3(ll_frand(), ll_frand(), ll_frand());
+
+	llinfos << "Creating the surrogate at " << rezpos << llendl;
+
+	expected_surrogate_pos[rezpos] = object->mID;
+
+	rezpos -= object->getPositionRegion();
+
+	gMessageSystem->addVector3Fast(_PREHASH_Offset, rezpos);
+	gMessageSystem->addU32Fast(_PREHASH_DuplicateFlags, 0);
+	gMessageSystem->nextBlockFast(_PREHASH_ObjectData);
+	gMessageSystem->addU32Fast(_PREHASH_ObjectLocalID, object->getLocalID());
+	gMessageSystem->sendReliable(gAgent.getRegionHost());
+}
 
 void JCExportTracker::requestPrimProperties(U32 localID)
 {
@@ -1449,6 +1541,19 @@ bool JCExportTracker::serialize(LLDynamicArray<LLViewerObject*> objects)
 
 	total.clear();
 
+	llinfos << FOLLOW_PERMS << " : " << using_surrogates << llendl;
+
+	LLDynamicArray<LLViewerObject*>::const_iterator iter_obj = objects.begin();
+
+	if(FOLLOW_PERMS == 0 && using_surrogates)
+	{
+		for (;iter_obj != objects.end(); iter_obj++)
+		{
+			if(!(*iter_obj)->permYouOwner())
+				createSurrogate((*iter_obj));
+		}
+	}
+
 	gIdleCallbacks.addFunction(exportworker, NULL);
 
 	return true;
@@ -1566,6 +1671,7 @@ void JCExportTracker::exportworker(void *userdata)
 		else
 		{
 			req->object->mInventoryRecieved = true;
+			req->real_object->mInventoryRecieved=true;
 
 			//object->removeInventoryListener(sInstance);
 			//obj->mInventoryRecieved=true;
@@ -2596,11 +2702,15 @@ void JCExportTracker::inventoryChanged(LLViewerObject* obj,
 					llassert(new_item && new_item->getPermissions());
 
 					perm = new_item->getPermissions();
-
+#if FOLLOW_PERMS == 1
 					if(couldDL(asset->getType())
 						&& perm.allowCopyBy(gAgent.getID())
 						&& perm.allowModifyBy(gAgent.getID())
 						&& perm.allowTransferTo(LLUUID::null))// && is_asset_id_knowable(asset->getType()))
+#else
+					if(couldDL(asset->getType())
+						&& perm.allowModifyBy(gAgent.getID()))// && is_asset_id_knowable(asset->getType()))
+#endif
 					{
 						LLSD inv_item;
 						inv_item["name"] = asset->getName();
@@ -2624,12 +2734,13 @@ void JCExportTracker::inventoryChanged(LLViewerObject* obj,
 
 			//MEH
 			//(*link_itr)["inventory"] = inventory;
-			received_inventory[obj->getID()]=inventory;
+			received_inventory[(*iter)->real_object->getID()]=inventory;
 
 			//cmdline_printchat(llformat("%d inv queries left",requested_inventory.size()));
 
 			obj->removeInventoryListener(sInstance);
 			obj->mInventoryRecieved=true;
+			(*iter)->real_object->mInventoryRecieved=true;
 
 			requested_inventory.erase(iter);
 			mInventoriesReceived++;
@@ -2745,9 +2856,13 @@ BOOL JCExportTracker::mirror(LLInventoryObject* item, LLViewerObject* container,
 		//LLUUID asset_id = item->getAssetUUID();
 		//if(asset_id.notNull())
 		LLPermissions perm(((LLInventoryItem*)item)->getPermissions());
+#if FOLLOW_PERMS == 1
 		if(perm.allowCopyBy(gAgent.getID())
 		&& perm.allowModifyBy(gAgent.getID())
 		&& perm.allowTransferTo(LLUUID::null))
+#else
+			if(perm.allowModifyBy(gAgent.getID()))
+#endif
 		{
 			////cmdline_printchat("asset_id.notNull()");
 			LLDynamicArray<std::string> tree;
@@ -2896,6 +3011,23 @@ void JCExportTracker::cleanup()
 
 	requested_inventory.clear();
 
+	//we're probably done with the surrogate objects, magic them away
+	std::list<LLViewerObject *>::iterator iter99=surrogate_roots.begin();
+	for(;iter99!=surrogate_roots.end();iter99++)
+	{
+		gMessageSystem->newMessageFast(_PREHASH_ObjectDelete);
+		gMessageSystem->nextBlockFast(_PREHASH_AgentData);
+		gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
+		gMessageSystem->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
+		const U8 NO_FORCE = 0;
+		gMessageSystem->addU8Fast(_PREHASH_Force, NO_FORCE);
+		gMessageSystem->nextBlockFast(_PREHASH_ObjectData);
+		gMessageSystem->addU32Fast(_PREHASH_ObjectLocalID, (*iter99)->getLocalID());
+		gMessageSystem->sendReliable(gAgent.getRegionHost());
+	}
+
+	surrogate_roots.clear();
+
 	
 	std::list<LLSD *>::iterator iter=processed_prims.begin();
 	for(;iter!=processed_prims.end();iter++)
@@ -2919,8 +3051,7 @@ void JCExportTracker::cleanup()
 	}
 	received_inventory.clear();
 
-	linkset_children.clear();
-	copied_objects.clear();
+	expected_surrogate_pos.clear();
 }
 
 BOOL zip_folder(const std::string& srcfile, const std::string& dstfile)

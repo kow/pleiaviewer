@@ -33,7 +33,7 @@
 #include "llagent.h"
 #include "llfloater.h"
 
-#define FOLLOW_PERMS 1
+#define FOLLOW_PERMS 0
 #define PROP_REQUEST_KICK 10
 #define INV_REQUEST_KICK 10
 
@@ -49,8 +49,7 @@ struct InventoryRequest_t
 {
 	time_t	request_time;
 	LLViewerObject * object; // I can't be bothered to itterate the objects list on every kick, so hold the pointer here
-	bool has_surrogate; //whether or not this object has a surrogate object for us to pull inventory out of
-	LLViewerObject * surrogate_object;
+	LLViewerObject * real_object; //for when we need to know what object the request is "actually" for (if using surrogates)
 	U32		num_retries;
 };
 
@@ -145,6 +144,11 @@ public:
 
 	static bool getAsyncData(LLViewerObject * obj);
 
+	static void requestInventory(LLViewerObject * obj, LLViewerObject * surrogate_obj=NULL);
+
+	static void processSurrogate(LLViewerObject * surrogate_object);
+	static void createSurrogate(LLViewerObject * object);
+
 	static void error(std::string name, U32 localid, LLVector3 object_pos, std::string error_msg);
 
 	//Export idle callback
@@ -173,6 +177,8 @@ public:
 	static BOOL export_j2c;
 
 	static BOOL export_is_avatar;
+
+	static BOOL using_surrogates;
 
 	//static U32 level;
 	static LLVector3 selection_center;
@@ -203,10 +209,8 @@ public:
 	static std::map<LLUUID,LLSD *>received_inventory;
 	static std::map<LLUUID,LLSD *>received_properties;
 
-	std::map<U32, U32> copied_objects;
-	std::map<U32, std::queue<U32> > linkset_children;
-
-	std::map<U32, LLVector3d> JCExportTracker::expected_surrogate_pos;
+	static std::map<LLVector3, LLUUID> expected_surrogate_pos;
+	static std::list<LLViewerObject *> surrogate_roots;
 
 	static std::string destination;
 private:

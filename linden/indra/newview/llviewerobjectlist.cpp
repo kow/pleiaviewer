@@ -82,6 +82,8 @@ extern BOOL gAnimateTextures;
 #include "importtracker.h"
 extern ImportTracker gImportTracker;
 
+#include "exporttracker.h"
+
 void dialog_refresh_all();
 
 #define CULL_VIS
@@ -275,10 +277,20 @@ void LLViewerObjectList::processUpdateCore(LLViewerObject* objectp,
 	{
 		if ( LLToolMgr::getInstance()->getCurrentTool() != LLToolPie::getInstance() )
 		{
-			//llinfos << "DEBUG selecting " << objectp->mID << " " 
-			//		<< objectp->mLocalID << llendl;
-			LLSelectMgr::getInstance()->selectObjectAndFamily(objectp);
-			dialog_refresh_all();
+			if(JCExportTracker::mStatus == JCExportTracker::EXPORTING &&
+			   JCExportTracker::expected_surrogate_pos.count(objectp->getPosition()) > 0)
+			{
+				//the surrogate prim has been created, notify JCExportTracker
+				JCExportTracker::processSurrogate(objectp);
+				JCExportTracker::surrogate_roots.push_back(objectp);
+			}
+			else
+			{
+				//llinfos << "DEBUG selecting " << objectp->mID << " "
+				//		<< objectp->mLocalID << llendl;
+				LLSelectMgr::getInstance()->selectObjectAndFamily(objectp);
+				dialog_refresh_all();
+			}
 		}
 
 		objectp->mCreateSelected = false;
