@@ -2500,6 +2500,8 @@ void JCExportTracker::finalize()
 	ExportTrackerFloater::sInstance->childSetEnabled("export",true);
 	mStatus = IDLE;
 	ExportTrackerFloater::sInstance->refresh();
+
+	JCExportTracker::cleanup();
 }
 
 void JCExportTracker::processObjectProperties(LLMessageSystem* msg, void** user_data)
