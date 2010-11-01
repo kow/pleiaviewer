@@ -68,3 +68,7 @@ linden/installed.xml
 ChangeLog.txt
 .DS_Store
 *.zip
+
+# This piece of crap, because it's annoying
+
+linden/indra/llwindow/glh/glh_linear.h
