@@ -1381,7 +1381,7 @@ void JCExportTracker::createSurrogate(LLViewerObject *object)
 	rezpos -= object->getPositionRegion();
 
 	gMessageSystem->addVector3Fast(_PREHASH_Offset, rezpos);
-	gMessageSystem->addU32Fast(_PREHASH_DuplicateFlags, 0);
+	gMessageSystem->addU32Fast(_PREHASH_DuplicateFlags, 2);
 	gMessageSystem->nextBlockFast(_PREHASH_ObjectData);
 	gMessageSystem->addU32Fast(_PREHASH_ObjectLocalID, object->getLocalID());
 	gMessageSystem->sendReliable(gAgent.getRegionHost());
@@ -1549,7 +1549,7 @@ bool JCExportTracker::serialize(LLDynamicArray<LLViewerObject*> objects)
 	{
 		for (;iter_obj != objects.end(); iter_obj++)
 		{
-			if(!(*iter_obj)->permYouOwner())
+			if(!(*iter_obj)->permYouOwner() && (*iter_obj)->permModify())
 				createSurrogate((*iter_obj));
 		}
 	}
