@@ -113,6 +113,9 @@ std::list<LLViewerObject *> JCExportTracker::surrogate_roots;
 //magic positions and the object ids they belong to
 std::map<LLVector3, LLUUID> JCExportTracker::expected_surrogate_pos;
 
+//surrogates that haven't completely arrived yet that we are going to check later
+std::vector<LLViewerObject *> JCExportTracker::queued_surrogates;
+
 //Export Floater constructor
 ExportTrackerFloater::ExportTrackerFloater() :
 	LLFloater( std::string("Prim Export Floater") )
@@ -1327,14 +1330,16 @@ void JCExportTracker::requestInventory(LLViewerObject * obj, LLViewerObject * su
 	}
 }
 
-void JCExportTracker::processSurrogate(LLViewerObject *surrogate_object)
+BOOL JCExportTracker::processSurrogate(LLViewerObject *surrogate_object)
 {
 	LLUUID target_id = expected_surrogate_pos[surrogate_object->getPosition()];
 	LLViewerObject * source_object = gObjectList.findObject(target_id);
 
-	llinfos << "Surrogate Found: " << surrogate_object->mID << " | " << source_object->mID << llendl;
-
-	requestInventory(source_object, surrogate_object);
+	if(!source_object)
+	{
+		llwarns << "Couldn't find the source object!" << llendl;
+		return FALSE;
+	}
 
 	llinfos << "Number of children: " << source_object->numChildren() << llendl;
 	llinfos << "Number of surrogate children: " << surrogate_object->numChildren() << llendl;
@@ -1348,7 +1353,7 @@ void JCExportTracker::processSurrogate(LLViewerObject *surrogate_object)
 		if(child_list.size() != surrogate_children.size())
 		{
 			llwarns << "There aren't as many links in the source object as in the surrogate? Aborting." << llendl;
-			return;
+			return FALSE;
 		}
 
 		LLViewerObject::child_list_t::const_iterator surrogate_link = surrogate_children.begin();
@@ -1364,7 +1369,11 @@ void JCExportTracker::processSurrogate(LLViewerObject *surrogate_object)
 		}
 	}
 
+	requestInventory(source_object, surrogate_object);
+
 	expected_surrogate_pos.erase(surrogate_object->getPosition());
+
+	return TRUE;
 }
 
 void JCExportTracker::createSurrogate(LLViewerObject *object)
@@ -1598,6 +1607,20 @@ void JCExportTracker::exportworker(void *userdata)
 		removeSurrogates();
 		finalize();
 		return;
+	}
+
+	if(using_surrogates && queued_surrogates.size() > 0)
+	{
+		llinfos << queued_surrogates.size() << " surrogates to check" << llendl;
+
+		std::vector<LLViewerObject * >::iterator iter_end = queued_surrogates.end();
+
+		//check all of our surrogates that are queued for requests and make the request if they are ready
+		for (std::vector<LLViewerObject * >::iterator i = queued_surrogates.begin(); i != iter_end; i++)
+		{
+			if(*i != NULL && processSurrogate(*i))
+				queued_surrogates.erase(i);
+		}
 	}
 	
 	int kick_count=0;

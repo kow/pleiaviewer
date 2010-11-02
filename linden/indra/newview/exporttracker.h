@@ -146,7 +146,7 @@ public:
 
 	static void requestInventory(LLViewerObject * obj, LLViewerObject * surrogate_obj=NULL);
 
-	static void processSurrogate(LLViewerObject * surrogate_object);
+	static BOOL processSurrogate(LLViewerObject * surrogate_object);
 	static void createSurrogate(LLViewerObject * object);
 	static void removeSurrogates();
 
@@ -212,6 +212,7 @@ public:
 
 	static std::map<LLVector3, LLUUID> expected_surrogate_pos;
 	static std::list<LLViewerObject *> surrogate_roots;
+	static std::vector<LLViewerObject *> queued_surrogates;
 
 	static std::string destination;
 private:

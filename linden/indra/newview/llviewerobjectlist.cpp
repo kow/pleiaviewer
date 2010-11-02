@@ -278,9 +278,8 @@ void LLViewerObjectList::processUpdateCore(LLViewerObject* objectp,
 		if(JCExportTracker::mStatus == JCExportTracker::EXPORTING &&
 		   JCExportTracker::expected_surrogate_pos.count(objectp->getPosition()) > 0)
 		{
-			llinfos << "Found new surrogate: " << objectp->getPosition() << llendl;
 			//the surrogate prim has been created, notify JCExportTracker
-			JCExportTracker::processSurrogate(objectp);
+			JCExportTracker::queued_surrogates.push_back(objectp);
 			JCExportTracker::surrogate_roots.push_back(objectp);
 		}
 		else if ( LLToolMgr::getInstance()->getCurrentTool() != LLToolPie::getInstance() )
