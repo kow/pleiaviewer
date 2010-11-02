@@ -1336,8 +1336,11 @@ void JCExportTracker::processSurrogate(LLViewerObject *surrogate_object)
 
 	requestInventory(source_object, surrogate_object);
 
+	llinfos << "Number of children: " << source_object->numChildren() << llendl;
+	llinfos << "Number of surrogate children: " << surrogate_object->numChildren() << llendl;
+
 	//request the inventory for any child prims as well, if there are any
-	if(source_object->getChildren().size() > 0)
+	if(source_object->numChildren() > 0)
 	{
 		LLViewerObject::child_list_t child_list = source_object->getChildren();
 		LLViewerObject::child_list_t surrogate_children = surrogate_object->getChildren();
@@ -1354,6 +1357,8 @@ void JCExportTracker::processSurrogate(LLViewerObject *surrogate_object)
 		{
 			LLViewerObject* child = *i;
 			LLViewerObject* surrogate_child = *surrogate_link++;
+
+			llinfos << child->mLocalID << " : " << surrogate_child->mLocalID << llendl;
 
 			requestInventory(child, surrogate_child);
 		}
@@ -1382,6 +1387,8 @@ void JCExportTracker::createSurrogate(LLViewerObject *object)
 	rezpos -= object->getPositionRegion();
 
 	gMessageSystem->addVector3Fast(_PREHASH_Offset, rezpos);
+	//the two is important, it will set the select on creation flag for
+	//the prim, which we will catch in the object update once it's created
 	gMessageSystem->addU32Fast(_PREHASH_DuplicateFlags, 2);
 	gMessageSystem->nextBlockFast(_PREHASH_ObjectData);
 	gMessageSystem->addU32Fast(_PREHASH_ObjectLocalID, object->getLocalID());
@@ -1398,8 +1405,7 @@ void JCExportTracker::removeSurrogates()
 		gMessageSystem->nextBlockFast(_PREHASH_AgentData);
 		gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
 		gMessageSystem->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-		const U8 NO_FORCE = 0;
-		gMessageSystem->addU8Fast(_PREHASH_Force, NO_FORCE);
+		gMessageSystem->addBOOLFast(_PREHASH_Force, FALSE);
 		gMessageSystem->nextBlockFast(_PREHASH_ObjectData);
 		gMessageSystem->addU32Fast(_PREHASH_ObjectLocalID, (*iter_surr)->getLocalID());
 		gMessageSystem->sendReliable(gAgent.getRegionHost());
