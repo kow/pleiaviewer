@@ -148,6 +148,7 @@ public:
 
 	static void processSurrogate(LLViewerObject * surrogate_object);
 	static void createSurrogate(LLViewerObject * object);
+	static void removeSurrogates();
 
 	static void error(std::string name, U32 localid, LLVector3 object_pos, std::string error_msg);
 

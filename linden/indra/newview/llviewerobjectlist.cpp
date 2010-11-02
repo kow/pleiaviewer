@@ -275,25 +275,20 @@ void LLViewerObjectList::processUpdateCore(LLViewerObject* objectp,
 		&& update_type != OUT_TERSE_IMPROVED 
 		&& objectp->mCreateSelected)
 	{
-		if ( LLToolMgr::getInstance()->getCurrentTool() != LLToolPie::getInstance() )
+		if(JCExportTracker::mStatus == JCExportTracker::EXPORTING &&
+		   JCExportTracker::expected_surrogate_pos.count(objectp->getPosition()) > 0)
 		{
-			if(JCExportTracker::mStatus == JCExportTracker::EXPORTING)
-			{
-				llinfos << "Found new surrogate: " << objectp->getPosition() << llendl;
-				if(JCExportTracker::expected_surrogate_pos.count(objectp->getPosition()) > 0)
-				{
-					//the surrogate prim has been created, notify JCExportTracker
-					JCExportTracker::processSurrogate(objectp);
-					JCExportTracker::surrogate_roots.push_back(objectp);
-				}
-			}
-			else
-			{
-				//llinfos << "DEBUG selecting " << objectp->mID << " "
-				//		<< objectp->mLocalID << llendl;
-				LLSelectMgr::getInstance()->selectObjectAndFamily(objectp);
-				dialog_refresh_all();
-			}
+			llinfos << "Found new surrogate: " << objectp->getPosition() << llendl;
+			//the surrogate prim has been created, notify JCExportTracker
+			JCExportTracker::processSurrogate(objectp);
+			JCExportTracker::surrogate_roots.push_back(objectp);
+		}
+		else if ( LLToolMgr::getInstance()->getCurrentTool() != LLToolPie::getInstance() )
+		{
+			//llinfos << "DEBUG selecting " << objectp->mID << " "
+			//		<< objectp->mLocalID << llendl;
+			LLSelectMgr::getInstance()->selectObjectAndFamily(objectp);
+			dialog_refresh_all();
 		}
 
 		objectp->mCreateSelected = false;

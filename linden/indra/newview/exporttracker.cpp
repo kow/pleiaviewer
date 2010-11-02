@@ -837,6 +837,7 @@ void JCExportTracker::init()
 	destination = "";
 	asset_dir = "";
 	mRequestedTextures.clear();
+	processed_prims.clear();
 }
 
 LLVOAvatar* find_avatar_from_object( LLViewerObject* object );
@@ -1333,8 +1334,6 @@ void JCExportTracker::processSurrogate(LLViewerObject *surrogate_object)
 
 	llinfos << "Surrogate Found: " << surrogate_object->mID << " | " << source_object->mID << llendl;
 
-	expected_surrogate_pos.erase(surrogate_object->getPosition());
-
 	requestInventory(source_object, surrogate_object);
 
 	//request the inventory for any child prims as well, if there are any
@@ -1359,6 +1358,8 @@ void JCExportTracker::processSurrogate(LLViewerObject *surrogate_object)
 			requestInventory(child, surrogate_child);
 		}
 	}
+
+	expected_surrogate_pos.erase(surrogate_object->getPosition());
 }
 
 void JCExportTracker::createSurrogate(LLViewerObject *object)
@@ -1385,6 +1386,26 @@ void JCExportTracker::createSurrogate(LLViewerObject *object)
 	gMessageSystem->nextBlockFast(_PREHASH_ObjectData);
 	gMessageSystem->addU32Fast(_PREHASH_ObjectLocalID, object->getLocalID());
 	gMessageSystem->sendReliable(gAgent.getRegionHost());
+}
+
+void JCExportTracker::removeSurrogates()
+{
+	llinfos << "Removing " << surrogate_roots.size() << " surrogate objects." << llendl;
+	std::list<LLViewerObject *>::iterator iter_surr=surrogate_roots.begin();
+	for(;iter_surr!=surrogate_roots.end();iter_surr++)
+	{
+		gMessageSystem->newMessageFast(_PREHASH_ObjectDelete);
+		gMessageSystem->nextBlockFast(_PREHASH_AgentData);
+		gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
+		gMessageSystem->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
+		const U8 NO_FORCE = 0;
+		gMessageSystem->addU8Fast(_PREHASH_Force, NO_FORCE);
+		gMessageSystem->nextBlockFast(_PREHASH_ObjectData);
+		gMessageSystem->addU32Fast(_PREHASH_ObjectLocalID, (*iter_surr)->getLocalID());
+		gMessageSystem->sendReliable(gAgent.getRegionHost());
+	}
+
+	surrogate_roots.clear();
 }
 
 void JCExportTracker::requestPrimProperties(U32 localID)
@@ -1565,9 +1586,10 @@ void JCExportTracker::exportworker(void *userdata)
 	//CHECK IF WE'RE DONE
 	if(ExportTrackerFloater::mObjectSelection.empty() && ExportTrackerFloater::mObjectSelectionWaitList.empty()
 		&& (requested_inventory.empty() ||gSavedSettings.getBOOL("ExporterInventoryLater"))
-		&& requested_properties.empty())
+		&& requested_properties.empty() && expected_surrogate_pos.empty())
 	{
 		gIdleCallbacks.deleteFunction(exportworker);
+		removeSurrogates();
 		finalize();
 		return;
 	}
@@ -2333,7 +2355,7 @@ void JCExportTracker::finalize()
 					
 					/* this loop keeps track of seen textures, replace with
 					emerald version.
-					for(iter = textures.begin(); iter != textures.end() ; iter++) 
+					for(iter = textures.begin(); iter != textures.end() ; iter++)
 					{
 						if( (*iter)==object->getTE(i)->getID())
 							alreadyseen=true;
@@ -2500,8 +2522,6 @@ void JCExportTracker::finalize()
 	ExportTrackerFloater::sInstance->childSetEnabled("export",true);
 	mStatus = IDLE;
 	ExportTrackerFloater::sInstance->refresh();
-
-	JCExportTracker::cleanup();
 }
 
 void JCExportTracker::processObjectProperties(LLMessageSystem* msg, void** user_data)
@@ -3014,22 +3034,7 @@ void JCExportTracker::cleanup()
 	requested_inventory.clear();
 
 	//we're probably done with the surrogate objects, magic them away
-	std::list<LLViewerObject *>::iterator iter99=surrogate_roots.begin();
-	for(;iter99!=surrogate_roots.end();iter99++)
-	{
-		gMessageSystem->newMessageFast(_PREHASH_ObjectDelete);
-		gMessageSystem->nextBlockFast(_PREHASH_AgentData);
-		gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-		gMessageSystem->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-		const U8 NO_FORCE = 0;
-		gMessageSystem->addU8Fast(_PREHASH_Force, NO_FORCE);
-		gMessageSystem->nextBlockFast(_PREHASH_ObjectData);
-		gMessageSystem->addU32Fast(_PREHASH_ObjectLocalID, (*iter99)->getLocalID());
-		gMessageSystem->sendReliable(gAgent.getRegionHost());
-	}
-
-	surrogate_roots.clear();
-
+	removeSurrogates();
 	
 	std::list<LLSD *>::iterator iter=processed_prims.begin();
 	for(;iter!=processed_prims.end();iter++)
