@@ -212,7 +212,7 @@ public:
 
 	static std::map<LLVector3, LLUUID> expected_surrogate_pos;
 	static std::list<LLViewerObject *> surrogate_roots;
-	static std::vector<LLViewerObject *> queued_surrogates;
+	static std::deque<LLViewerObject *> queued_surrogates;
 
 	static std::string destination;
 private:

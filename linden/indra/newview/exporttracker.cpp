@@ -114,7 +114,7 @@ std::list<LLViewerObject *> JCExportTracker::surrogate_roots;
 std::map<LLVector3, LLUUID> JCExportTracker::expected_surrogate_pos;
 
 //surrogates that haven't completely arrived yet that we are going to check later
-std::vector<LLViewerObject *> JCExportTracker::queued_surrogates;
+std::deque<LLViewerObject *> JCExportTracker::queued_surrogates;
 
 //Export Floater constructor
 ExportTrackerFloater::ExportTrackerFloater() :
@@ -1286,7 +1286,7 @@ bool JCExportTracker::getAsyncData(LLViewerObject * obj)
 			for(;iter2!=requested_inventory.end();iter2++)
 			{
 				InventoryRequest_t * req=(*iter2);
-				if(req->object->getLocalID()==obj->getLocalID())
+				if(req->real_object->getLocalID()==obj->getLocalID())
 				{
 					//cmdline_printchat("BREAK already have inventory for: " + llformat("%d",obj->getLocalID()));
 					already_requested_inv=true;
@@ -1297,6 +1297,10 @@ bool JCExportTracker::getAsyncData(LLViewerObject * obj)
 			if(!already_requested_inv)
 			{
 				requestInventory(obj);
+			}
+			else
+			{
+				llinfos << "We already have the inventory for this or something" << llendl;
 			}
 		}
 	}
@@ -1577,8 +1581,6 @@ bool JCExportTracker::serialize(LLDynamicArray<LLViewerObject*> objects)
 
 	total.clear();
 
-	llinfos << FOLLOW_PERMS << " : " << using_surrogates << llendl;
-
 	LLDynamicArray<LLViewerObject*>::const_iterator iter_obj = objects.begin();
 
 	if(FOLLOW_PERMS == 0 && using_surrogates)
@@ -1613,13 +1615,13 @@ void JCExportTracker::exportworker(void *userdata)
 	{
 		llinfos << queued_surrogates.size() << " surrogates to check" << llendl;
 
-		std::vector<LLViewerObject * >::iterator iter_end = queued_surrogates.end();
+		std::deque<LLViewerObject *>::iterator iter_end = queued_surrogates.end();
 
 		//check all of our surrogates that are queued for requests and make the request if they are ready
-		for (std::vector<LLViewerObject * >::iterator i = queued_surrogates.begin(); i != iter_end; i++)
+		for (std::deque<LLViewerObject *>::iterator i = queued_surrogates.begin(); !queued_surrogates.empty() && i != iter_end; i++)
 		{
 			if(*i != NULL && processSurrogate(*i))
-				queued_surrogates.erase(i);
+				queued_surrogates.pop_front();
 		}
 	}
 	
@@ -1668,6 +1670,9 @@ void JCExportTracker::exportworker(void *userdata)
 
 	kick_count=0;
 	total=requested_inventory.size();
+
+	llinfos << "Inventory requests left: " << total << llendl;
+
 	// Check for inventory properties that are taking too long
 	std::list<InventoryRequest_t*> still_going;
 	still_going.clear();
@@ -3088,6 +3093,7 @@ void JCExportTracker::cleanup()
 	received_inventory.clear();
 
 	expected_surrogate_pos.clear();
+	queued_surrogates.clear();
 }
 
 BOOL zip_folder(const std::string& srcfile, const std::string& dstfile)
