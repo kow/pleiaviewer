@@ -2553,6 +2553,9 @@ void JCExportTracker::finalize()
 
 	processed_prims.clear();
 	received_inventory.clear();
+
+	JCExportTracker::cleanup();
+
 	ExportTrackerFloater::sInstance->childSetEnabled("export",true);
 	mStatus = IDLE;
 	ExportTrackerFloater::sInstance->refresh();
