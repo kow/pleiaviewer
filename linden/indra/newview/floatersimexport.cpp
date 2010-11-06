@@ -368,6 +368,9 @@ void FloaterSimExport::statsupdate(void *userdata)
 void ExportTrackerFloater::RemoteStart(	LLDynamicArray<LLViewerObject*> objectArray,int primcount)
 {
 	ExportTrackerFloater::getInstance()->show();
+
+	//NOT INITING, EH? YOU'D BETTER!
+	JCExportTracker::init();
 	
 	// For a remote start disable the options, they can't be changed anyway as the export
 	// as alrady started
@@ -375,7 +378,7 @@ void ExportTrackerFloater::RemoteStart(	LLDynamicArray<LLViewerObject*> objectAr
 	ExportTrackerFloater::getInstance()->childSetEnabled("export_j2c",false);
 	ExportTrackerFloater::getInstance()->childSetEnabled("export_properties",false);
 	ExportTrackerFloater::getInstance()->childSetEnabled("export_contents",false);
-	
+
 	ExportTrackerFloater::mObjectSelection = objectArray;
 	JCExportTracker::mTotalLinksets = mObjectSelection.count();
 	JCExportTracker::mTotalObjects = primcount;
