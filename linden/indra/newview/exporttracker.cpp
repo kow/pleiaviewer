@@ -893,105 +893,6 @@ LLSD * JCExportTracker::subserialize(LLViewerObject* linkset)
 	// Build a list of everything that we'll actually be exporting
 	LLDynamicArray<LLViewerObject*> export_objects;
 
-	
-	/*
-	LLPCode pcode = object->getPCode();
-	if (pcode != LL_PCODE_VOLUME &&
-		pcode != LL_PCODE_LEGACY_GRASS &&
-		pcode != LL_PCODE_LEGACY_TREE)
-	{
-		cmdline_printchat("subserialize: object has invalid pcode");
-		return NULL;
-	}
-	*/
-
-//#define _KOW
-
-#ifdef _KOW
-	//begin: copy object workaround.
-	if (!object->permYouOwner()) //&& check if user opted to copy non owned objects
-	{ //we don't own this object
-		cmdline_printchat("someone else owns object " + llformat("%d",object->getLocalID()));
-
-		//try and take a copy
-		U8 d = (U8)DRD_ACQUIRE_TO_AGENT_INVENTORY;
-		const LLUUID& category_id = gInventory.findCategoryUUIDForType(LLAssetType::AT_OBJECT);
-		LLUUID tid;
-		tid.generate();
-		LLMessageSystem* msg = gMessageSystem;
-
-		msg->newMessageFast(_PREHASH_DeRezObject);
-		msg->nextBlockFast(_PREHASH_AgentData);
-		msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-		msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-		msg->nextBlockFast(_PREHASH_AgentBlock);
-		msg->addUUIDFast(_PREHASH_GroupID, gAgent.getGroupID());
-		msg->addU8Fast(_PREHASH_Destination, d);	
-		msg->addUUIDFast(_PREHASH_DestinationID, category_id);
-		msg->addUUIDFast(_PREHASH_TransactionID, tid);
-		msg->addU8Fast(_PREHASH_PacketCount, 1);
-		msg->addU8Fast(_PREHASH_PacketNumber, 1);
-		msg->nextBlockFast(_PREHASH_ObjectData);
-		msg->addU32Fast(_PREHASH_ObjectLocalID, object->getLocalID());
-		msg->sendReliable(object->getRegion()->getHost());
-
-		//add our new copy to a list
-		//copied_objects.put(object);
-
-		
-		//LLDynamicArray<U32> copied_objects;
-		//U32 tmp = object->getLocalID();
-		//copied_objects.push_back(tmp);
-		
-
-		//TODO: add callback which will attach this object and rerun it through this function
-
-		
-		#define vCatType (LLAssetType::EType)128
-		#define vBridgeOpCat "#Emerald"
-
-		
-				//cmdline_printchat("foldering");
-				//LLUUID vcatid;
-				//vcatid = gInventory.findCategoryByName(vBridgeOpCat);
-				//if(vcatid.isNull())
-				//{
-				//	cmdline_printchat("creating folder");
-				//	vcatid = gInventory.createNewCategory(gAgent.getInventoryRootID(), LLAssetType::AT_NONE, vBridgeOpCat);
-				//}
-				std::string objectName = "blah_";
-				LLUUID objectid = LLUUID("e97cf410-8e61-7005-ec06-629eba4cd1fb");//findInventoryByName(objectName);
-				cmdline_printchat("id="+objectid.asString());
-				LLViewerInventoryItem* object = gInventory.getItem(objectid);
-				if(object)
-				{
-					if(0)//isworn(object->getUUID()))
-					{
-						cmdline_printchat("wearing object");
-					}
-					else
-					{
-						cmdline_printchat("attaching object");
-						LLMessageSystem* msg = gMessageSystem;
-						msg->newMessageFast(_PREHASH_RezSingleAttachmentFromInv);
-						msg->nextBlockFast(_PREHASH_AgentData);
-						msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-						msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-						msg->nextBlockFast(_PREHASH_ObjectData);
-						msg->addUUIDFast(_PREHASH_ItemID, object->getUUID());
-						msg->addUUIDFast(_PREHASH_OwnerID, object->getPermissions().getOwner());
-						msg->addU8Fast(_PREHASH_AttachmentPt, 128);
-						pack_permissions_slam(msg, object->getFlags(), object->getPermissions());
-						msg->addStringFast(_PREHASH_Name, object->getName());
-						msg->addStringFast(_PREHASH_Description, object->getDescription());
-						msg->sendReliable(gAgent.getRegionHost());
-					}
-				}
-	}
-	else
-#endif
-	{ // we own this object.
-
 	// Add the root object to the export list
 	export_objects.put(object);
 
@@ -1196,7 +1097,7 @@ LLSD * JCExportTracker::subserialize(LLViewerObject* linkset)
 		// Changed to use link numbers zero-indexed.
 		(*pllsd)[object_index - 1] = prim_llsd;
 	}
-	}
+
 	return pllsd;
 }
 
@@ -1414,17 +1315,23 @@ void JCExportTracker::removeSurrogates()
 	std::list<LLViewerObject *>::iterator iter_surr=surrogate_roots.begin();
 	for(;iter_surr!=surrogate_roots.end();iter_surr++)
 	{
-		gMessageSystem->newMessageFast(_PREHASH_ObjectDelete);
-		gMessageSystem->nextBlockFast(_PREHASH_AgentData);
-		gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-		gMessageSystem->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-		gMessageSystem->addBOOLFast(_PREHASH_Force, FALSE);
-		gMessageSystem->nextBlockFast(_PREHASH_ObjectData);
-		gMessageSystem->addU32Fast(_PREHASH_ObjectLocalID, (*iter_surr)->getLocalID());
-		gMessageSystem->sendReliable(gAgent.getRegionHost());
+		removeObject((*iter_surr));
 	}
 
 	surrogate_roots.clear();
+}
+
+void JCExportTracker::removeObject(LLViewerObject* obj)
+{
+	gMessageSystem->newMessageFast(_PREHASH_ObjectDelete);
+	gMessageSystem->nextBlockFast(_PREHASH_AgentData);
+	gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
+	gMessageSystem->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
+	gMessageSystem->addBOOLFast(_PREHASH_Force, FALSE);
+	gMessageSystem->nextBlockFast(_PREHASH_ObjectData);
+	gMessageSystem->addU32Fast(_PREHASH_ObjectLocalID, obj->getLocalID());
+
+	gMessageSystem->sendReliable(gAgent.getRegionHost());
 }
 
 void JCExportTracker::requestPrimProperties(U32 localID)
@@ -1574,7 +1481,8 @@ bool JCExportTracker::serialize(LLDynamicArray<LLViewerObject*> objects)
 			U32 response = OSMessageBox("Directory "+asset_dir+" already exists, write on top?", "Overwrite?", OSMB_YESNO);
 			if(response)
 			{
-				return false;
+
+				obj->	return false;
 			}
 		}
 	} */
@@ -2720,6 +2628,47 @@ BOOL couldDL(LLAssetType::EType type)
 	}
 }
 
+BOOL JCExportTracker::exportAllowed(LLPermissions perm)
+{
+#if FOLLOW_PERMS == 1
+	if(perm.allowCopyBy(gAgent.getID())
+		&& perm.allowModifyBy(gAgent.getID())
+		&& perm.allowTransferTo(LLUUID::null))// && is_asset_id_knowable(asset->getType()))
+#else
+	if(perm.allowModifyBy(gAgent.getID()))// && is_asset_id_knowable(asset->getType()))
+#endif
+		return TRUE;
+
+	return FALSE;
+}
+
+BOOL JCExportTracker::isSurrogateDeleteable(LLViewerObject* obj)
+{
+	BOOL deleteable = TRUE;
+
+	if(obj->mInventoryRecieved)
+	{
+		LLViewerObject::child_list_t child_list;
+
+		llassert(obj->getChildren());
+
+		child_list=obj->getChildren();
+
+		for (LLViewerObject::child_list_t::const_iterator i = child_list.begin(); i != child_list.end(); i++)
+		{
+			if(!(*i)->mInventoryRecieved)
+			{
+				deleteable = FALSE;
+				break;
+			}
+		}
+	}
+	else
+		deleteable = FALSE;
+
+	return deleteable;
+}
+
 void JCExportTracker::inventoryChanged(LLViewerObject* obj,
 								 InventoryObjectList* inv,
 								 S32 serial_num,
@@ -2744,56 +2693,7 @@ void JCExportTracker::inventoryChanged(LLViewerObject* obj,
 	{
 		if((*iter)->object->getID()==obj->getID())
 		{
-			//cmdline_printchat("downloaded inventory for "+obj->getID().asString());
-			LLSD * inventory = new LLSD();
-			InventoryObjectList::const_iterator it = inv->begin();
-			InventoryObjectList::const_iterator end = inv->end();
-			U32 num = 0;
-			for( ;	it != end;	++it)
-			{
-				LLInventoryObject* asset = (*it);
-				if(asset)
-				{
-					LLInventoryItem* item = (LLInventoryItem*)((LLInventoryObject*)(*it));
-					LLViewerInventoryItem* new_item = (LLViewerInventoryItem*)item;
-
-					LLPermissions perm;
-					llassert(new_item && new_item->getPermissions());
-
-					perm = new_item->getPermissions();
-#if FOLLOW_PERMS == 1
-					if(couldDL(asset->getType())
-						&& perm.allowCopyBy(gAgent.getID())
-						&& perm.allowModifyBy(gAgent.getID())
-						&& perm.allowTransferTo(LLUUID::null))// && is_asset_id_knowable(asset->getType()))
-#else
-					if(couldDL(asset->getType())
-						&& perm.allowModifyBy(gAgent.getID()))// && is_asset_id_knowable(asset->getType()))
-#endif
-					{
-						LLSD inv_item;
-						inv_item["name"] = asset->getName();
-						inv_item["type"] = LLAssetType::lookup(asset->getType());
-						//cmdline_printchat("requesting asset "+asset->getName());
-						inv_item["desc"] = ((LLInventoryItem*)((LLInventoryObject*)(*it)))->getDescription();//god help us all
-						inv_item["item_id"] = asset->getUUID().asString();
-						if(!LLFile::isdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory"))
-						{
-							LLFile::mkdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory");
-						}
-
-						JCExportTracker::mirror(asset, obj, asset_dir+gDirUtilp->getDirDelimiter()+"inventory", asset->getUUID().asString());//loltest
-						//unacceptable
-						(*inventory)[num] = inv_item;
-						num += 1;
-						mTotalAssets++;
-					}
-				}
-			}
-
-			//MEH
-			//(*link_itr)["inventory"] = inventory;
-			received_inventory[(*iter)->real_object->getID()]=inventory;
+			received_inventory[(*iter)->real_object->getID()] = checkInventoryContents((*iter), inv);
 
 			//cmdline_printchat(llformat("%d inv queries left",requested_inventory.size()));
 
@@ -2801,48 +2701,87 @@ void JCExportTracker::inventoryChanged(LLViewerObject* obj,
 			obj->mInventoryRecieved=true;
 			(*iter)->real_object->mInventoryRecieved=true;
 
+			LLViewerObject* linkset_root;
+
+			if(obj->isRoot())
+				linkset_root = obj;
+			else
+				linkset_root = obj->getSubParent();
+
+			//are we working with a surrogate? check if it can be removed
+			if((*iter)->real_object != obj && isSurrogateDeleteable(linkset_root))
+			{
+				std::list<LLViewerObject *>::iterator surr_iter=surrogate_roots.begin();
+				for(;surr_iter!=surrogate_roots.end();surr_iter++)
+				{
+					if((*surr_iter)->getID()==obj->getID())
+					{
+						surrogate_roots.erase(surr_iter);
+						break;
+					}
+				}
+				removeObject(linkset_root);
+			}
+
 			requested_inventory.erase(iter);
 			mInventoriesReceived++;
 			break;
 		}
 	}
-		// we should not get here and hopefully checking requested_inventory contained this
-		// object was unnecessary.
+}
 
-/*
+LLSD* JCExportTracker::checkInventoryContents(InventoryRequest_t* original_request, InventoryObjectList* inv)
+{
+	LLSD * inventory = new LLSD();
 
+	InventoryObjectList::const_iterator it = inv->begin();
+	InventoryObjectList::const_iterator end = inv->end();
+
+	LLViewerObject* obj = original_request->object;
+	LLViewerObject* source_obj = original_request->real_object;
+
+	U32 num = 0;
+	for( ;	it != end;	++it)
 	{
-		for(LLSD::array_iterator array_itr = data.beginArray();
-			array_itr != data.endArray();
-			++array_itr)
+		LLInventoryObject* asset = (*it);
+		if(asset)
 		{
-			if((*array_itr).has("Object"))
+			LLInventoryItem* item = (LLInventoryItem*)((LLInventoryObject*)(*it));
+			LLViewerInventoryItem* new_item = (LLViewerInventoryItem*)item;
+
+			LLPermissions perm;
+			llassert(new_item && new_item->getPermissions());
+
+			perm = new_item->getPermissions();
+
+			if(couldDL(asset->getType()) && exportAllowed(perm))
 			{
-				////cmdline_printchat("has object entry?");
-				LLSD linkset_llsd = (*array_itr)["Object"];
-				for(LLSD::array_iterator link_itr = linkset_llsd.beginArray();
-					link_itr != linkset_llsd.endArray();
-					++link_itr)
+				LLSD inv_item;
+				inv_item["name"] = asset->getName();
+				inv_item["type"] = LLAssetType::lookup(asset->getType());
+				//cmdline_printchat("requesting asset "+asset->getName());
+				inv_item["desc"] = ((LLInventoryItem*)((LLInventoryObject*)(*it)))->getDescription();//god help us all
+				inv_item["item_id"] = asset->getUUID().asString();
+				if(!LLFile::isdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory"))
 				{
-					if((*link_itr) && (*link_itr).has("id"))
-					{
-						////cmdline_printchat("lol, has ID");
-						if((*link_itr)["id"].asString() == obj->getID().asString())
-						{
-							if(!((*link_itr).has("inventory")))
-							{
-							}
-						}
-					}
+					LLFile::mkdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory");
 				}
-				(*array_itr)["Object"] = linkset_llsd;
+
+				JCExportTracker::mirror(asset, obj, asset_dir+gDirUtilp->getDirDelimiter()+"inventory", asset->getUUID().asString());//loltest
+				(*inventory)[num++] = inv_item;
+				mTotalAssets++;
+			}
+			else if(asset->getType() != LLAssetType::AT_ROOT_CATEGORY) //we don't care about root folders at all!
+			{
+				if(!couldDL(asset->getType()))
+					error(asset->getName(), source_obj->getLocalID(), source_obj->getPositionRegion(), llformat("%s%s", "Unsupported asset type: ", LLAssetType::lookup(asset->getType())));
+				else
+					error(asset->getName(), source_obj->getLocalID(), source_obj->getPositionRegion(), "Insufficient permissions");
 			}
 		}
-
-
 	}
-	*/
 
+	return inventory;
 }
 
 void JCAssetExportCallback(LLVFS *vfs, const LLUUID& uuid, LLAssetType::EType type, void *userdata, S32 result, LLExtStat extstat)
@@ -2915,13 +2854,7 @@ BOOL JCExportTracker::mirror(LLInventoryObject* item, LLViewerObject* container,
 		//LLUUID asset_id = item->getAssetUUID();
 		//if(asset_id.notNull())
 		LLPermissions perm(((LLInventoryItem*)item)->getPermissions());
-#if FOLLOW_PERMS == 1
-		if(perm.allowCopyBy(gAgent.getID())
-		&& perm.allowModifyBy(gAgent.getID())
-		&& perm.allowTransferTo(LLUUID::null))
-#else
-			if(perm.allowModifyBy(gAgent.getID()))
-#endif
+		if(exportAllowed(perm))
 		{
 			////cmdline_printchat("asset_id.notNull()");
 			LLDynamicArray<std::string> tree;

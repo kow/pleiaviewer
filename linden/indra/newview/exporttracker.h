@@ -137,6 +137,8 @@ public:
 							BOOL final,
 							void* userdata );
 
+	static LLSD* checkInventoryContents(InventoryRequest_t* original_request, InventoryObjectList* inv);
+
 
 	static JCExportTracker* getInstance(){ init(); return sInstance; }
 
@@ -149,6 +151,11 @@ public:
 	static BOOL processSurrogate(LLViewerObject * surrogate_object);
 	static void createSurrogate(LLViewerObject * object);
 	static void removeSurrogates();
+	static void removeObject(LLViewerObject* obj);
+
+	static BOOL isSurrogateDeleteable(LLViewerObject* obj);
+
+	static BOOL exportAllowed(LLPermissions perm);
 
 	static void error(std::string name, U32 localid, LLVector3 object_pos, std::string error_msg);
 

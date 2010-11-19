@@ -14,7 +14,7 @@
  *      may be used to endorse or promote products derived from this
  *      software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED “AS IS”
+ * THIS SOFTWARE IS PROVIDED "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL MODULAR SYSTEMS OR CONTRIBUTORS
@@ -380,25 +380,26 @@ void ExportInvTracker::parse_hpa_object(LLXMLNodePtr prim)
 				delete(inventory);
 				received_inventory.erase(objectUUID);
 
-			}else
+			}
+			else
 			{
-
 				//llinfos << "no inventory found for "<<objectUUID.asString().c_str()<<" grabbing it..."<<llendl;
 				ExportInvTrackerFloater::objectsNeeded.put(object);
 				ExportInvTrackerFloater::inventories_needed++;
 			}
-		}else
+		}
+		else
 		{
 			checkInventory(object,invToCheck);
 		}
-	}else
+	}
+	else
 	{
 		//llinfos << "unable  to find object "<<objectUUID.asString().c_str()<<llendl;
 		//cmdline_printchat("uh oh, object "+objectUUID.asString());
 	}
 	//check if object exists and if inv needed
 }
-
 
 void ExportInvTracker::checkInventory(LLViewerObject* item,LLSD invs)
 {
@@ -415,6 +416,7 @@ void ExportInvTracker::checkInventory(LLViewerObject* item,LLSD invs)
 		}
 	}
 }
+
 bool ExportInvTracker::serialize()
 {
 	LLSelectMgr::getInstance()->deselectAll();
@@ -566,8 +568,6 @@ void ExportInvTracker::exportworker(void *userdata)
 			break;
 		}
 	}
-
-	
 }
 
 void ExportInvTracker::finalize()
