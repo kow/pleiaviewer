@@ -15,6 +15,8 @@
 #include "llselectmgr.h"
 #include "llviewercontrol.h"	// gSavedSettings
 #include "llcheckboxctrl.h"
+#include "llspinctrl.h"
+#include "llviewergenericmessage.h"
 
 #include "lluictrlfactory.h"
 #include "llviewerregion.h"
@@ -32,6 +34,7 @@
 #include "exporttracker.h"
 
 
+void cmdline_printchat(std::string chat);
 FloaterSimExport* FloaterSimExport::sInstance = 0;
 
 FloaterSimExport::FloaterSimExport()
@@ -52,6 +55,8 @@ FloaterSimExport::FloaterSimExport()
 	move_time=0;
 	mRegionId=gAgent.getRegion()->getHandle();
 	gIdleCallbacks.addFunction(statsupdate, NULL);
+
+	gAgent.setFlying(TRUE);
 }
 
 FloaterSimExport* FloaterSimExport::getInstance()
@@ -95,7 +100,7 @@ void FloaterSimExport::onClose( bool app_quitting )
 	// destroy();
 }
 
-void FloaterSimExport::startexport()
+void FloaterSimExport::show()
 {
 	if(NULL==sInstance) 
 	{
@@ -110,65 +115,7 @@ void FloaterSimExport::startexport()
 // static
 void FloaterSimExport::onClickExport(void* data)
 {
-	gIdleCallbacks.deleteFunction(statsupdate);
-	
-	JCExportTracker::export_tga = sInstance->getChild<LLCheckBoxCtrl>("export_textures_tga")->get();
-	JCExportTracker::export_j2c = sInstance->getChild<LLCheckBoxCtrl>("export_textures")->get();
-	sInstance->mExportTrees=sInstance->getChild<LLCheckBoxCtrl>("export_trees")->get();
-	JCExportTracker::export_inventory = sInstance->getChild<LLCheckBoxCtrl>("export_contents")->get();
-	JCExportTracker::export_properties = sInstance->getChild<LLCheckBoxCtrl>("export_properties")->get();
-
-	LLParcelSelectionHandle mParcel = LLViewerParcelMgr::getInstance()->selectParcelAt(gAgent.getPositionGlobal());
-	
-	int obj_count=gObjectList.getNumObjects();
-
-	LLDynamicArray<LLViewerObject *> root_objects;
-
-	for(int x=0;x<obj_count;x++)
-	{
-		LLViewerObject * obj=gObjectList.getObject(x);
-		if(obj==NULL)
-			continue;
-
-		if(!obj->isRoot())
-			continue;
-
-		LLViewerRegion *reg=obj->getRegion();
-		if(reg!=NULL) //does the object exist in a region
-		{
-			U64 regid=reg->getHandle();
-			if(regid==sInstance->mRegionId) // is it in the export region
-			{			
-				if(obj->getPCode()==LL_PCODE_VOLUME) // is it a volume
-				{						
-					if(!obj->isAttachment()) // is it not an attchment
-					{
-						root_objects.put(obj); //grab it then!
-					}
-				}				
-				else if(sInstance->mExportTrees && obj->getPCode()==LL_PCODE_LEGACY_GRASS)
-				{						
-					root_objects.put(obj); //grab it then!
-				}
-				else if(sInstance->mExportTrees && obj->getPCode()==LL_PCODE_LEGACY_TREE)
-				{						
-					root_objects.put(obj); //grab it then!
-				}
-			}
-		}
-	}
-
-	int total=0;
-	total=sInstance->mRootPrims+sInstance->mChildPrims;
-
-	if(sInstance->mExportTrees)
-		total+=sInstance->mPlants;
-
-	ExportTrackerFloater::RemoteStart(root_objects,total);
-
-	//We are done, keep the floater open so that the viewer continues to ignore object kills during export
-	//FloaterSimExport::getInstance()->setVisible( false );
-	//FloaterSimExport::getInstance()->close();
+	sInstance->startRemoteExport();
 }
 
 void FloaterSimExport::onClickSaveTerrain(void * data)
@@ -260,8 +207,6 @@ void FloaterSimExport::onClickSaveTerrain(void * data)
 	}
 
 	out.close();
-
-
 }
 
 // static
@@ -270,57 +215,120 @@ void FloaterSimExport::onClickClose(void* data)
 	sInstance->close();
 }
 
-void FloaterSimExport::statsupdate(void *userdata)
+void FloaterSimExport::startRemoteExport()
 {
-		//This is suboptimal as we work out the list everytime
-		// and recount, but it makes things easier later on
+	gIdleCallbacks.deleteFunction(statsupdate);
 
-		LLParcelSelectionHandle mParcel = LLViewerParcelMgr::getInstance()->selectParcelAt(gAgent.getPositionGlobal());
-	
-		int count=LLViewerStats::getInstance()->mSimObjects.getCurrent();
+	JCExportTracker::export_tga = sInstance->getChild<LLCheckBoxCtrl>("export_textures_tga")->get();
+	JCExportTracker::export_j2c = sInstance->getChild<LLCheckBoxCtrl>("export_textures")->get();
+	sInstance->mExportTrees=sInstance->getChild<LLCheckBoxCtrl>("export_trees")->get();
+	JCExportTracker::export_inventory = sInstance->getChild<LLCheckBoxCtrl>("export_contents")->get();
+	JCExportTracker::export_properties = sInstance->getChild<LLCheckBoxCtrl>("export_properties")->get();
 
-		int obj_count=gObjectList.getNumObjects();
+	LLParcelSelectionHandle mParcel = LLViewerParcelMgr::getInstance()->selectParcelAt(gAgent.getPositionGlobal());
 
-		sInstance->mRootPrims=0;
-		sInstance->mChildPrims=0;
-		sInstance->mPlants=0;
+	int obj_count=gObjectList.getNumObjects();
 
-		for(int x=0;x<obj_count;x++)
+	LLDynamicArray<LLViewerObject *> root_objects;
+
+	for(int x=0;x<obj_count;x++)
+	{
+		LLViewerObject * obj=gObjectList.getObject(x);
+		if(obj==NULL)
+			continue;
+
+		if(!obj->isRoot())
+			continue;
+
+		LLViewerRegion *reg=obj->getRegion();
+		if(reg!=NULL) //does the object exist in a region
 		{
-			LLViewerObject * obj=gObjectList.getObject(x);
-			if(obj==NULL)
-				continue;
-
-			if(!obj->isRoot())
-				continue;
-
-			LLViewerRegion *reg=obj->getRegion();
-			if(reg!=NULL)
-			{
-				U64 regid=reg->getHandle();
-				if(regid==sInstance->mRegionId)
-				{			
-					if(obj->getPCode()==LL_PCODE_VOLUME)
-					{						
-						if(!obj->isAttachment())
-						{
-							sInstance->mRootPrims++;						
-							LLViewerObject::const_child_list_t clist =obj->getChildren();
-							sInstance->mChildPrims+=clist.size();
-						}
+			U64 regid=reg->getHandle();
+			if(regid==sInstance->mRegionId) // is it in the export region
+			{			
+				if(obj->getPCode()==LL_PCODE_VOLUME) // is it a volume
+				{						
+					if(!obj->isAttachment()) // is it not an attchment
+					{
+						root_objects.put(obj); //grab it then!
 					}
-
-					else if(obj->getPCode()==LL_PCODE_LEGACY_GRASS)
-					{						
-						sInstance->mPlants++;
-					}
-					else if(obj->getPCode()==LL_PCODE_LEGACY_TREE)
-					{						
-						sInstance->mPlants++;
-					}
+				}				
+				else if(sInstance->mExportTrees && obj->getPCode()==LL_PCODE_LEGACY_GRASS)
+				{						
+					root_objects.put(obj); //grab it then!
+				}
+				else if(sInstance->mExportTrees && obj->getPCode()==LL_PCODE_LEGACY_TREE)
+				{						
+					root_objects.put(obj); //grab it then!
 				}
 			}
 		}
+	}
+
+	int total=0;
+	total=sInstance->mRootPrims+sInstance->mChildPrims;
+
+	if(sInstance->mExportTrees)
+		total+=sInstance->mPlants;
+
+	ExportTrackerFloater::RemoteStart(root_objects,total);
+
+	//We are done, keep the floater open so that the viewer continues to ignore object kills during export
+	//FloaterSimExport::getInstance()->setVisible( false );
+	//FloaterSimExport::getInstance()->close();
+}
+
+void FloaterSimExport::statsupdate(void *userdata)
+{
+	//This is suboptimal as we work out the list everytime
+	// and recount, but it makes things easier later on
+
+	LLParcelSelectionHandle mParcel = LLViewerParcelMgr::getInstance()->selectParcelAt(gAgent.getPositionGlobal());
+
+	int count=LLViewerStats::getInstance()->mSimObjects.getCurrent();
+
+	int obj_count=gObjectList.getNumObjects();
+
+	sInstance->mRootPrims=0;
+	sInstance->mChildPrims=0;
+	sInstance->mPlants=0;
+
+	for(int x=0;x<obj_count;x++)
+	{
+		LLViewerObject * obj=gObjectList.getObject(x);
+		if(obj==NULL)
+			continue;
+
+		if(!obj->isRoot())
+			continue;
+
+		LLViewerRegion *reg=obj->getRegion();
+		if(reg!=NULL)
+		{
+			U64 regid=reg->getHandle();
+			if(regid==sInstance->mRegionId)
+			{			
+				if(obj->getPCode()==LL_PCODE_VOLUME)
+				{						
+					if(!obj->isAttachment())
+					{
+						sInstance->mRootPrims++;						
+						LLViewerObject::const_child_list_t clist =obj->getChildren();
+						sInstance->mChildPrims+=clist.size();
+					}
+				}
+
+				else if(obj->getPCode()==LL_PCODE_LEGACY_GRASS)
+				{						
+					sInstance->mPlants++;
+				}
+				else if(obj->getPCode()==LL_PCODE_LEGACY_TREE)
+				{						
+					sInstance->mPlants++;
+				}
+			}
+		}
+	}
 
 	LLUICtrl * ctrl=sInstance->getChild<LLUICtrl>("simprims");	
 	ctrl->setValue(LLSD("Text")=llformat("Simulator prims:  %d", count));
@@ -350,18 +358,59 @@ void FloaterSimExport::statsupdate(void *userdata)
 	}
 		
 	time_t tnow=time(NULL);
-		
+
+	LLSpinCtrl* mCtrlObject = sInstance->getChild<LLSpinCtrl>("object_threshold");
+	LLSpinCtrl* mCtrlTime = sInstance->getChild<LLSpinCtrl>("time_threshold");
+
+	//any new objects since we last ran?
+	if ((sInstance->mRootPrims+sInstance->mChildPrims) != sInstance->mLastCount)
+	{
+		sInstance->mLastCount = sInstance->mRootPrims+sInstance->mChildPrims;
+		sInstance->threshold_time=time(NULL);
+	}
+
+	//has enough time passed since we last received objects to start an export?
+	if(tnow > ((mCtrlTime->get() * 60) + sInstance->threshold_time))
+	{
+		//do we have enough objects to start?
+		if ((count-(sInstance->mRootPrims+sInstance->mChildPrims+sInstance->mPlants)) < mCtrlObject->get())
+		{
+			cmdline_printchat("you should start the export now!");
+			//sInstance->startRemoteExport();
+		}
+	}
+
 	if(sInstance->getChild<LLCheckBoxCtrl>("move")->get() && ((sInstance->move_time+15)< tnow))
 	{
 		sInstance->move_time=time(NULL);
-		//move to random pos
-		LLVector3 pos_local( ll_frand(256.f), ll_frand(256.f), 0.f );
+		LLSpinCtrl* mCtrlPosX = sInstance->getChild<LLSpinCtrl>("altitude");
+
+		//get random pos
+		LLVector3 pos_local( ll_frand(256.f), ll_frand(256.f), ll_frand(mCtrlPosX->get()) );
 		LLVector3d pos_global;
 		pos_global.setVec( pos_local );
 		pos_global += gAgent.getRegion()->getOriginGlobal();
-		pos_global.mdV[VZ] = gAgent.getPositionAgent().mV[VZ]; // Want agent's height, not camera's
 
+		//tp there
 		gAgent.teleportViaLocation( pos_global );
+
+		//position of a random known object
+		LLViewerObject * obj=gObjectList.getObject(ll_rand(obj_count));
+		pos_global = obj->getPositionGlobal();
+
+		//fly to the position of a known object via autopilot
+		std::vector<std::string> strings;
+		std::string val;
+		val = llformat("%g", pos_global.mdV[VX]);
+		strings.push_back(val);
+		val = llformat("%g", pos_global.mdV[VY]);
+		strings.push_back(val);
+		val = llformat("%g", pos_global.mdV[VZ]);
+		strings.push_back(val);
+		send_generic_message("autopilot", strings);
+
+		// Snap camera back to behind avatar
+		gAgent.setFocusOnAvatar(TRUE, ANIMATE);
 	}
 }
 

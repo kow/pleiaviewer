@@ -19,7 +19,7 @@ class FloaterSimExport
 	virtual void onClose( bool app_quitting );
 	
 	//Export entry point
-	void startexport();
+	void show();
 	
 	//Export button
 	static void onClickExport(void* data);
@@ -28,6 +28,9 @@ class FloaterSimExport
 	
 	//Close button
 	static void onClickClose(void* data);
+
+	//start export function
+	static void startRemoteExport();
 
 	static void statsupdate(void *userdata);
 	
@@ -38,6 +41,7 @@ class FloaterSimExport
 	//but i want to know its state in viewermessage
 	static FloaterSimExport* sInstance;
 	time_t	move_time;
+	time_t	threshold_time;
 
 private:
 
@@ -49,6 +53,7 @@ private:
 	int mRootPrims;
 	int mChildPrims;
 	int mPlants;
+	int mLastCount;
 
 	// are we active flag
 	U64 mRegionId;

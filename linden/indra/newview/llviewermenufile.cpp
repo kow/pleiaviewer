@@ -375,7 +375,7 @@ class ExportSim : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		FloaterSimExport::getInstance()->startexport();
+		FloaterSimExport::getInstance()->show();
 		return true;
 	}
 };

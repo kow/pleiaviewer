@@ -832,7 +832,7 @@ void JCExportTracker::init()
 #if FOLLOW_PERMS == 1
 	using_surrogates = FALSE;
 #else
-	using_surrogates = TRUE;
+	using_surrogates = FALSE;
 #endif
 
 	mStatus = IDLE;
@@ -2743,16 +2743,37 @@ LLSD* JCExportTracker::checkInventoryContents(InventoryRequest_t* original_reque
 	U32 num = 0;
 	for( ;	it != end;	++it)
 	{
-		LLInventoryObject* asset = (*it);
+		LLInventoryObject* asset = (LLInventoryObject*)(*it);
+
+		// Skip folders, so we know we have inventory items only
+		if (asset->getType() == LLAssetType::AT_CATEGORY) {
+			cmdline_printchat("skipping AT_CATEGORY");
+			continue;
+		}
+
+		// Skip root folders, so we know we have inventory items only
+		if (asset->getType() == LLAssetType::AT_ROOT_CATEGORY) {
+			cmdline_printchat("skipping AT_ROOT_CATEGORY");
+			continue;
+		}
+
+		// Skip the mysterious blank InventoryObject 
+		if (asset->getType() == LLAssetType::AT_NONE) {
+			cmdline_printchat("skipping AT_NONE");
+			continue;
+		}
+
 		if(asset)
 		{
 			LLInventoryItem* item = (LLInventoryItem*)((LLInventoryObject*)(*it));
 			LLViewerInventoryItem* new_item = (LLViewerInventoryItem*)item;
 
-			LLPermissions perm;
-			llassert(new_item && new_item->getPermissions());
 
-			perm = new_item->getPermissions();
+			BOOL is_complete = new_item->isComplete();
+			if (!is_complete)
+				cmdline_printchat("not complete!");
+
+			const LLPermissions& perm = new_item->getPermissions();
 
 			if(couldDL(asset->getType()) && exportAllowed(perm))
 			{
