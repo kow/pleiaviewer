@@ -16,23 +16,23 @@
 					<key>windows</key>
 					<map>
 						<key>md5sum</key>
-						<string>1eb49bf9bcce30f5fe0dddaed2a3c628</string>
+						<string>d5e88ffde149a0a48ae92ee365205ded</string>
 						<key>url</key>
-						<uri>http://modularsystems.sl/libraries/windows_hunspell.tar.bz2</uri>
+						<uri>http://downloads.phoenixviewer.com/hunspell-1.2.11-windows-20100820.tar.bz2</uri>
 					</map>
 					<key>linux</key>
 					<map>
 						<key>md5sum</key>
-						<string>406d74f98a40a4c63dcf2611acda5b96</string>
+						<string>d70357289f8dd4a17bf9820f3c0f2a20</string>
 						<key>url</key>
-						<uri>http://modularsystems.sl/libraries/hunspell-1.2-linux-20100503.tar.bz2</uri>
+						<uri>http://downloads.phoenixviewer.com/hunspell-1.2.11-linux-20100910.tar.bz2</uri>
 					</map>
 					<key>darwin</key>
 					<map>
 						<key>md5sum</key>
-						<string>9b970abfc9df40ad6d183a4b1f732fb2</string>
+						<string>5865352b657a79d30fe850df309845d7</string>
 						<key>url</key>
-						<uri>http://modularsystems.sl/libraries/hunspell-1.2-darwin.tar.gz</uri>
+						<uri>http://downloads.phoenixviewer.com/hunspell-1.2.11-darwin.tar.gz</uri>
 					</map>
 				</map>
 			</map>
@@ -70,9 +70,9 @@
 					<key>windows</key>
 					<map>
 						<key>md5sum</key>
-						<string>6912b5137a8533096a731f77fb1363b4</string>
-						<key>url</key>
-						<uri>http://modularsystems.sl/libraries/json-windows.tar.bz2</uri>
+						<string>8a6390824f5ad880d164cffafc5f3eeb</string>
+ 						<key>url</key>
+ 						<uri>http://downloads.phoenixviewer.com/json-windows-20100902.tar.bz2</uri>
 					</map>
 				</map>
 			</map>
