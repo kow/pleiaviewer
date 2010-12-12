@@ -90,7 +90,7 @@ public:
 	void buildListDisplays();
 	void addObjectToList(LLUUID id, BOOL checked, std::string name, std::string type, LLUUID owner_id);
 	
-	static void RemoteStart(LLDynamicArray<LLViewerObject*> catfayse, int primcount);
+	static void RemoteStart(LLDynamicArray<LLViewerObject*> catfayse, int primcount, std::string destination);
 
 	//Close button
 	static void onClickClose(void* data);

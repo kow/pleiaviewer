@@ -53,7 +53,7 @@
 
   <check_box bottom_delta="-25" follows="left|top"
       font="SansSerifSmall" height="16" initial_value="true"
-      label="Randomly move avatar" left="10" name="move"
+      label="Move avatar" left="10" name="move"
       width="200" />
   
   <spinner bottom_delta="-20" decimal_digits="0" follows="left|top" height="16"
@@ -75,6 +75,16 @@
        bottom_delta="0" drop_shadow_visible="true" follows="left|top"
        font="SansSerifSmall" h_pad="0" halign="left" height="16" left="200"
        mouse_opaque="true" name="export_label" v_pad="0" width="166">minutes</text>
+  
+  <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+       bottom_delta="-20" drop_shadow_visible="true" follows="left|top"
+       font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
+       mouse_opaque="true" name="timelast" v_pad="0" width="200">0 seconds since last new object received</text>
+
+  <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+       bottom_delta="-20" drop_shadow_visible="true" follows="left|top"
+       font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
+       mouse_opaque="true" name="curpos" v_pad="0" width="166">x,y,z</text>
 
   <button bottom="5" follows="right|bottom" font="SansSerif" halign="center" height="20"
      label="Backup simulator" label_selected="" right="-200"

@@ -1458,15 +1458,17 @@ bool JCExportTracker::serialize(LLDynamicArray<LLViewerObject*> objects)
 
 	LLFilePicker& file_picker = LLFilePicker::instance();
 		
-	if (!file_picker.getSaveFile(LLFilePicker::FFSAVE_HPA))
-		return false; // User canceled save.
-
-	//init();
-
+	if (destination == "")
+	{
+		if (!file_picker.getSaveFile(LLFilePicker::FFSAVE_HPA))
+			return false; // User canceled save.
+		destination = file_picker.getFirstFile();
+	}
 	mStatus = EXPORTING;
 
 	ExportTrackerFloater::sInstance->childSetEnabled("export",false);
-	destination = file_picker.getFirstFile();
+
+
 	asset_dir = gDirUtilp->getDirName(destination);
 
 	//destination = destination.substr(0,destination.find_last_of("."));
@@ -1570,7 +1572,7 @@ void JCExportTracker::exportworker(void *userdata)
 			}
 		}
 		
-		if(kick_count>=20)
+		if(kick_count>=10)
 			break; // that will do for now				
 
 		total--;
@@ -1624,8 +1626,13 @@ void JCExportTracker::exportworker(void *userdata)
 				cmdline_printchat("exportworker: object has invalid pcode");
 				//return NULL;
 			}
-			obj->dirtyInventory();
-			obj->requestInventory();
+
+			obj->removeInventoryListener(sInstance);
+			sInstance->registerVOInventoryListener(obj,NULL);
+			sInstance->requestVOInventory();
+
+			//obj->dirtyInventory();
+			//obj->requestInventory();
 			//kick_count++;
 		}
 		kick_count++;
@@ -1656,7 +1663,7 @@ void JCExportTracker::exportworker(void *userdata)
 		iter=still_going.begin();
 		req=(*iter);
 		still_going.pop_front();
-		requested_inventory.push_front(req);
+		requested_inventory.push_back(req);
 	}
 
 	int count=0;
@@ -2634,12 +2641,10 @@ BOOL JCExportTracker::exportAllowed(LLPermissions perm)
 	if(perm.allowCopyBy(gAgent.getID())
 		&& perm.allowModifyBy(gAgent.getID())
 		&& perm.allowTransferTo(LLUUID::null))// && is_asset_id_knowable(asset->getType()))
-#else
-	if(perm.allowModifyBy(gAgent.getID()))// && is_asset_id_knowable(asset->getType()))
+	return TRUE;
 #endif
-		return TRUE;
 
-	return FALSE;
+	return TRUE;
 }
 
 BOOL JCExportTracker::isSurrogateDeleteable(LLViewerObject* obj)
@@ -2747,7 +2752,7 @@ LLSD* JCExportTracker::checkInventoryContents(InventoryRequest_t* original_reque
 
 		// Skip folders, so we know we have inventory items only
 		if (asset->getType() == LLAssetType::AT_CATEGORY) {
-			cmdline_printchat("skipping AT_CATEGORY");
+			//cmdline_printchat("skipping AT_CATEGORY");
 			continue;
 		}
 
@@ -2759,7 +2764,7 @@ LLSD* JCExportTracker::checkInventoryContents(InventoryRequest_t* original_reque
 
 		// Skip the mysterious blank InventoryObject 
 		if (asset->getType() == LLAssetType::AT_NONE) {
-			cmdline_printchat("skipping AT_NONE");
+			//cmdline_printchat("skipping AT_NONE");
 			continue;
 		}
 

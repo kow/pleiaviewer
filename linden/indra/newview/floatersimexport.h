@@ -33,7 +33,16 @@ class FloaterSimExport
 	static void startRemoteExport();
 
 	static void statsupdate(void *userdata);
-	
+
+	static void			onFileLoadedForSave( 
+		BOOL success,
+		LLViewerImage *src_vi,
+		LLImageRaw* src, 
+		LLImageRaw* aux_src,
+		S32 discard_level, 
+		BOOL final,
+		void* userdata );
+
 	U64  getRegion() { return mRegionId;};
 	bool isRunning() { return mRunning; };
 
@@ -42,6 +51,8 @@ class FloaterSimExport
 	static FloaterSimExport* sInstance;
 	time_t	move_time;
 	time_t	threshold_time;
+	std::string target_file;
+
 
 private:
 
@@ -54,6 +65,8 @@ private:
 	int mChildPrims;
 	int mPlants;
 	int mLastCount;
+
+	LLViewerRegion *mRegionp;
 
 	// are we active flag
 	U64 mRegionId;
