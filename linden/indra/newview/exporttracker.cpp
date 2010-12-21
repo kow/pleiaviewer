@@ -2779,31 +2779,34 @@ LLSD* JCExportTracker::checkInventoryContents(InventoryRequest_t* original_reque
 				cmdline_printchat("not complete!");
 
 			const LLPermissions& perm = new_item->getPermissions();
-
-			if(couldDL(asset->getType()) && exportAllowed(perm))
+			if(exportAllowed(perm))
 			{
-				LLSD inv_item;
-				inv_item["name"] = asset->getName();
-				inv_item["type"] = LLAssetType::lookup(asset->getType());
-				//cmdline_printchat("requesting asset "+asset->getName());
-				inv_item["desc"] = ((LLInventoryItem*)((LLInventoryObject*)(*it)))->getDescription();//god help us all
-				inv_item["item_id"] = asset->getUUID().asString();
-				if(!LLFile::isdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory"))
+				if(couldDL(asset->getType()))
 				{
-					LLFile::mkdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory");
-				}
+					LLSD inv_item;
+					inv_item["name"] = asset->getName();
+					inv_item["type"] = LLAssetType::lookup(asset->getType());
+					//cmdline_printchat("requesting asset "+asset->getName());
+					inv_item["desc"] = ((LLInventoryItem*)((LLInventoryObject*)(*it)))->getDescription();//god help us all
+					inv_item["item_id"] = asset->getUUID().asString();
+					if(!LLFile::isdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory"))
+					{
+						LLFile::mkdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory");
+					}
 
-				JCExportTracker::mirror(asset, obj, asset_dir+gDirUtilp->getDirDelimiter()+"inventory", asset->getUUID().asString());//loltest
-				(*inventory)[num++] = inv_item;
-				mTotalAssets++;
-			}
-			else if(asset->getType() != LLAssetType::AT_ROOT_CATEGORY) //we don't care about root folders at all!
-			{
-				if(!couldDL(asset->getType()))
+					JCExportTracker::mirror(asset, obj, asset_dir+gDirUtilp->getDirDelimiter()+"inventory", asset->getUUID().asString());//loltest
+					(*inventory)[num++] = inv_item;
+					mTotalAssets++;
+				}
+				//recursive objects will be handled here -- Cryo
+				/*else if(asset->getType() == LLAssetType::AT_OBJECT)
+				{
+				}*/
+				else if(asset->getType() != LLAssetType::AT_ROOT_CATEGORY) //we don't care about root folders at all!
 					error(asset->getName(), source_obj->getLocalID(), source_obj->getPositionRegion(), llformat("%s%s", "Unsupported asset type: ", LLAssetType::lookup(asset->getType())));
-				else
-					error(asset->getName(), source_obj->getLocalID(), source_obj->getPositionRegion(), "Insufficient permissions");
 			}
+			else
+				error(asset->getName(), source_obj->getLocalID(), source_obj->getPositionRegion(), "Insufficient permissions");
 		}
 	}
 
