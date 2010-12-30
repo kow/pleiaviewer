@@ -113,17 +113,23 @@ private:
 
 class JCExportTracker : public LLVOInventoryListener
 {
+private:
+	static JCExportTracker* sInstance;
 public:
 	JCExportTracker();
 	~JCExportTracker();
 	static void close();
-
-	static JCExportTracker* sInstance;
-	static void init();
-private:
-	static LLSD* getprim(LLUUID id);
+	static JCExportTracker* getInstance(){
+		if(sInstance == NULL)
+			sInstance = new JCExportTracker();
+		return sInstance;
+	}
+	void init();
+	void cleanup();
 public:
+	enum ExportState { IDLE, EXPORTING };
 	static void processObjectProperties(LLMessageSystem* msg, void** user_data);
+	void actuallyprocessObjectProperties(LLMessageSystem* msg);
 	void inventoryChanged(LLViewerObject* obj,
 								 InventoryObjectList* inv,
 								 S32 serial_num,
@@ -137,95 +143,94 @@ public:
 							BOOL final,
 							void* userdata );
 
-	static LLSD* checkInventoryContents(InventoryRequest_t* original_request, InventoryObjectList* inv);
+	LLSD* checkInventoryContents(InventoryRequest_t* original_request, InventoryObjectList* inv);
 
+	bool serialize(LLDynamicArray<LLViewerObject*> objects);
 
-	static JCExportTracker* getInstance(){ init(); return sInstance; }
+	bool getAsyncData(LLViewerObject * obj);
 
-	static bool serialize(LLDynamicArray<LLViewerObject*> objects);
+	void requestInventory(LLViewerObject * obj, LLViewerObject * surrogate_obj=NULL);
 
-	static bool getAsyncData(LLViewerObject * obj);
+	BOOL processSurrogate(LLViewerObject * surrogate_object);
+	void createSurrogate(LLViewerObject * object);
+	void removeSurrogates();
+	void removeObject(LLViewerObject* obj);
 
-	static void requestInventory(LLViewerObject * obj, LLViewerObject * surrogate_obj=NULL);
+	BOOL isSurrogateDeleteable(LLViewerObject* obj);
 
-	static BOOL processSurrogate(LLViewerObject * surrogate_object);
-	static void createSurrogate(LLViewerObject * object);
-	static void removeSurrogates();
-	static void removeObject(LLViewerObject* obj);
+	BOOL exportAllowed(LLPermissions perm);
 
-	static BOOL isSurrogateDeleteable(LLViewerObject* obj);
-
-	static BOOL exportAllowed(LLPermissions perm);
-
-	static void error(std::string name, U32 localid, LLVector3 object_pos, std::string error_msg);
+	void error(std::string name, U32 localid, LLVector3 object_pos, std::string error_msg);
 
 	//Export idle callback
 	static void exportworker(void *userdata);
 	static void propertyworker(void *userdata);
-
-	static bool serializeSelection();
-	static void finalize();
+	void doexportworker(void *userdata);
+	void dopropertyworker(void *userdata);
+	//end
+	bool serializeSelection();
+	void finalize();
 
 	static BOOL mirror(LLInventoryObject* item, LLViewerObject* container = NULL, std::string root = "", std::string iname = "");
-
 private:
-	static LLSD* subserialize(LLViewerObject* linkset);
+	LLSD* subserialize(LLViewerObject* linkset);
 	static void requestPrimProperties(U32 localID);
+	void download(LLInventoryObject* item, LLViewerObject* container = NULL, std::string root = "", std::string iname = ""); //for adding to export floater and download using mirror
 
+	U32 mStatus;
 public:
-	enum ExportState { IDLE, EXPORTING };
+	BOOL export_properties;
+	BOOL export_inventory;
+	BOOL export_tga;
+	BOOL export_j2c;
 
-	static U32 mStatus;
+	BOOL export_is_avatar;
 
-	//enum ExportLevel { DEFAULT, PROPERTIES, INVENTORY };
-
-	static BOOL export_properties;
-	static BOOL export_inventory;
-	static BOOL export_tga;
-	static BOOL export_j2c;
-
-	static BOOL export_is_avatar;
-
-	static BOOL using_surrogates;
+	BOOL using_surrogates;
 
 	//static U32 level;
-	static LLVector3 selection_center;
-	static LLVector3 selection_size;
+	LLVector3 selection_center;
+	LLVector3 selection_size;
 
-	static U32		propertyqueries;
-	static U32		invqueries;
-	static U32		mTotalPrims;
-	static U32		mLinksetsExported;
-	static U32		mPropertiesReceived;
-	static U32		mInventoriesReceived;
-	static U32		mPropertiesQueries;
-	static U32		mAssetsExported;
-	static U32		mTexturesExported;
-	static U32		mTotalObjects;
-	static U32		mTotalLinksets;
-	static U32		mTotalAssets;
-	static U32		mTotalTextures;
+	U32		propertyqueries;
+	U32		invqueries;
+	U32		mTotalPrims;
+	U32		mLinksetsExported;
+	U32		mPropertiesReceived;
+	U32		mInventoriesReceived;
+	U32		mPropertiesQueries;
+	U32		mAssetsExported;
+	U32		mTexturesExported;
+	U32		mTotalObjects;
+	U32		mTotalLinksets;
+	U32		mTotalAssets;
+	U32		mTotalTextures;
+
+	std::set<LLUUID> mRequestedTextures;
+
+	std::list<PropertiesRequest_t*> requested_properties;
+	std::list<InventoryRequest_t*> requested_inventory;
+
+	std::list<LLSD *> processed_prims;
+	std::map<LLUUID,LLSD *>received_inventory;
+	std::map<LLUUID,LLSD *>received_properties;
+
 	
-	static void cleanup();
+//magic positions and the object ids they belong to
+	std::map<LLVector3, LLUUID> expected_surrogate_pos;
+//list of surrogate object roots, mainly used for cleanup after the export is complete
+	std::list<LLViewerObject *> surrogate_roots;
+//magic positions and the object ids they belong to
+	std::deque<LLViewerObject *> queued_surrogates;
 
-	static std::set<LLUUID> mRequestedTextures;
-
-	static std::list<PropertiesRequest_t*> requested_properties;
-	static std::list<InventoryRequest_t*> requested_inventory;
-
-	static std::list<LLSD *> processed_prims;
-	static std::map<LLUUID,LLSD *>received_inventory;
-	static std::map<LLUUID,LLSD *>received_properties;
-
-	static std::map<LLVector3, LLUUID> expected_surrogate_pos;
-	static std::list<LLViewerObject *> surrogate_roots;
-	static std::deque<LLViewerObject *> queued_surrogates;
-
-	static std::string destination;
+	std::string destination;
 private:
 	static LLSD total;
 
 	static std::string asset_dir;
+public:
+	//private variable accessors
+	U32 getStatus(){return mStatus;}
 };
 
 // zip a folder. this doesn't work yet.

@@ -1750,11 +1750,23 @@ void insert(LLViewerInventoryItem* item, LLViewerObject* objectp, InventoryImpor
 	}
 	if(objectp)
 	{
-		LLToolDragAndDrop::dropScript(objectp,
-							item,
-							TRUE,
-							LLToolDragAndDrop::SOURCE_AGENT,
-							gAgent.getID());
+		switch(item->getInventoryType())
+		{
+			//only add types that needs special functions
+			case LLInventoryType::IT_LSL:
+				LLToolDragAndDrop::dropScript(objectp,
+									item,
+									TRUE,
+									LLToolDragAndDrop::SOURCE_AGENT,
+									gAgent.getID());
+				break;
+			default:
+				LLToolDragAndDrop::dropInventory(objectp,
+									item,
+									LLToolDragAndDrop::SOURCE_AGENT,
+									gAgent.getID());
+				break;
+		}
 		//cmdline_printchat("inserted.");
 	}
 	delete data;
@@ -1801,15 +1813,70 @@ public:
 	virtual void uploadComplete(const LLSD& content)
 	{
 		LLPointer<LLInventoryCallback> cb = new JCImportTransferCallback(data);
-		LLPermissions perm;
-		LLUUID parent_id = gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH);
+				lldebugs << "LLNewAgentInventoryResponder::result from capabilities" << llendl;
 
-		create_inventory_item(gAgent.getID(), gAgent.getSessionID(),
-			gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH), data->tid, data->name,
-			data->description, data->type, LLInventoryType::defaultForAssetType(data->type), data->wear_type,
-			PERM_ALL,
-			cb);
+		LLAssetType::EType asset_type = LLAssetType::lookup(mPostData["asset_type"].asString());
+		LLInventoryType::EType inventory_type = LLInventoryType::lookup(mPostData["inventory_type"].asString());
 
+		// Update L$ and ownership credit information
+		// since it probably changed on the server
+		if (asset_type == LLAssetType::AT_TEXTURE ||
+			asset_type == LLAssetType::AT_SOUND ||
+			asset_type == LLAssetType::AT_ANIMATION)
+		{
+			gMessageSystem->newMessageFast(_PREHASH_MoneyBalanceRequest);
+			gMessageSystem->nextBlockFast(_PREHASH_AgentData);
+			gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
+			gMessageSystem->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
+			gMessageSystem->nextBlockFast(_PREHASH_MoneyData);
+			gMessageSystem->addUUIDFast(_PREHASH_TransactionID, LLUUID::null );
+			gAgent.sendReliableMessage();
+
+	//		LLStringUtil::format_map_t args;
+	//		args["[AMOUNT]"] = llformat("%d",LLGlobalEconomy::Singleton::getInstance()->getPriceUpload());
+	//		LLNotifyBox::showXml("UploadPayment", args);
+		}
+
+		// Actually add the upload to viewer inventory
+		llinfos << "Adding " << content["new_inventory_item"].asUUID() << " "
+				<< content["new_asset"].asUUID() << " to inventory." << llendl;
+		if(mPostData["folder_id"].asUUID().notNull())
+		{
+			LLPermissions perm;
+			U32 next_owner_perm;
+			perm.init(gAgent.getID(), gAgent.getID(), LLUUID::null, LLUUID::null);
+			if (mPostData["inventory_type"].asString() == "snapshot")
+			{
+				next_owner_perm = PERM_ALL;
+			}
+			else
+			{
+				next_owner_perm = PERM_MOVE | PERM_TRANSFER;
+			}
+			perm.initMasks(PERM_ALL, PERM_ALL, PERM_NONE, PERM_NONE, next_owner_perm);
+			S32 creation_date_now = time_corrected();
+			LLPointer<LLViewerInventoryItem> item
+				= new LLViewerInventoryItem(content["new_inventory_item"].asUUID(),
+											mPostData["folder_id"].asUUID(),
+											perm,
+											content["new_asset"].asUUID(),
+											asset_type,
+											inventory_type,
+											mPostData["name"].asString(),
+											mPostData["description"].asString(),
+											LLSaleInfo::DEFAULT,
+											LLInventoryItem::II_FLAGS_NONE,
+											creation_date_now);
+			gInventory.updateItem(item);
+			gInventory.notifyObservers();
+			LLViewerObject* objectp = find(data->localid);
+			insert(item, objectp, data);
+		}
+		else
+		{
+			llwarns << "Can't find a folder to put it in" << llendl;
+		}
+		
 	}
 private:
 	InventoryImportInfo* data;
@@ -1937,72 +2004,42 @@ public:
 			{
 				file.write(copy_buf, file_size);
 			}
+			LLSD body;
+			std::string agent_url;
 			switch(data->type)
 			{
 			case LLAssetType::AT_NOTECARD:
-				//cmdline_printchat("case notecard @ postinv");
-				{
-					/*
-					// We need to update the asset information
-					LLTransactionID tid;
-					LLAssetID asset_id;
-					tid.generate();
-					asset_id = tid.makeAssetID(gAgent.getSecureSessionID());
-
-					if (gAssetStorage)
-					{
-						cmdline_printchat("using asset storage"); 
-						LLSaveNotecardInfo* info = new LLSaveNotecardInfo(this, inv_item, find(data->localid)->getID(),
-							tid, copyitem);
-						gAssetStorage->storeAssetData(tid, LLAssetType::AT_NOTECARD,
-							NULL,
-							(void*)info,
-							FALSE); 
-					}*/
-
-					std::string agent_url = gAgent.getRegion()->getCapability("UpdateNotecardAgentInventory");
-					//cmdline_printchat("UpdateNotecardAgentInventory = " + agent_url);
-
-					//agent_url = gAgent.getRegion()->getCapability("UpdateNotecardTaskInventory");
-					//cmdline_printchat("UpdateNotecardTaskInventory = " + agent_url);
-					LLSD body;
-					//body["task_id"] = find(data->localid)->getID();
-					body["item_id"] = inv_item;
-					//cmdline_printchat("body[task_id] = " + body["task_id"].asString());
-					cmdline_printchat("body[item_id] = " + body["item_id"].asString());
-
-					cmdline_printchat("posting content as " + data->assetid.asString());
-					LLHTTPClient::post(agent_url, body,
-								new JCPostInvUploadResponder(body, data->assetid, data->type,inv_item,data));
-				}
+					agent_url = gAgent.getRegion()->getCapability("UpdateNotecardAgentInventory");
 				break;
 			case LLAssetType::AT_LSL_TEXT:
-				//cmdline_printchat("case lsltext @ postinv");
 				{
-					std::string url = gAgent.getRegion()->getCapability("UpdateScriptAgent");
-					LLSD body;
-					body["item_id"] = inv_item;
+					agent_url = gAgent.getRegion()->getCapability("UpdateScriptAgent");
+					//decide if we want to compile in lsl or not
 					S32 size = gVFS->getSize(data->assetid, data->type);
-					U8* buffer = new U8[size];
-					gVFS->getData(data->assetid, data->type, buffer, 0, size);
-					std::string script((char*)buffer);
-					BOOL domono = TRUE;
-					if(script.find("//mono\n") != -1)
-					{
-						domono = TRUE;
-					}else if(script.find("//lsl2\n") != -1)
-					{
-						domono = FALSE;
+					std::vector<U8> buffer(size); //safe buffer
+					gVFS->getData(data->assetid, data->type, &(buffer[0]), 0, size);
+					std::string script(buffer.begin(),buffer.end());
+					bool domono = true;
+					if(script.find("//lsl2\n") != -1){
+						domono = false;
 					}
-					delete buffer;
-					buffer = 0;
-					body["target"] = (domono == TRUE) ? "mono" : "lsl2";
-					cmdline_printchat("posting content as " + data->assetid.asString());
-					LLHTTPClient::post(url, body, new JCPostInvUploadResponder(body, data->assetid, data->type,inv_item,data));
+					body["target"] = domono ? "mono" : "lsl2";
+					//end
 				}
+				break;
+			case LLAssetType::AT_GESTURE:
+					agent_url = gAgent.getRegion()->getCapability("UpdateGestureAgentInventory");
 				break;
 			default:
 				break;
+			}
+			if(!agent_url.empty())
+			{
+				body["item_id"] = inv_item;
+				//cmdline_printchat("body[item_id] = " + body["item_id"].asString());
+				cmdline_printchat("posting content " + std::string(LLAssetType::lookupHumanReadable(data->type)) + " as " + data->assetid.asString());
+				LLHTTPClient::post(agent_url, body,
+							new JCPostInvUploadResponder(body, data->assetid, data->type,inv_item,data));
 			}
 		}
 		else
@@ -2108,6 +2145,8 @@ void ImportTracker::send_inventory(LLSD& prim)
 				//
 				switch(data->type)
 				{
+				case LLAssetType::AT_ANIMATION:
+				case LLAssetType::AT_SOUND:
 				case LLAssetType::AT_TEXTURE:
 				case LLAssetType::AT_TEXTURE_TGA:
 					//cmdline_printchat("case textures");
@@ -2137,7 +2176,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 							body["group_mask"] = LLSD::Integer(U32_MAX);
 							body["everyone_mask"] = LLSD::Integer(U32_MAX);
 							body["expected_upload_cost"] = LLSD::Integer(LLGlobalEconomy::Singleton::getInstance()->getPriceUpload());
-							cmdline_printchat("posting "+ data->assetid.asString());
+							cmdline_printchat("posting content " + std::string(LLAssetType::lookupHumanReadable(data->type)) + " as " + data->assetid.asString());
 							LLHTTPClient::post(url, body, new JCImportInventoryResponder(body, data->assetid, data->type,data));
 							//error = TRUE;
 						}
@@ -2187,19 +2226,9 @@ void ImportTracker::send_inventory(LLSD& prim)
 						}
 					}
 					break;
+				//these use capabilites JCPostInvCallback handles all of the preperation
+				case LLAssetType::AT_GESTURE:
 				case LLAssetType::AT_NOTECARD:
-					cmdline_printchat("case notecard");
-					{
-						//std::string agent_url = gAgent.getRegion()->getCapability("UpdateNotecardAgentInventory");
-						LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data);
-						LLUUID parent_id = gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH);
-						create_inventory_item(gAgent.getID(), gAgent.getSessionID(),
-							gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH), LLTransactionID::tnull, data->name,
-							data->description, data->type, LLInventoryType::defaultForAssetType(data->type), data->wear_type,
-							PERM_ALL,
-							cb);
-					}
-					break;
 				case LLAssetType::AT_LSL_TEXT:
 					{
 						LLPointer<LLInventoryCallback> cb = new JCPostInvCallback(data);
@@ -2212,7 +2241,6 @@ void ImportTracker::send_inventory(LLSD& prim)
 					}
 					break;
 				case LLAssetType::AT_SCRIPT://this shouldn't happen as this is a legacy format
-				case LLAssetType::AT_GESTURE://we don't import you atm...
 				default:
 					break;
 				}

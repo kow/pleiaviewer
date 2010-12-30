@@ -69,52 +69,14 @@ using namespace std;
 #else
 # include "zlib/zlib.h"
 #endif
-
+void cmdline_printchat(std::string chat);
 JCExportTracker* JCExportTracker::sInstance;
 LLSD JCExportTracker::total;
-BOOL JCExportTracker::export_properties;
-BOOL JCExportTracker::export_inventory;
-BOOL JCExportTracker::export_tga;
-BOOL JCExportTracker::export_j2c;
-BOOL JCExportTracker::export_is_avatar;
-BOOL JCExportTracker::using_surrogates;
-U32	JCExportTracker::mStatus;
-U32	JCExportTracker::mTotalPrims;
-U32	JCExportTracker::mLinksetsExported;
-U32	JCExportTracker::mPropertiesReceived;
-U32	JCExportTracker::mInventoriesReceived;
-U32	JCExportTracker::mPropertiesQueries;
-U32	JCExportTracker::mAssetsExported;
-U32	JCExportTracker::mTexturesExported;
-U32	JCExportTracker::mTotalObjects;
-U32	JCExportTracker::mTotalLinksets;
-U32	JCExportTracker::mTotalAssets;
-U32	JCExportTracker::mTotalTextures;
-std::string JCExportTracker::destination;
 std::string JCExportTracker::asset_dir;
-std::set<LLUUID> JCExportTracker::mRequestedTextures;
-LLVector3 JCExportTracker::selection_center;
-LLVector3 JCExportTracker::selection_size;
-void cmdline_printchat(std::string chat);
-std::list<PropertiesRequest_t*> JCExportTracker::requested_properties;
-std::list<InventoryRequest_t*> JCExportTracker::requested_inventory;
 
 ExportTrackerFloater* ExportTrackerFloater::sInstance = 0;
 LLDynamicArray<LLViewerObject*> ExportTrackerFloater::mObjectSelection;
 LLDynamicArray<LLViewerObject*> ExportTrackerFloater::mObjectSelectionWaitList;
-
-std::list<LLSD *> JCExportTracker::processed_prims;
-std::map<LLUUID,LLSD *> JCExportTracker::received_inventory;
-std::map<LLUUID,LLSD *> JCExportTracker::received_properties;
-
-//list of surrogate object roots, mainly used for cleanup after the export is complete
-std::list<LLViewerObject *> JCExportTracker::surrogate_roots;
-
-//magic positions and the object ids they belong to
-std::map<LLVector3, LLUUID> JCExportTracker::expected_surrogate_pos;
-
-//surrogates that haven't completely arrived yet that we are going to check later
-std::deque<LLViewerObject *> JCExportTracker::queued_surrogates;
 
 //Export Floater constructor
 ExportTrackerFloater::ExportTrackerFloater() :
@@ -150,19 +112,19 @@ BOOL ExportTrackerFloater::postBuild()
 	}
 
 	//from serializeselection
-	JCExportTracker::init();
+	JCExportTracker::getInstance()->init();
 
 	gIdleCallbacks.deleteFunction(JCExportTracker::exportworker);
 	
 	//Only attachments have sub-parents (?)
 	if (mSelection->getFirstRootObject()->getSubParent())
 	{
-		JCExportTracker::export_is_avatar = true;
+		JCExportTracker::getInstance()->export_is_avatar = true;
 		buildExportListFromAvatar((LLVOAvatar*)mSelection->getFirstRootObject()->getSubParent());
 	}
 	else
 	{
-		JCExportTracker::export_is_avatar = false;
+		JCExportTracker::getInstance()->export_is_avatar = false;
 		buildExportListFromSelection();
 	}
 
@@ -237,7 +199,7 @@ void ExportTrackerFloater::buildListDisplays()
 			if(is_root && is_prim)
 			{
 				std::string name = "";
-				LLSD * props = JCExportTracker::received_properties[object->getID()];
+				LLSD * props = JCExportTracker::getInstance()->received_properties[object->getID()];
 				if(props != NULL)
 				{
 					name = std::string((*props)["name"]);
@@ -273,8 +235,8 @@ void ExportTrackerFloater::buildListDisplays()
 	}*/
 
 
-	std::list<LLSD *>::iterator iter2=JCExportTracker::processed_prims.begin();
-	for(;iter2!=JCExportTracker::processed_prims.end();iter2++)
+	std::list<LLSD *>::iterator iter2=JCExportTracker::getInstance()->processed_prims.begin();
+	for(;iter2!=JCExportTracker::getInstance()->processed_prims.end();iter2++)
 	{	// for each object
 
 		LLSD *plsd=(*iter2);
@@ -320,8 +282,8 @@ void ExportTrackerFloater::buildListDisplays()
 			element["columns"][5]["type"] = "text";
 			element["columns"][5]["value"] = sstr.str();
 
-			std::list<PropertiesRequest_t *>::iterator iter=JCExportTracker::requested_properties.begin();
-			for(;iter!=JCExportTracker::requested_properties.end();iter++)
+			std::list<PropertiesRequest_t *>::iterator iter=JCExportTracker::getInstance()->requested_properties.begin();
+			for(;iter!=JCExportTracker::getInstance()->requested_properties.end();iter++)
 			{
 				PropertiesRequest_t * req=(*iter);
 				if(req->localID==object->getLocalID())
@@ -354,22 +316,22 @@ void ExportTrackerFloater::buildExportListFromSelection()
 			{
 				if(!(object->permModify() && object->permCopy() && object->permTransfer()))
 				{
-					JCExportTracker::error("", object->getLocalID(), object->getPosition(), "Invalid Permissions");
+					JCExportTracker::getInstance()->error("", object->getLocalID(), object->getPosition(), "Invalid Permissions");
 					break;
 				}
 			}
-			JCExportTracker::getAsyncData(object);
+			JCExportTracker::getInstance()->getAsyncData(object);
 			mObjectSelection.put(object);
-			JCExportTracker::mTotalLinksets += LLSelectMgr::getInstance()->getSelection()->getRootObjectCount();
-			JCExportTracker::mTotalObjects += LLSelectMgr::getInstance()->getSelection()->getObjectCount();
+			JCExportTracker::getInstance()->mTotalLinksets += LLSelectMgr::getInstance()->getSelection()->getRootObjectCount();
+			JCExportTracker::getInstance()->mTotalObjects += LLSelectMgr::getInstance()->getSelection()->getObjectCount();
 		}
 		else 
 		{
-			JCExportTracker::error("", object->getLocalID(), object->getPosition(), "Invalid Permissions");
+			JCExportTracker::getInstance()->error("", object->getLocalID(), object->getPosition(), "Invalid Permissions");
 		}
 	}
 
-	if (!JCExportTracker::export_is_avatar)
+	if (!JCExportTracker::getInstance()->export_is_avatar)
 	{
 		LLBBox bbox = LLSelectMgr::getInstance()->getBBoxOfSelection();
 		LLVector3 box_center_agent = bbox.getCenterAgent();
@@ -385,8 +347,8 @@ void ExportTrackerFloater::buildExportListFromSelection()
 
 		ctrl->setValue(LLSD("Text")=sstr.str());
 
-		JCExportTracker::selection_size = bbox.getExtentLocal();
-		JCExportTracker::selection_center = bbox.getCenterAgent();
+		JCExportTracker::getInstance()->selection_size = bbox.getExtentLocal();
+		JCExportTracker::getInstance()->selection_center = bbox.getCenterAgent();
 	}
 }
 
@@ -415,8 +377,8 @@ void ExportTrackerFloater::buildExportListFromAvatar(LLVOAvatar* avatarp)
 					LLViewerImage* te_image = avatarp->getTEImage( te );
 					if( te_image->getID() != IMG_DEFAULT_AVATAR)
 					{
-						JCExportTracker::mTotalTextures++;
-						//JCExportTracker::mRequestedTextures.insert(te_image->getID());
+						JCExportTracker::getInstance()->mTotalTextures++;
+						//mRequestedTextures.insert(te_image->getID());
 						exists = true;
 						break;
 					}
@@ -472,8 +434,8 @@ void ExportTrackerFloater::buildExportListFromAvatar(LLVOAvatar* avatarp)
 
 	ctrl->setValue(LLSD("Text")=sstr.str());
 
-	JCExportTracker::selection_size = bbox.getExtentLocal();
-	JCExportTracker::selection_center = bbox.getCenterAgent();
+	JCExportTracker::getInstance()->selection_size = bbox.getExtentLocal();
+	JCExportTracker::getInstance()->selection_center = bbox.getCenterAgent();
 }
 
 void ExportTrackerFloater::refresh()
@@ -481,7 +443,7 @@ void ExportTrackerFloater::refresh()
 
 	std::string status_text;
 
-	if (JCExportTracker::mStatus == JCExportTracker::IDLE)
+	if (JCExportTracker::getInstance()->getStatus() == JCExportTracker::IDLE)
 		status_text = "idle";
 	else
 		status_text = "exporting";
@@ -489,14 +451,14 @@ void ExportTrackerFloater::refresh()
 	//is this a bad place for this function? -Patrick Sapinski (Friday, November 13, 2009)
 	getChild<LLTextBox>("status label")->setValue(
 		"Status: " + status_text
-		+  llformat("\nObjects: %u/%u",				JCExportTracker::mLinksetsExported,	JCExportTracker::mTotalLinksets)
-		+  llformat("\nPrimitives: %u/%u",			JCExportTracker::mTotalPrims,		JCExportTracker::mTotalObjects)
-		+  llformat("\nProperties Received: %u/%u",	JCExportTracker::mPropertiesReceived, JCExportTracker::mTotalObjects)
-		+  llformat("\nInventories Received: %u/%u",JCExportTracker::mInventoriesReceived, JCExportTracker::mTotalObjects)
-		//+  llformat("\n   Pending Queries: %u",	JCExportTracker::requested_properties.size())
-		+  llformat("\nInventory Items: %u/%u",		JCExportTracker::mAssetsExported,	JCExportTracker::mTotalAssets)
-		//+  llformat("\n   Pending Queries: %u",	JCExportTracker::requested_inventory.size())
-		+  llformat("\nTextures: %u/%u",			JCExportTracker::mTexturesExported,	JCExportTracker::mTotalTextures)
+		+  llformat("\nObjects: %u/%u",				JCExportTracker::getInstance()->mLinksetsExported,	JCExportTracker::getInstance()->mTotalLinksets)
+		+  llformat("\nPrimitives: %u/%u",			JCExportTracker::getInstance()->mTotalPrims,		JCExportTracker::getInstance()->mTotalObjects)
+		+  llformat("\nProperties Received: %u/%u",	JCExportTracker::getInstance()->mPropertiesReceived, JCExportTracker::getInstance()->mTotalObjects)
+		+  llformat("\nInventories Received: %u/%u",JCExportTracker::getInstance()->mInventoriesReceived, JCExportTracker::getInstance()->mTotalObjects)
+		//+  llformat("\n   Pending Queries: %u",	JCExportTracker::getInstance()->requested_properties.size())
+		+  llformat("\nInventory Items: %u/%u",		JCExportTracker::getInstance()->mAssetsExported,	JCExportTracker::getInstance()->mTotalAssets)
+		//+  llformat("\n   Pending Queries: %u",	JCExportTracker::getInstance()->requested_inventory.size())
+		+  llformat("\nTextures: %u/%u",			JCExportTracker::getInstance()->mTexturesExported,	JCExportTracker::getInstance()->mTotalTextures)
 		);
 
 	// Draw the progress bar.
@@ -511,7 +473,7 @@ void ExportTrackerFloater::refresh()
 	gGL.color4f(0.f, 0.f, 0.f, 0.75f);
 	gl_rect_2d(rec);
 
-	F32 data_progress = ((F32)JCExportTracker::mTotalPrims / JCExportTracker::mTotalObjects);
+	F32 data_progress = ((F32)JCExportTracker::getInstance()->mTotalPrims / JCExportTracker::getInstance()->mTotalObjects);
 
 	if (data_progress > 0.0f)
 	{
@@ -626,7 +588,7 @@ void ExportTrackerFloater::addAvatarStuff(LLVOAvatar* avatarp)
 		if(list->getItemIndex(childp->getID()) == -1)
 		{
 			std::string name = "";
-			LLSD * props = JCExportTracker::received_properties[childp->getID()];
+			LLSD * props = JCExportTracker::getInstance()->received_properties[childp->getID()];
 			if(props != NULL)
 			{
 				name = std::string((*props)["name"]);
@@ -726,13 +688,13 @@ void ExportTrackerFloater::draw()
 {
 	LLFloater::draw();
 
-	if (JCExportTracker::mStatus != JCExportTracker::IDLE)	
+	if (JCExportTracker::getInstance()->getStatus() != JCExportTracker::IDLE)	
 		refresh();
 }
 
 ExportTrackerFloater::~ExportTrackerFloater()
 {	
-	JCExportTracker::sInstance->close();
+	JCExportTracker::close();
 	//which one?? -Patrick Sapinski (Wednesday, November 11, 2009)
 	//ExportTrackerFloater::sInstance = NULL;
 	sInstance = NULL;
@@ -766,13 +728,13 @@ void ExportTrackerFloater::onClickExport(void* data)
 	ExportTrackerFloater* floaterp = (ExportTrackerFloater*)data;
 	if (floaterp)
 	{
-		JCExportTracker::export_tga = floaterp->getChild<LLCheckBoxCtrl>("export_tga")->get();
-		JCExportTracker::export_j2c = floaterp->getChild<LLCheckBoxCtrl>("export_j2c")->get();
-		JCExportTracker::export_properties = floaterp->getChild<LLCheckBoxCtrl>("export_properties")->get();
-		JCExportTracker::export_inventory = floaterp->getChild<LLCheckBoxCtrl>("export_contents")->get();
+		JCExportTracker::getInstance()->export_tga = floaterp->getChild<LLCheckBoxCtrl>("export_tga")->get();
+		JCExportTracker::getInstance()->export_j2c = floaterp->getChild<LLCheckBoxCtrl>("export_j2c")->get();
+		JCExportTracker::getInstance()->export_properties = floaterp->getChild<LLCheckBoxCtrl>("export_properties")->get();
+		JCExportTracker::getInstance()->export_inventory = floaterp->getChild<LLCheckBoxCtrl>("export_contents")->get();
 		//sInstance->mExportTrees=sInstance->getChild<LLCheckBoxCtrl>("export_trees")->get();
 
-		JCExportTracker::serialize(mObjectSelection);
+		JCExportTracker::getInstance()->serialize(mObjectSelection);
 	}
 }
 
@@ -780,7 +742,7 @@ void ExportTrackerFloater::onClickExport(void* data)
 void ExportTrackerFloater::onClickClose(void* data)
 {
 	sInstance->close();
-	JCExportTracker::sInstance->close();
+	JCExportTracker::close();
 }
 
 JCExportTracker::JCExportTracker()
@@ -799,7 +761,7 @@ JCExportTracker::~JCExportTracker()
 
 void JCExportTracker::close()
 {
-	JCExportTracker::cleanup();
+	JCExportTracker::getInstance()->cleanup();
 	if(sInstance)
 	{
 		delete sInstance;
@@ -809,11 +771,6 @@ void JCExportTracker::close()
 
 void JCExportTracker::init()
 {
-	if(!sInstance)
-	{
-		sInstance = new JCExportTracker();
-	}
-
 	mPropertiesReceived = 0;
 	mInventoriesReceived = 0;
 	mPropertiesQueries = 0;
@@ -1355,7 +1312,7 @@ void JCExportTracker::onFileLoadedForSave(BOOL success,
 											void* userdata)
 {
 	JCAssetInfo* info = (JCAssetInfo*)userdata;
-	if(final)
+	if(final && sInstance != NULL)
 	{
 		if( success )
 		{ /*
@@ -1392,7 +1349,7 @@ void JCExportTracker::onFileLoadedForSave(BOOL success,
 				}
 			}
 			
-			if(export_tga)
+			if(sInstance->export_tga)
 			{
 				LLPointer<LLImageTGA> image_tga = new LLImageTGA;
 
@@ -1406,7 +1363,7 @@ void JCExportTracker::onFileLoadedForSave(BOOL success,
 				}
 			}
 
-			if(export_j2c)
+			if(sInstance->export_j2c)
 			{
 				LLPointer<LLImageJ2C> image_j2c = new LLImageJ2C();
 				if(!image_j2c->encode(src,0.0))
@@ -1423,7 +1380,7 @@ void JCExportTracker::onFileLoadedForSave(BOOL success,
 					//success
 				}
 			}
-			mTexturesExported++;
+			sInstance->mTexturesExported++;
 		
 			//RC
 			//meh if we did a GL readback we created the raw image
@@ -1492,8 +1449,8 @@ bool JCExportTracker::serialize(LLDynamicArray<LLViewerObject*> objects)
 	total.clear();
 
 	LLDynamicArray<LLViewerObject*>::const_iterator iter_obj = objects.begin();
-
-	if(FOLLOW_PERMS == 0 && using_surrogates)
+#if FOLLOW_PERMS == 0
+	if(using_surrogates)
 	{
 		for (;iter_obj != objects.end(); iter_obj++)
 		{
@@ -1501,7 +1458,7 @@ bool JCExportTracker::serialize(LLDynamicArray<LLViewerObject*> objects)
 				createSurrogate((*iter_obj));
 		}
 	}
-
+#endif
 	gIdleCallbacks.addFunction(exportworker, NULL);
 
 	return true;
@@ -1510,12 +1467,16 @@ bool JCExportTracker::serialize(LLDynamicArray<LLViewerObject*> objects)
 
 void JCExportTracker::exportworker(void *userdata)
 {
+	JCExportTracker::getInstance()->doexportworker(userdata);
+}
+void JCExportTracker::doexportworker(void *userdata)
+{
 	//CHECK IF WE'RE DONE
 	if(ExportTrackerFloater::mObjectSelection.empty() && ExportTrackerFloater::mObjectSelectionWaitList.empty()
 		&& (requested_inventory.empty() ||gSavedSettings.getBOOL("ExporterInventoryLater"))
 		&& requested_properties.empty() && expected_surrogate_pos.empty())
 	{
-		gIdleCallbacks.deleteFunction(exportworker);
+		gIdleCallbacks.deleteFunction(JCExportTracker::exportworker);
 		removeSurrogates();
 		finalize();
 		return;
@@ -1626,9 +1587,9 @@ void JCExportTracker::exportworker(void *userdata)
 				cmdline_printchat("exportworker: object has invalid pcode");
 				//return NULL;
 			}
-
 			obj->removeInventoryListener(sInstance);
 			sInstance->registerVOInventoryListener(obj,NULL);
+			obj->dirtyInventory();
 			sInstance->requestVOInventory();
 
 			//obj->dirtyInventory();
@@ -1683,7 +1644,7 @@ void JCExportTracker::exportworker(void *userdata)
 				break;
 			}
 			std::string name = "";
-			LLSD * props = JCExportTracker::received_properties[obj->getID()];
+			LLSD * props = received_properties[obj->getID()];
 			if(props != NULL)
 			{
 				name = std::string((*props)["name"]);
@@ -1790,6 +1751,10 @@ void JCExportTracker::exportworker(void *userdata)
 }
 
 void JCExportTracker::propertyworker(void *userdata)
+{
+	JCExportTracker::getInstance()->dopropertyworker(userdata);
+}
+void JCExportTracker::dopropertyworker(void *userdata)
 {
 	LLScrollListCtrl* list = ExportTrackerFloater::sInstance->getChild<LLScrollListCtrl>("object_result_list");
 
@@ -2478,7 +2443,11 @@ void JCExportTracker::finalize()
 
 void JCExportTracker::processObjectProperties(LLMessageSystem* msg, void** user_data)
 {
-	
+	if(sInstance)
+		JCExportTracker::getInstance()->actuallyprocessObjectProperties(msg);
+}
+void JCExportTracker::actuallyprocessObjectProperties(LLMessageSystem* msg)
+{
 	S32 i;
 	S32 count = msg->getNumberOfBlocksFast(_PREHASH_ObjectData);
 	for (i = 0; i < count; i++)
@@ -2748,7 +2717,7 @@ LLSD* JCExportTracker::checkInventoryContents(InventoryRequest_t* original_reque
 	U32 num = 0;
 	for( ;	it != end;	++it)
 	{
-		LLInventoryObject* asset = (LLInventoryObject*)(*it);
+		LLInventoryObject* asset = it->get();
 
 		// Skip folders, so we know we have inventory items only
 		if (asset->getType() == LLAssetType::AT_CATEGORY) {
@@ -2770,7 +2739,7 @@ LLSD* JCExportTracker::checkInventoryContents(InventoryRequest_t* original_reque
 
 		if(asset)
 		{
-			LLInventoryItem* item = (LLInventoryItem*)((LLInventoryObject*)(*it));
+			LLInventoryItem* item = (LLInventoryItem*)asset;
 			LLViewerInventoryItem* new_item = (LLViewerInventoryItem*)item;
 
 
@@ -2787,18 +2756,19 @@ LLSD* JCExportTracker::checkInventoryContents(InventoryRequest_t* original_reque
 					inv_item["name"] = asset->getName();
 					inv_item["type"] = LLAssetType::lookup(asset->getType());
 					//cmdline_printchat("requesting asset "+asset->getName());
-					inv_item["desc"] = ((LLInventoryItem*)((LLInventoryObject*)(*it)))->getDescription();//god help us all
+					inv_item["desc"] = item->getDescription();
 					inv_item["item_id"] = asset->getUUID().asString();
 					if(!LLFile::isdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory"))
 					{
 						LLFile::mkdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory");
 					}
 
-					JCExportTracker::mirror(asset, obj, asset_dir+gDirUtilp->getDirDelimiter()+"inventory", asset->getUUID().asString());//loltest
+					JCExportTracker::download(asset, obj, asset_dir+gDirUtilp->getDirDelimiter()+"inventory", asset->getUUID().asString());//loltest
 					(*inventory)[num++] = inv_item;
 					mTotalAssets++;
 				}
 				//recursive objects will be handled here -- Cryo
+				//TODO: Add check for already done objects incase something is using the same asset
 				/*else if(asset->getType() == LLAssetType::AT_OBJECT)
 				{
 				}*/
@@ -2844,7 +2814,7 @@ void JCAssetExportCallback(LLVFS *vfs, const LLUUID& uuid, LLAssetType::EType ty
 		if(fp)infile.write(buffer, size);
 		infile.close();
 
-		JCExportTracker::mAssetsExported++;
+		JCExportTracker::getInstance()->mAssetsExported++;
 
 		if (ExportTrackerFloater::sInstance)
 		{
@@ -2864,7 +2834,7 @@ void JCAssetExportCallback(LLVFS *vfs, const LLUUID& uuid, LLAssetType::EType ty
 
 			}
 			else 
-				cmdline_printchat("received unrequested asset");
+				cmdline_printchat("received unrequested asset " +info->assetid.asString()+","+uuid.asString());
 
 			//delete buffer;
 		}
@@ -2874,7 +2844,57 @@ void JCAssetExportCallback(LLVFS *vfs, const LLUUID& uuid, LLAssetType::EType ty
 
 	delete info;
 }
+void JCExportTracker::download(LLInventoryObject* item, LLViewerObject* container, std::string root, std::string iname)
+{
+		//add to floater list
+		LLSD element;
+		element["id"] = item->getUUID(); //object->getLocalID();
 
+		element["columns"][0]["column"] = "Name";
+		element["columns"][0]["type"] = "text";
+		element["columns"][0]["value"] = item->getName();
+
+		element["columns"][1]["column"] = "UUID";
+		element["columns"][1]["type"] = "text";
+		element["columns"][1]["value"] = item->getUUID().asString();
+
+		element["columns"][2]["column"] = "Object ID";
+		element["columns"][2]["type"] = "text";
+		element["columns"][2]["value"] = llformat("%u",container->getLocalID());
+
+		LLVector3 object_pos = container->getPositionRegion();
+		std::stringstream sstr;
+		sstr <<llformat("%.1f", object_pos.mV[VX]);
+		sstr <<","<<llformat("%.1f", object_pos.mV[VY]);
+		sstr <<","<<llformat("%.1f", object_pos.mV[VZ]);
+
+		element["columns"][3]["column"] = "Position";
+		element["columns"][3]["type"] = "text";
+		element["columns"][3]["value"] = sstr.str();
+
+		//element["columns"][4]["column"] = "Retries";
+		//element["columns"][4]["type"] = "text";
+		//element["columns"][4]["value"] = "0";
+
+		element["columns"][4]["column"] = "icon_rec";
+		element["columns"][4]["type"] = "icon";
+		std::string filename = root + gDirUtilp->getDirDelimiter() + iname + "." + LLAssetType::lookup(item->getType());
+		element["columns"][4]["value"] = "account_id_orange.tga"; //pending
+		//add it now
+		LLScrollListCtrl* mResultList;
+		mResultList = ExportTrackerFloater::sInstance->getChild<LLScrollListCtrl>("inventory_result_list");
+		mResultList->addElement(element, ADD_BOTTOM);
+		if(LLFile::isfile(filename))
+		{
+			//cmdline_printchat("Duplicated inv item: " + iname); //test
+			LLScrollListItem* invitemp = mResultList->getItem(item->getUUID());
+			invitemp->getColumn(4)->setValue("notify_next.png");
+		}
+		//time to download
+		else if(!JCExportTracker::mirror(item, container, root, iname))//if it successeds it will be green
+			element["columns"][4]["value"] = "icon_lock.tga"; //failed (possible because of permissions)
+
+}
 BOOL JCExportTracker::mirror(LLInventoryObject* item, LLViewerObject* container, std::string root, std::string iname)
 {
 	if(item)
@@ -2883,7 +2903,7 @@ BOOL JCExportTracker::mirror(LLInventoryObject* item, LLViewerObject* container,
 		//LLUUID asset_id = item->getAssetUUID();
 		//if(asset_id.notNull())
 		LLPermissions perm(((LLInventoryItem*)item)->getPermissions());
-		if(exportAllowed(perm))
+		if(JCExportTracker::getInstance()->exportAllowed(perm))
 		{
 			////cmdline_printchat("asset_id.notNull()");
 			LLDynamicArray<std::string> tree;
@@ -2934,47 +2954,6 @@ BOOL JCExportTracker::mirror(LLInventoryObject* item, LLViewerObject* container,
 			info->name = item->getName();
 			info->assetid = item->getUUID();
 
-			//add to floater list
-			LLSD element;
-			element["id"] = item->getUUID(); //object->getLocalID();
-
-			element["columns"][0]["column"] = "Name";
-			element["columns"][0]["type"] = "text";
-			element["columns"][0]["value"] = item->getName();
-
-			element["columns"][1]["column"] = "UUID";
-			element["columns"][1]["type"] = "text";
-			element["columns"][1]["value"] = item->getUUID().asString();
-
-			element["columns"][2]["column"] = "Object ID";
-			element["columns"][2]["type"] = "text";
-			element["columns"][2]["value"] = llformat("%u",container->getLocalID());
-
-			LLVector3 object_pos = container->getPositionRegion();
-			std::stringstream sstr;
-			sstr <<llformat("%.1f", object_pos.mV[VX]);
-			sstr <<","<<llformat("%.1f", object_pos.mV[VY]);
-			sstr <<","<<llformat("%.1f", object_pos.mV[VZ]);
-
-			element["columns"][3]["column"] = "Position";
-			element["columns"][3]["type"] = "text";
-			element["columns"][3]["value"] = sstr.str();
-
-			//element["columns"][4]["column"] = "Retries";
-			//element["columns"][4]["type"] = "text";
-			//element["columns"][4]["value"] = "0";
-
-			element["columns"][4]["column"] = "icon_rec";
-			element["columns"][4]["type"] = "icon";
-
-			LLScrollListCtrl* mResultList;
-			mResultList = ExportTrackerFloater::sInstance->getChild<LLScrollListCtrl>("inventory_result_list");
-			mResultList->addElement(element, ADD_BOTTOM);
-			
-			//LLHost host = container != NULL ? container->getRegion()->getHost() : LLHost::invalid;
-
-			//handle this differently depending on what type of item we're trying to back up
-
 			LLInventoryItem* inv_item = (LLInventoryItem*)item; //info->assetid has the itemid... LAME
 
 			switch(item->getType())
@@ -2989,7 +2968,7 @@ BOOL JCExportTracker::mirror(LLInventoryObject* item, LLViewerObject* container,
 					gAgent.getSessionID(),
 					perm.getOwner(),
 					container != NULL ? container->getID() : LLUUID::null,
-					item->getUUID(),
+					inv_item->getUUID(),
 					inv_item->getAssetUUID(),
 					item->getType(),
 					JCAssetExportCallback,
@@ -3003,7 +2982,7 @@ BOOL JCExportTracker::mirror(LLInventoryObject* item, LLViewerObject* container,
 			case LLAssetType::AT_ANIMATION:
 			case LLAssetType::AT_GESTURE:
 			default:
-				gAssetStorage->getAssetData(inv_item->getAssetUUID(), item->getType(), JCAssetExportCallback, info, TRUE);
+				gAssetStorage->getAssetData(inv_item->getAssetUUID(), inv_item->getType(), JCAssetExportCallback, info, TRUE);
 				break;
 			}
 
