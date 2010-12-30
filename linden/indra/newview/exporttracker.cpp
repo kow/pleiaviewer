@@ -69,7 +69,7 @@ using namespace std;
 #else
 # include "zlib/zlib.h"
 #endif
-void cmdline_printchat(std::string chat);
+void cmdline_printchat(std::string message);
 JCExportTracker* JCExportTracker::sInstance;
 LLSD JCExportTracker::total;
 std::string JCExportTracker::asset_dir;
