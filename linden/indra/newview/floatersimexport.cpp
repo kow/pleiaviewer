@@ -49,7 +49,6 @@ struct JCAssetInfo
 	std::string name;
 	LLUUID assetid;
 };
-
 FloaterSimExport::FloaterSimExport()
 :	LLFloater( std::string("Sim Export Floater") )
 {
@@ -161,74 +160,14 @@ void FloaterSimExport::onClickSaveTerrain(void * data)
 	compp->getDetailTextureID(NORTHWEST);
 	compp->getDetailTextureID(NORTHEAST);
 */
-	F32 water_height=regionp->getWaterHeight();
-
-	U16 terrain[256][256][13];
-
 	LLFilePicker& file_picker = LLFilePicker::instance();
 		
-	if (!file_picker.getSaveFile(LLFilePicker::FFSAVE_RAW))
+	if (!file_picker.getSaveFile(LLFilePicker::FFSAVE_ALL,"terrain.r32"))
 		return; // User canceled save.
 		
 	std::string destination = file_picker.getFirstFile();
 	
-	llofstream out(destination,llofstream::binary);
-
-	for (int x=255;x>=0;x--)
-	{
-		for (int y=0;y<256;y++)
-		{			
-			F32 height=regionp->getLandHeightRegion(LLVector3((float)x,(float)y,0.0));
-			
-			if(height>256)
-			{
-				terrain[x][y][0]=(height/2.0);
-				terrain[x][y][1]=256;
-			}
-			if(height>128 && height <=256)
-			{
-				terrain[x][y][0]=height;
-				terrain[x][y][1]=128;
-			}
-
-			if(height>64 && height <=128)
-			{
-				terrain[x][y][0]=(height*2.0);
-				terrain[x][y][1]=64;
-			}
-			if(height<=64)
-			{
-				terrain[x][y][0]=(height*4.0);
-				terrain[x][y][1]=32;
-			}
-
-			terrain[x][y][2]=water_height;
-			terrain[x][y][3]=0x00;
-			terrain[x][y][4]=0x00;
-			terrain[x][y][5]=0x00;
-			terrain[x][y][6]=0x00;
-			terrain[x][y][7]=0xff;
-			terrain[x][y][8]=0xff;
-			terrain[x][y][9]=0xff;
-			terrain[x][y][10]=0xff;
-			terrain[x][y][11]=terrain[x][y][0];
-			terrain[x][y][12]=terrain[x][y][1];
-		}
-	}
-
-	for (int x=255;x>=0;x--)
-	{
-		for (int y=0;y<256;y++)
-		{			
-			for(int z=0;z<13;z++)
-			{
-				char ch=terrain[y][x][z];
-				out.write(&ch,1);
-			}
-		}
-	}
-
-	out.close();
+	FloaterSimExport::saveTerrain(destination,regionp);
 }
 
 // static
@@ -298,7 +237,7 @@ void FloaterSimExport::startRemoteExport()
 	LLVLComposition *compp = sInstance->mRegionp->getComposition();
 
 	//write out some stats
-	std::string statdest = gDirUtilp->getDirName(sInstance->target_file) + "\\sim info.txt";
+	std::string statdest = gDirUtilp->getDirName(sInstance->target_file) + gDirUtilp->getDirDelimiter() + "sim info.txt";
 
 	// Create a file stream and write to it
 	llofstream out(statdest,ios_base::out);
@@ -335,7 +274,7 @@ void FloaterSimExport::startRemoteExport()
 		LLUUID tmp_id(compp->getDetailTextureID(i));
 
 		JCAssetInfo* info = new JCAssetInfo;
-		info->path = gDirUtilp->getDirName(sInstance->target_file) + "\\" + llformat("terrain_%d", i);
+		info->path = gDirUtilp->getDirName(sInstance->target_file) + gDirUtilp->getDirDelimiter() + llformat("terrain_%d", i);
 		info->name = llformat("texture_detail_%d", i);
 
 		LLViewerImage* img = gImageList.getImage(tmp_id, MIPMAP_TRUE, FALSE);
@@ -355,71 +294,25 @@ void FloaterSimExport::startRemoteExport()
 		}
 	}
 
-	//Save terrain heightmap.
-	F32 water_height=sInstance->mRegionp->getWaterHeight();
+	//Save terrain heightmap.	
+	std::string dest = gDirUtilp->getDirName(sInstance->target_file) + gDirUtilp->getDirDelimiter() + "terrain.r32";
 
-	U16 terrain[256][256][13];
-	
-	std::string dest = gDirUtilp->getDirName(sInstance->target_file) + "\\" + sInstance->mRegionp->getName() + ".raw";
-	llofstream out2(dest,llofstream::binary);
-
-	for (int x=255;x>=0;x--)
-	{
-		for (int y=0;y<256;y++)
-		{			
-			F32 height=sInstance->mRegionp->getLandHeightRegion(LLVector3((float)x,(float)y,0.0));
-			
-			if(height>256)
-			{
-				terrain[x][y][0]=(height/2.0);
-				terrain[x][y][1]=256;
-			}
-			if(height>128 && height <=256)
-			{
-				terrain[x][y][0]=height;
-				terrain[x][y][1]=128;
-			}
-
-			if(height>64 && height <=128)
-			{
-				terrain[x][y][0]=(height*2.0);
-				terrain[x][y][1]=64;
-			}
-			if(height<=64)
-			{
-				terrain[x][y][0]=(height*4.0);
-				terrain[x][y][1]=32;
-			}
-
-			terrain[x][y][2]=water_height;
-			terrain[x][y][3]=0x00;
-			terrain[x][y][4]=0x00;
-			terrain[x][y][5]=0x00;
-			terrain[x][y][6]=0x00;
-			terrain[x][y][7]=0xff;
-			terrain[x][y][8]=0xff;
-			terrain[x][y][9]=0xff;
-			terrain[x][y][10]=0xff;
-			terrain[x][y][11]=terrain[x][y][0];
-			terrain[x][y][12]=terrain[x][y][1];
-		}
-	}
-
-	for (int x=255;x>=0;x--)
-	{
-		for (int y=0;y<256;y++)
-		{			
-			for(int z=0;z<13;z++)
-			{
-				char ch=terrain[y][x][z];
-				out2.write(&ch,1);
-			}
-		}
-	}
-
-	out2.close();
+	FloaterSimExport::saveTerrain(dest,sInstance->mRegionp);
 }
-
+//static
+void FloaterSimExport::saveTerrain(const std::string& filename,LLViewerRegion* regionp)
+{
+	llofstream out(filename,llofstream::binary);
+	for (int y=0;y<256;y++)
+	{
+		for (int x=0;x<256;x++)
+		{
+			float height = regionp->getLandHeightRegion(LLVector3((float)x,(float)y,0.0));
+			out.write((const char*) &height, sizeof(float));
+		}
+	}
+	out.close();
+}
 void FloaterSimExport::statsupdate(void *userdata)
 {
 	//This is suboptimal as we work out the list everytime

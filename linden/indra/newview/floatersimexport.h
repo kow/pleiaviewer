@@ -53,7 +53,8 @@ class FloaterSimExport
 	time_t	threshold_time;
 	std::string target_file;
 
-
+	//helper functions
+	static void saveTerrain(const std::string& filename,LLViewerRegion* regionp);
 private:
 
 	//Static singleton stuff
