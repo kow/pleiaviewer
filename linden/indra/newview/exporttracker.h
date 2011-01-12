@@ -157,6 +157,8 @@ public:
 	void removeObject(LLViewerObject* obj);
 
 	BOOL isSurrogateDeleteable(LLViewerObject* obj);
+	
+	LLUUID getUUIDForAsset(LLInventoryItem* item);
 
 	BOOL exportAllowed(LLPermissions perm);
 

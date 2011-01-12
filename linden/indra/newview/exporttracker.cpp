@@ -2603,7 +2603,13 @@ BOOL couldDL(LLAssetType::EType type)
 		break;
 	}
 }
-
+LLUUID JCExportTracker::getUUIDForAsset(LLInventoryItem* item)
+{
+	LLUUID temp = item->getAssetUUID();
+	if(temp.isNull())
+		temp = item->getUUID();
+	return temp;
+}
 BOOL JCExportTracker::exportAllowed(LLPermissions perm)
 {
 #if FOLLOW_PERMS == 1
@@ -2752,18 +2758,19 @@ LLSD* JCExportTracker::checkInventoryContents(InventoryRequest_t* original_reque
 			{
 				if(couldDL(asset->getType()))
 				{
+					LLUUID uuid = getUUIDForAsset(item);
 					LLSD inv_item;
 					inv_item["name"] = asset->getName();
 					inv_item["type"] = LLAssetType::lookup(asset->getType());
 					//cmdline_printchat("requesting asset "+asset->getName());
 					inv_item["desc"] = item->getDescription();
-					inv_item["item_id"] = asset->getUUID().asString();
+					inv_item["item_id"] = uuid;
 					if(!LLFile::isdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory"))
 					{
 						LLFile::mkdir(asset_dir+gDirUtilp->getDirDelimiter()+"inventory");
 					}
 
-					JCExportTracker::download(asset, obj, asset_dir+gDirUtilp->getDirDelimiter()+"inventory", asset->getUUID().asString());//loltest
+					JCExportTracker::download(asset, obj, asset_dir+gDirUtilp->getDirDelimiter()+"inventory", uuid.asString());//loltest
 					(*inventory)[num++] = inv_item;
 					mTotalAssets++;
 				}
@@ -2856,7 +2863,7 @@ void JCExportTracker::download(LLInventoryObject* item, LLViewerObject* containe
 
 		element["columns"][1]["column"] = "UUID";
 		element["columns"][1]["type"] = "text";
-		element["columns"][1]["value"] = item->getUUID().asString();
+		element["columns"][1]["value"] = getUUIDForAsset((LLInventoryItem*)item);
 
 		element["columns"][2]["column"] = "Object ID";
 		element["columns"][2]["type"] = "text";
@@ -2888,11 +2895,14 @@ void JCExportTracker::download(LLInventoryObject* item, LLViewerObject* containe
 		{
 			//cmdline_printchat("Duplicated inv item: " + iname); //test
 			LLScrollListItem* invitemp = mResultList->getItem(item->getUUID());
-			invitemp->getColumn(4)->setValue("notify_next.png");
+			invitemp->getColumn(4)->setValue("arrow_right.tga");
 		}
 		//time to download
 		else if(!JCExportTracker::mirror(item, container, root, iname))//if it successeds it will be green
-			element["columns"][4]["value"] = "icon_lock.tga"; //failed (possible because of permissions)
+		{
+			LLScrollListItem* invitemp = mResultList->getItem(item->getUUID());
+			invitemp->getColumn(4)->setValue("icon_lock.tga");//failed (possible because of permissions)
+		}
 
 }
 BOOL JCExportTracker::mirror(LLInventoryObject* item, LLViewerObject* container, std::string root, std::string iname)
